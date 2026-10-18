@@ -1,0 +1,19 @@
+# --- data and archives (never in git) ---
+# MSTT-199 volumes; re-download with eval/v2/download_mstt.py
+/data/
+# first run (May 2026, Sonnet 4.6) and other retired material; not versioned
+/archive/
+
+# --- heavy run artifacts: tracked by DVC (*.dvc files), not git ---
+/results
+/eval/v2/marks_dev/renders
+/eval/v2/data_check/slices
+
+# --- environments / caches ---
+node_modules/
+.venv/
+__pycache__/
+*.py[oc]
+.pytest_cache/
+harness/colab/logs/
+.DS_Store

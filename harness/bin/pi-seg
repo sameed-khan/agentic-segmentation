@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# pi-seg: open one MSTT case on segd and launch an interactive pi session that
+# can only call the seg_* tools. See research/harness_design_v2.md §8.2.
+#
+#   harness/bin/pi-seg <case> [run_id]
+#
+# Env overrides: SEGD_URL, NNI_URL, AUTH_SHIM, MODEL, THINKING,
+#                MAX_TOOL_CALLS, MAX_MODEL_PROMPTS.
+set -euo pipefail
+
+CASE="${1:-}"
+RUN_ID="${2:-$(date +%Y%m%d-%H%M%S)}"
+if [[ -z "$CASE" ]]; then
+	echo "usage: pi-seg <case> [run_id]" >&2
+	exit 2
+fi
+
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+SEGD_URL="${SEGD_URL:-http://127.0.0.1:8765}"
+NNI_URL="${NNI_URL:-http://127.0.0.1:1527}"
+AUTH_SHIM="${AUTH_SHIM:-$HOME/.pi/agent/npm/node_modules/@gotgenes/pi-anthropic-auth}"
+MODEL="${MODEL:-anthropic/claude-sonnet-5-5}"
+THINKING="${THINKING:-medium}"
+MAX_TOOL_CALLS="${MAX_TOOL_CALLS:-40}"
+MAX_MODEL_PROMPTS="${MAX_MODEL_PROMPTS:-15}"
+
+OUT_DIR="$ROOT/results/$RUN_ID/$CASE"
+mkdir -p "$OUT_DIR"
+
+# --- case card from eval/v2/mstt_cases.csv --------------------------------
+ROW="$(awk -F, -v c="$CASE" '$1==c {print; exit}' "$ROOT/eval/v2/mstt_cases.csv")"
+if [[ -z "$ROW" ]]; then
+	echo "pi-seg: case '$CASE' not found in eval/v2/mstt_cases.csv" >&2
+	exit 1
+fi
+HISTOTYPE="$(echo "$ROW" | cut -d, -f2)"
+SEQUENCE="$(echo "$ROW" | cut -d, -f3)"
+
+case "$HISTOTYPE" in
+F) TARGET_TEXT="fibrous soft-tissue tumor" ;;
+L) TARGET_TEXT="lipomatous soft-tissue tumor" ;;
+M) TARGET_TEXT="myxoid soft-tissue tumor" ;;
+N) TARGET_TEXT="peripheral nerve sheath tumor" ;;
+V) TARGET_TEXT="vascular soft-tissue tumor" ;;
+*) TARGET_TEXT="$HISTOTYPE" ;;
+esac
+
+SHAPE="$(
+	python3 - "$ROOT/eval/v2/data_check/design.jsonl" "$CASE" <<'PY' 2>/dev/null || true
+import json, sys
+path, case = sys.argv[1], sys.argv[2]
+try:
+    for line in open(path):
+        row = json.loads(line)
+        if row.get("case") == case and row.get("shape"):
+            print("x".join(str(v) for v in row["shape"]))
+            break
+except FileNotFoundError:
+    pass
+PY
+)"
+SHAPE="${SHAPE:-unknown (seen at seg_open)}"
+
+BUDGETS="max $MAX_TOOL_CALLS tool calls / $MAX_MODEL_PROMPTS model prompts"
+
+# --- open the case on segd ------------------------------------------------
+BODY="$(printf '{"case_id":"%s","run_id":"%s","out_dir":"%s","nni_url":"%s","budgets":{"max_tool_calls":%s,"max_model_prompts":%s}}' \
+	"$CASE" "$RUN_ID" "$ROOT/results" "$NNI_URL" "$MAX_TOOL_CALLS" "$MAX_MODEL_PROMPTS")"
+REPLY="$(curl -sS -X POST "$SEGD_URL/cases" -H 'content-type: application/json' -d "$BODY")"
+if ! grep -q '"ok"[[:space:]]*:[[:space:]]*true' <<<"$REPLY"; then
+	echo "pi-seg: POST $SEGD_URL/cases failed: $REPLY" >&2
+	exit 1
+fi
+
+export SEGD_URL
+export SEGD_CASE="$CASE"
+
+# --- prompts --------------------------------------------------------------
+SYSTEM_TEMPLATE="$(cat "$ROOT/harness/prompts/system.md")"
+SYSTEM_PROMPT="${SYSTEM_TEMPLATE//'{{max_tool_calls}}'/$MAX_TOOL_CALLS}"
+SYSTEM_PROMPT="${SYSTEM_PROMPT//'{{max_model_prompts}}'/$MAX_MODEL_PROMPTS}"
+
+TASK_TEMPLATE="$(cat "$ROOT/harness/prompts/task.md")"
+TASK_MESSAGE="${TASK_TEMPLATE//'{{case_id}}'/$CASE}"
+TASK_MESSAGE="${TASK_MESSAGE//'{{target_text}}'/$TARGET_TEXT}"
+TASK_MESSAGE="${TASK_MESSAGE//'{{sequence}}'/$SEQUENCE}"
+TASK_MESSAGE="${TASK_MESSAGE//'{{shape}}'/$SHAPE}"
+TASK_MESSAGE="${TASK_MESSAGE//'{{budgets}}'/$BUDGETS}"
+
+echo "pi-seg: case $CASE ($HISTOTYPE, $SEQUENCE, $SHAPE) -> $OUT_DIR"
+echo "pi-seg: task: $TASK_MESSAGE"
+
+# 3. interactive launch; positional argument is the initial prompt.
+exec pi -ne -e "$ROOT/harness/extension" -e "$AUTH_SHIM" \
+	--no-mcp -ns -np -nc --no-themes -na \
+	--tools 'seg_*' --model "$MODEL" --thinking "$THINKING" \
+	--session-dir "$OUT_DIR" \
+	--system-prompt "$SYSTEM_PROMPT" \
+	"$TASK_MESSAGE"

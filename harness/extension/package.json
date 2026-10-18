@@ -1,0 +1,11 @@
+{
+  "name": "pi-seg-extension",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "pi extension registering the seg_* tools that proxy to the segd HTTP daemon.",
+  "dependencies": {
+    "@earendil-works/pi-ai": "1.2.0",
+    "@earendil-works/pi-coding-agent": "1.2.0"
+  }
+}

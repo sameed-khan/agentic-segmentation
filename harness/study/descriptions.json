@@ -1,0 +1,34 @@
+{
+  "frozen": "2026-10-18",
+  "purpose": "S-desc condition of the Phase 2 localization study (and the agent prompt only if S-desc is adopted). Narrowed to the MSTT-199 entities (arXiv:2409.03110). Source document: research/histotype_mri_descriptions.md; citation numbers refer to its section 5.",
+  "rules": "<= 60 words each; descriptive only; every claim traceable to the cited sources; claims without a retrieved source (angiosarcoma-specific appearance) are omitted.",
+  "descriptions": {
+    "F": {
+      "entities": ["desmoid fibromatosis", "undifferentiated pleomorphic sarcoma"],
+      "text": "Fibrous tumor (desmoid fibromatosis or undifferentiated pleomorphic sarcoma): a soft-tissue mass roughly isointense to muscle on T1 and of intermediate-to-high, heterogeneous signal on fat-suppressed T2, where dense collagen forms dark bands. Desmoids have infiltrative margins and often a linear tail along a fascial plane; myxoid or necrotic parts of a sarcoma are brighter on T2.",
+      "sources": [2]
+    },
+    "L": {
+      "entities": ["well-differentiated liposarcoma", "dedifferentiated liposarcoma"],
+      "text": "Lipomatous tumor (well-differentiated or dedifferentiated liposarcoma): a mass made largely of fat, bright on T1 like subcutaneous fat and dark on fat-suppressed T2, with thick or nodular septa and non-fatty nodules. A dedifferentiated tumor adds a non-fatty solid component, intermediate on T1 and bright on T2, which belongs to the same lesion.",
+      "sources": [4, 6, 7],
+      "notes": "Dedifferentiated component wording: abstract-level evidence (Murphey 2005, ref 4) plus researcher inference recorded in section 3 item 2."
+    },
+    "M": {
+      "entities": ["intramuscular myxoma", "myxoid fibrosarcoma (myxofibrosarcoma)"],
+      "text": "Myxoid tumor (intramuscular myxoma or myxofibrosarcoma): a mass darker than muscle on T1 and very bright, close to fluid, on fat-suppressed T2, so it can resemble a cyst. Myxomas are well circumscribed inside a muscle, often with a thin rim of fat or edema around them; myxofibrosarcomas are more heterogeneous, with ill-defined infiltrative margins and a bright tail along fascia.",
+      "sources": [9]
+    },
+    "N": {
+      "entities": ["schwannoma", "malignant peripheral nerve sheath tumor"],
+      "text": "Nerve sheath tumor (schwannoma or malignant peripheral nerve sheath tumor): a fusiform mass along the course of a major nerve, low-to-intermediate on T1 and bright on T2. Look for the nerve entering or exiting the mass, fat capping its upper and lower poles (split-fat sign), and ring-like fascicles. Malignant tumors have infiltrative margins and surrounding edema.",
+      "sources": [11, 14, 20]
+    },
+    "V": {
+      "entities": ["hemangioma / arteriovenous malformation", "angiosarcoma"],
+      "text": "Vascular tumor (hemangioma, vascular malformation, or angiosarcoma): a lobulated, septated mass of tangled serpiginous channels, intermediate-to-low on T1 and strikingly bright on fat-suppressed T2. Look for dark round phleboliths, dark flow voids, fluid-fluid levels, and interspersed fat on T1.",
+      "sources": [15, 18, 19],
+      "notes": "No retrieved source describes angiosarcoma MRI appearance; the text covers the benign vascular entities only (evidence gap, section 3 item 3)."
+    }
+  }
+}

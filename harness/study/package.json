@@ -1,0 +1,19 @@
+{
+  "name": "pi-seg-study",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Phase 2 localization study: single-turn model calls (ask.ts) on prepared render images.",
+  "scripts": {
+    "ask": "tsx ask.ts"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "1.2.0",
+    "@earendil-works/pi-coding-agent": "1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  }
+}

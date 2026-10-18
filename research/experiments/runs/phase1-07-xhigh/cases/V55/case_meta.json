@@ -1,0 +1,39 @@
+{
+  "case_id": "V55",
+  "shape": [
+    181,
+    181,
+    61
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2599846,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    61
+  ],
+  "created_at": "2026-10-18T23:25:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T23:26:31Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright lobulated T2 lesion lateral to fibula captured in all three planes; boundaries follow the bright margin.",
+  "tool_calls": 16,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V65",
+  "shape": [
+    286,
+    286,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10784578,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    286,
+    286,
+    141
+  ],
+  "created_at": "2026-10-18T23:26:00Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T23:29:11Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Posterior hip/gluteal lobulated T2-bright mass segmented; contours match in three planes, but the identification of the tumor and its faint superior/inferior ends are uncertain.",
+  "tool_calls": 28,
+  "model_prompts": 2
+}

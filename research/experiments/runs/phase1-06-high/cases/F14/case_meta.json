@@ -1,0 +1,39 @@
+{
+  "case_id": "F14",
+  "shape": [
+    307,
+    307,
+    171
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18749731,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    307,
+    307,
+    171
+  ],
+  "created_at": "2026-10-18T23:00:31Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T23:01:48Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "Uncertain target; mask covers a T2-bright band-like lesion along the chest wall.",
+  "tool_calls": 22,
+  "model_prompts": 3
+}

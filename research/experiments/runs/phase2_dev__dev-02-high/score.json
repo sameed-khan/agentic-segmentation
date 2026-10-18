@@ -1,0 +1,47 @@
+{
+  "aggregate": {
+    "R": {
+      "n_calls": 90,
+      "n_parse_fail": 0,
+      "n_invalid_mark": 0,
+      "n_outside_panel": 0,
+      "n_response_error": 0,
+      "hit_rate_mean_over_reps": 0.7,
+      "distance_mean_mm": 6.865,
+      "distance_median_mm": 0.0,
+      "n_cases": 30,
+      "n_cases_with_majority_answer": 30,
+      "majority_hit_rate_per_case": 0.7333,
+      "strict_majority_hit_rate": 0.7857
+    },
+    "S": {
+      "n_calls": 90,
+      "n_parse_fail": 0,
+      "n_invalid_mark": 0,
+      "n_outside_panel": 0,
+      "n_response_error": 0,
+      "hit_rate_mean_over_reps": 0.9111,
+      "distance_mean_mm": 3.252,
+      "distance_median_mm": 0.0,
+      "n_cases": 30,
+      "n_cases_with_majority_answer": 30,
+      "majority_hit_rate_per_case": 0.9,
+      "strict_majority_hit_rate": 0.9
+    },
+    "S-ex": {
+      "n_calls": 90,
+      "n_parse_fail": 0,
+      "n_invalid_mark": 0,
+      "n_outside_panel": 0,
+      "n_response_error": 0,
+      "hit_rate_mean_over_reps": 0.9,
+      "distance_mean_mm": 4.344,
+      "distance_median_mm": 0.0,
+      "n_cases": 30,
+      "n_cases_with_majority_answer": 30,
+      "majority_hit_rate_per_case": 0.9,
+      "strict_majority_hit_rate": 0.8929
+    }
+  },
+  "coverage_rate": 1.0
+}

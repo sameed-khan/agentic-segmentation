@@ -1,0 +1,270 @@
+{"case": "F14", "condition": "R", "rep": 2, "status": "ok", "value": [350.0, 268.0], "hit": false, "distance_mm": 79.88116173416608, "voxel": [167, 199, 90], "inplane_row_col": [167, 199], "response_error": false}
+{"case": "F14", "condition": "R", "rep": 1, "status": "ok", "value": [350.0, 268.0], "hit": false, "distance_mm": 79.88116173416608, "voxel": [167, 199, 90], "inplane_row_col": [167, 199], "response_error": false}
+{"case": "F14", "condition": "R", "rep": 0, "status": "ok", "value": [310.0, 248.0], "hit": false, "distance_mm": 79.30952023559341, "voxel": [183, 207, 90], "inplane_row_col": [183, 207], "response_error": false}
+{"case": "F14", "condition": "S", "rep": 0, "status": "ok", "value": 1121, "hit": false, "distance_mm": 90.24965373894794, "voxel": [200, 224, 90], "inplane_row_col": [200, 224], "response_error": false}
+{"case": "F14", "condition": "S", "rep": 1, "status": "ok", "value": 1121, "hit": false, "distance_mm": 90.24965373894794, "voxel": [200, 224, 90], "inplane_row_col": [200, 224], "response_error": false}
+{"case": "F14", "condition": "S", "rep": 2, "status": "ok", "value": 1161, "hit": false, "distance_mm": 62.297672508690084, "voxel": [204, 196, 90], "inplane_row_col": [204, 196], "response_error": false}
+{"case": "F14", "condition": "S-ex", "rep": 0, "status": "ok", "value": 1121, "hit": false, "distance_mm": 90.24965373894794, "voxel": [200, 224, 90], "inplane_row_col": [200, 224], "response_error": false}
+{"case": "F14", "condition": "S-ex", "rep": 1, "status": "ok", "value": 1121, "hit": false, "distance_mm": 90.24965373894794, "voxel": [200, 224, 90], "inplane_row_col": [200, 224], "response_error": false}
+{"case": "F14", "condition": "S-ex", "rep": 2, "status": "ok", "value": 1161, "hit": false, "distance_mm": 62.297672508690084, "voxel": [204, 196, 90], "inplane_row_col": [204, 196], "response_error": false}
+{"case": "F15", "condition": "R", "rep": 0, "status": "ok", "value": [395.0, 385.0], "hit": false, "distance_mm": 7.0710678118654755, "voxel": [113, 116, 90], "inplane_row_col": [113, 116], "response_error": false}
+{"case": "F15", "condition": "R", "rep": 1, "status": "ok", "value": [265.0, 395.0], "hit": false, "distance_mm": 30.610455730027933, "voxel": [152, 113, 90], "inplane_row_col": [152, 113], "response_error": false}
+{"case": "F15", "condition": "S", "rep": 0, "status": "ok", "value": 175, "hit": false, "distance_mm": 7.0, "voxel": [128, 86, 90], "inplane_row_col": [128, 86], "response_error": false}
+{"case": "F15", "condition": "R", "rep": 2, "status": "ok", "value": [275.0, 400.0], "hit": false, "distance_mm": 27.018512172212592, "voxel": [149, 111, 90], "inplane_row_col": [149, 111], "response_error": false}
+{"case": "F15", "condition": "S", "rep": 1, "status": "ok", "value": 175, "hit": false, "distance_mm": 7.0, "voxel": [128, 86, 90], "inplane_row_col": [128, 86], "response_error": false}
+{"case": "F15", "condition": "S", "rep": 2, "status": "ok", "value": 168, "hit": false, "distance_mm": 20.0, "voxel": [128, 124, 90], "inplane_row_col": [128, 124], "response_error": false}
+{"case": "F32", "condition": "R", "rep": 0, "status": "ok", "value": [540.0, 425.0], "hit": true, "distance_mm": 0.0, "voxel": [74, 112, 198], "inplane_row_col": [74, 112], "response_error": false}
+{"case": "F15", "condition": "S-ex", "rep": 0, "status": "ok", "value": 175, "hit": false, "distance_mm": 7.0, "voxel": [128, 86, 90], "inplane_row_col": [128, 86], "response_error": false}
+{"case": "F32", "condition": "R", "rep": 1, "status": "ok", "value": [535.0, 420.0], "hit": true, "distance_mm": 0.0, "voxel": [76, 113, 198], "inplane_row_col": [76, 113], "response_error": false}
+{"case": "F32", "condition": "R", "rep": 2, "status": "ok", "value": [535.0, 430.0], "hit": true, "distance_mm": 0.0, "voxel": [76, 110, 198], "inplane_row_col": [76, 110], "response_error": false}
+{"case": "F15", "condition": "S-ex", "rep": 1, "status": "ok", "value": 175, "hit": false, "distance_mm": 7.0, "voxel": [128, 86, 90], "inplane_row_col": [128, 86], "response_error": false}
+{"case": "F32", "condition": "S", "rep": 0, "status": "ok", "value": 864, "hit": true, "distance_mm": 0.0, "voxel": [92, 112, 198], "inplane_row_col": [92, 112], "response_error": false}
+{"case": "F15", "condition": "S-ex", "rep": 2, "status": "ok", "value": 175, "hit": false, "distance_mm": 7.0, "voxel": [128, 86, 90], "inplane_row_col": [128, 86], "response_error": false}
+{"case": "F32", "condition": "S", "rep": 1, "status": "ok", "value": 864, "hit": true, "distance_mm": 0.0, "voxel": [92, 112, 198], "inplane_row_col": [92, 112], "response_error": false}
+{"case": "F32", "condition": "S-ex", "rep": 0, "status": "ok", "value": 864, "hit": true, "distance_mm": 0.0, "voxel": [92, 112, 198], "inplane_row_col": [92, 112], "response_error": false}
+{"case": "F44", "condition": "R", "rep": 0, "status": "ok", "value": [425.0, 365.0], "hit": true, "distance_mm": 0.0, "voxel": [133, 157, 75], "inplane_row_col": [133, 157], "response_error": false}
+{"case": "F32", "condition": "S-ex", "rep": 2, "status": "ok", "value": 864, "hit": true, "distance_mm": 0.0, "voxel": [92, 112, 198], "inplane_row_col": [92, 112], "response_error": false}
+{"case": "F44", "condition": "R", "rep": 1, "status": "ok", "value": [420.0, 365.0], "hit": true, "distance_mm": 0.0, "voxel": [135, 157, 75], "inplane_row_col": [135, 157], "response_error": false}
+{"case": "F32", "condition": "S-ex", "rep": 1, "status": "ok", "value": 864, "hit": true, "distance_mm": 0.0, "voxel": [92, 112, 198], "inplane_row_col": [92, 112], "response_error": false}
+{"case": "F44", "condition": "R", "rep": 2, "status": "ok", "value": [420.0, 365.0], "hit": true, "distance_mm": 0.0, "voxel": [135, 157, 75], "inplane_row_col": [135, 157], "response_error": false}
+{"case": "F32", "condition": "S", "rep": 2, "status": "ok", "value": 864, "hit": true, "distance_mm": 0.0, "voxel": [92, 112, 198], "inplane_row_col": [92, 112], "response_error": false}
+{"case": "F44", "condition": "S", "rep": 0, "status": "ok", "value": 462, "hit": true, "distance_mm": 0.0, "voxel": [144, 168, 75], "inplane_row_col": [144, 168], "response_error": false}
+{"case": "F44", "condition": "S", "rep": 1, "status": "ok", "value": 462, "hit": true, "distance_mm": 0.0, "voxel": [144, 168, 75], "inplane_row_col": [144, 168], "response_error": false}
+{"case": "F44", "condition": "S", "rep": 2, "status": "ok", "value": 462, "hit": true, "distance_mm": 0.0, "voxel": [144, 168, 75], "inplane_row_col": [144, 168], "response_error": false}
+{"case": "F44", "condition": "S-ex", "rep": 0, "status": "ok", "value": 462, "hit": true, "distance_mm": 0.0, "voxel": [144, 168, 75], "inplane_row_col": [144, 168], "response_error": false}
+{"case": "F44", "condition": "S-ex", "rep": 1, "status": "ok", "value": 462, "hit": true, "distance_mm": 0.0, "voxel": [144, 168, 75], "inplane_row_col": [144, 168], "response_error": false}
+{"case": "F44", "condition": "S-ex", "rep": 2, "status": "ok", "value": 462, "hit": true, "distance_mm": 0.0, "voxel": [144, 168, 75], "inplane_row_col": [144, 168], "response_error": false}
+{"case": "F49", "condition": "R", "rep": 0, "status": "ok", "value": [475.0, 455.0], "hit": true, "distance_mm": 0.0, "voxel": [91, 98, 132], "inplane_row_col": [91, 98], "response_error": false}
+{"case": "F49", "condition": "S", "rep": 0, "status": "ok", "value": 978, "hit": true, "distance_mm": 0.0, "voxel": [88, 100, 132], "inplane_row_col": [88, 100], "response_error": false}
+{"case": "F49", "condition": "R", "rep": 1, "status": "ok", "value": [475.0, 455.0], "hit": true, "distance_mm": 0.0, "voxel": [91, 98, 132], "inplane_row_col": [91, 98], "response_error": false}
+{"case": "F49", "condition": "R", "rep": 2, "status": "ok", "value": [475.0, 453.0], "hit": true, "distance_mm": 0.0, "voxel": [91, 98, 132], "inplane_row_col": [91, 98], "response_error": false}
+{"case": "F49", "condition": "S", "rep": 1, "status": "ok", "value": 978, "hit": true, "distance_mm": 0.0, "voxel": [88, 100, 132], "inplane_row_col": [88, 100], "response_error": false}
+{"case": "F49", "condition": "S", "rep": 2, "status": "ok", "value": 978, "hit": true, "distance_mm": 0.0, "voxel": [88, 100, 132], "inplane_row_col": [88, 100], "response_error": false}
+{"case": "F49", "condition": "S-ex", "rep": 0, "status": "ok", "value": 978, "hit": true, "distance_mm": 0.0, "voxel": [88, 100, 132], "inplane_row_col": [88, 100], "response_error": false}
+{"case": "F49", "condition": "S-ex", "rep": 1, "status": "ok", "value": 978, "hit": true, "distance_mm": 0.0, "voxel": [88, 100, 132], "inplane_row_col": [88, 100], "response_error": false}
+{"case": "F49", "condition": "S-ex", "rep": 2, "status": "ok", "value": 978, "hit": true, "distance_mm": 0.0, "voxel": [88, 100, 132], "inplane_row_col": [88, 100], "response_error": false}
+{"case": "F50", "condition": "R", "rep": 0, "status": "ok", "value": [365.0, 580.0], "hit": true, "distance_mm": 0.0, "voxel": [114, 83, 52], "inplane_row_col": [114, 83], "response_error": false}
+{"case": "F50", "condition": "R", "rep": 1, "status": "ok", "value": [360.0, 585.0], "hit": true, "distance_mm": 0.0, "voxel": [117, 81, 52], "inplane_row_col": [117, 81], "response_error": false}
+{"case": "F50", "condition": "R", "rep": 2, "status": "ok", "value": [365.0, 585.0], "hit": true, "distance_mm": 0.0, "voxel": [114, 81, 52], "inplane_row_col": [114, 81], "response_error": false}
+{"case": "F50", "condition": "S", "rep": 0, "status": "ok", "value": 467, "hit": true, "distance_mm": 0.0, "voxel": [144, 96, 52], "inplane_row_col": [144, 96], "response_error": false}
+{"case": "F50", "condition": "S-ex", "rep": 0, "status": "ok", "value": 467, "hit": true, "distance_mm": 0.0, "voxel": [144, 96, 52], "inplane_row_col": [144, 96], "response_error": false}
+{"case": "F50", "condition": "S", "rep": 2, "status": "ok", "value": 525, "hit": true, "distance_mm": 0.0, "voxel": [108, 100, 52], "inplane_row_col": [108, 100], "response_error": false}
+{"case": "F50", "condition": "S", "rep": 1, "status": "ok", "value": 525, "hit": true, "distance_mm": 0.0, "voxel": [108, 100, 52], "inplane_row_col": [108, 100], "response_error": false}
+{"case": "L19", "condition": "R", "rep": 0, "status": "ok", "value": [365.0, 570.0], "hit": true, "distance_mm": 0.0, "voxel": [236, 116, 259], "inplane_row_col": [236, 116], "response_error": false}
+{"case": "L19", "condition": "R", "rep": 1, "status": "ok", "value": [360.0, 572.0], "hit": true, "distance_mm": 0.0, "voxel": [239, 115, 259], "inplane_row_col": [239, 115], "response_error": false}
+{"case": "F50", "condition": "S-ex", "rep": 2, "status": "ok", "value": 467, "hit": true, "distance_mm": 0.0, "voxel": [144, 96, 52], "inplane_row_col": [144, 96], "response_error": false}
+{"case": "L19", "condition": "R", "rep": 2, "status": "ok", "value": [365.0, 575.0], "hit": false, "distance_mm": 1.0, "voxel": [236, 113, 259], "inplane_row_col": [236, 113], "response_error": false}
+{"case": "F50", "condition": "S-ex", "rep": 1, "status": "ok", "value": 525, "hit": true, "distance_mm": 0.0, "voxel": [108, 100, 52], "inplane_row_col": [108, 100], "response_error": false}
+{"case": "L19", "condition": "S", "rep": 2, "status": "ok", "value": 3707, "hit": true, "distance_mm": 0.0, "voxel": [260, 144, 259], "inplane_row_col": [260, 144], "response_error": false}
+{"case": "L19", "condition": "S", "rep": 1, "status": "ok", "value": 3707, "hit": true, "distance_mm": 0.0, "voxel": [260, 144, 259], "inplane_row_col": [260, 144], "response_error": false}
+{"case": "L19", "condition": "S", "rep": 0, "status": "ok", "value": 3707, "hit": true, "distance_mm": 0.0, "voxel": [260, 144, 259], "inplane_row_col": [260, 144], "response_error": false}
+{"case": "L19", "condition": "S-ex", "rep": 2, "status": "ok", "value": 3707, "hit": true, "distance_mm": 0.0, "voxel": [260, 144, 259], "inplane_row_col": [260, 144], "response_error": false}
+{"case": "L20", "condition": "R", "rep": 0, "status": "ok", "value": [485.0, 345.0], "hit": true, "distance_mm": 0.0, "voxel": [74, 110, 144], "inplane_row_col": [74, 110], "response_error": false}
+{"case": "L20", "condition": "R", "rep": 1, "status": "ok", "value": [485.0, 345.0], "hit": true, "distance_mm": 0.0, "voxel": [74, 110, 144], "inplane_row_col": [74, 110], "response_error": false}
+{"case": "L19", "condition": "S-ex", "rep": 0, "status": "ok", "value": 3707, "hit": true, "distance_mm": 0.0, "voxel": [260, 144, 259], "inplane_row_col": [260, 144], "response_error": false}
+{"case": "L20", "condition": "R", "rep": 2, "status": "ok", "value": [485.0, 345.0], "hit": true, "distance_mm": 0.0, "voxel": [74, 110, 144], "inplane_row_col": [74, 110], "response_error": false}
+{"case": "L20", "condition": "S", "rep": 0, "status": "ok", "value": 370, "hit": true, "distance_mm": 0.0, "voxel": [84, 120, 144], "inplane_row_col": [84, 120], "response_error": false}
+{"case": "L20", "condition": "S", "rep": 1, "status": "ok", "value": 370, "hit": true, "distance_mm": 0.0, "voxel": [84, 120, 144], "inplane_row_col": [84, 120], "response_error": false}
+{"case": "L20", "condition": "S", "rep": 2, "status": "ok", "value": 370, "hit": true, "distance_mm": 0.0, "voxel": [84, 120, 144], "inplane_row_col": [84, 120], "response_error": false}
+{"case": "L19", "condition": "S-ex", "rep": 1, "status": "ok", "value": 3701, "hit": true, "distance_mm": 0.0, "voxel": [244, 124, 259], "inplane_row_col": [244, 124], "response_error": false}
+{"case": "L20", "condition": "S-ex", "rep": 0, "status": "ok", "value": 370, "hit": true, "distance_mm": 0.0, "voxel": [84, 120, 144], "inplane_row_col": [84, 120], "response_error": false}
+{"case": "L33", "condition": "R", "rep": 0, "status": "ok", "value": [400.0, 375.0], "hit": false, "distance_mm": 40.44749683231337, "voxel": [120, 128, 119], "inplane_row_col": [120, 128], "response_error": false}
+{"case": "L20", "condition": "S-ex", "rep": 1, "status": "ok", "value": 370, "hit": true, "distance_mm": 0.0, "voxel": [84, 120, 144], "inplane_row_col": [84, 120], "response_error": false}
+{"case": "L20", "condition": "S-ex", "rep": 2, "status": "ok", "value": 370, "hit": true, "distance_mm": 0.0, "voxel": [84, 120, 144], "inplane_row_col": [84, 120], "response_error": false}
+{"case": "L33", "condition": "R", "rep": 1, "status": "ok", "value": [395.0, 370.0], "hit": false, "distance_mm": 42.579337712087536, "voxel": [121, 130, 119], "inplane_row_col": [121, 130], "response_error": false}
+{"case": "L33", "condition": "R", "rep": 2, "status": "ok", "value": [395.0, 370.0], "hit": false, "distance_mm": 42.579337712087536, "voxel": [121, 130, 119], "inplane_row_col": [121, 130], "response_error": false}
+{"case": "L33", "condition": "S", "rep": 2, "status": "ok", "value": 409, "hit": false, "distance_mm": 42.37924020083418, "voxel": [128, 128, 119], "inplane_row_col": [128, 128], "response_error": false}
+{"case": "L33", "condition": "S", "rep": 0, "status": "ok", "value": 409, "hit": false, "distance_mm": 42.37924020083418, "voxel": [128, 128, 119], "inplane_row_col": [128, 128], "response_error": false}
+{"case": "L33", "condition": "S-ex", "rep": 0, "status": "ok", "value": 409, "hit": false, "distance_mm": 42.37924020083418, "voxel": [128, 128, 119], "inplane_row_col": [128, 128], "response_error": false}
+{"case": "L35", "condition": "R", "rep": 0, "status": "ok", "value": [480.0, 550.0], "hit": true, "distance_mm": 0.0, "voxel": [94, 71, 147], "inplane_row_col": [94, 71], "response_error": false}
+{"case": "L33", "condition": "S-ex", "rep": 2, "status": "ok", "value": 409, "hit": false, "distance_mm": 42.37924020083418, "voxel": [128, 128, 119], "inplane_row_col": [128, 128], "response_error": false}
+{"case": "L33", "condition": "S-ex", "rep": 1, "status": "ok", "value": 409, "hit": false, "distance_mm": 42.37924020083418, "voxel": [128, 128, 119], "inplane_row_col": [128, 128], "response_error": false}
+{"case": "L35", "condition": "R", "rep": 1, "status": "ok", "value": [460.0, 540.0], "hit": true, "distance_mm": 0.0, "voxel": [100, 74, 147], "inplane_row_col": [100, 74], "response_error": false}
+{"case": "L35", "condition": "S", "rep": 0, "status": "ok", "value": 1383, "hit": true, "distance_mm": 0.0, "voxel": [124, 88, 147], "inplane_row_col": [124, 88], "response_error": false}
+{"case": "L35", "condition": "R", "rep": 2, "status": "ok", "value": [480.0, 540.0], "hit": true, "distance_mm": 0.0, "voxel": [94, 74, 147], "inplane_row_col": [94, 74], "response_error": false}
+{"case": "L35", "condition": "S", "rep": 1, "status": "ok", "value": 1383, "hit": true, "distance_mm": 0.0, "voxel": [124, 88, 147], "inplane_row_col": [124, 88], "response_error": false}
+{"case": "L35", "condition": "S-ex", "rep": 0, "status": "ok", "value": 1383, "hit": true, "distance_mm": 0.0, "voxel": [124, 88, 147], "inplane_row_col": [124, 88], "response_error": false}
+{"case": "L35", "condition": "S", "rep": 2, "status": "ok", "value": 1383, "hit": true, "distance_mm": 0.0, "voxel": [124, 88, 147], "inplane_row_col": [124, 88], "response_error": false}
+{"case": "L35", "condition": "S-ex", "rep": 1, "status": "ok", "value": 1383, "hit": true, "distance_mm": 0.0, "voxel": [124, 88, 147], "inplane_row_col": [124, 88], "response_error": false}
+{"case": "L35", "condition": "S-ex", "rep": 2, "status": "ok", "value": 1383, "hit": true, "distance_mm": 0.0, "voxel": [124, 88, 147], "inplane_row_col": [124, 88], "response_error": false}
+{"case": "L38", "condition": "R", "rep": 0, "status": "ok", "value": [388.0, 425.0], "hit": true, "distance_mm": 0.0, "voxel": [129, 116, 97], "inplane_row_col": [129, 116], "response_error": false}
+{"case": "L38", "condition": "R", "rep": 1, "status": "ok", "value": [385.0, 425.0], "hit": true, "distance_mm": 0.0, "voxel": [130, 116, 97], "inplane_row_col": [130, 116], "response_error": false}
+{"case": "L38", "condition": "R", "rep": 2, "status": "ok", "value": [385.0, 428.0], "hit": true, "distance_mm": 0.0, "voxel": [130, 115, 97], "inplane_row_col": [130, 115], "response_error": false}
+{"case": "L38", "condition": "S", "rep": 2, "status": "ok", "value": 152, "hit": true, "distance_mm": 0.0, "voxel": [152, 124, 97], "inplane_row_col": [152, 124], "response_error": false}
+{"case": "L38", "condition": "S", "rep": 1, "status": "ok", "value": 152, "hit": true, "distance_mm": 0.0, "voxel": [152, 124, 97], "inplane_row_col": [152, 124], "response_error": false}
+{"case": "L38", "condition": "S", "rep": 0, "status": "ok", "value": 152, "hit": true, "distance_mm": 0.0, "voxel": [152, 124, 97], "inplane_row_col": [152, 124], "response_error": false}
+{"case": "L33", "condition": "S", "rep": 1, "status": "ok", "value": 409, "hit": false, "distance_mm": 42.37924020083418, "voxel": [128, 128, 119], "inplane_row_col": [128, 128], "response_error": false}
+{"case": "L43", "condition": "R", "rep": 0, "status": "ok", "value": [487.0, 295.0], "hit": false, "distance_mm": 4.0, "voxel": [146, 246, 196], "inplane_row_col": [146, 246], "response_error": false}
+{"case": "L38", "condition": "S-ex", "rep": 2, "status": "ok", "value": 152, "hit": true, "distance_mm": 0.0, "voxel": [152, 124, 97], "inplane_row_col": [152, 124], "response_error": false}
+{"case": "L38", "condition": "S-ex", "rep": 1, "status": "ok", "value": 152, "hit": true, "distance_mm": 0.0, "voxel": [152, 124, 97], "inplane_row_col": [152, 124], "response_error": false}
+{"case": "L38", "condition": "S-ex", "rep": 0, "status": "ok", "value": 152, "hit": true, "distance_mm": 0.0, "voxel": [152, 124, 97], "inplane_row_col": [152, 124], "response_error": false}
+{"case": "L43", "condition": "R", "rep": 1, "status": "ok", "value": [480.0, 288.0], "hit": true, "distance_mm": 0.0, "voxel": [150, 250, 196], "inplane_row_col": [150, 250], "response_error": false}
+{"case": "L43", "condition": "R", "rep": 2, "status": "ok", "value": [485.0, 290.0], "hit": false, "distance_mm": 3.0, "voxel": [147, 249, 196], "inplane_row_col": [147, 249], "response_error": false}
+{"case": "L43", "condition": "S", "rep": 1, "status": "ok", "value": 3023, "hit": true, "distance_mm": 0.0, "voxel": [160, 236, 196], "inplane_row_col": [160, 236], "response_error": false}
+{"case": "L43", "condition": "S", "rep": 0, "status": "ok", "value": 3023, "hit": true, "distance_mm": 0.0, "voxel": [160, 236, 196], "inplane_row_col": [160, 236], "response_error": false}
+{"case": "L43", "condition": "S-ex", "rep": 0, "status": "ok", "value": 2954, "hit": true, "distance_mm": 0.0, "voxel": [160, 284, 196], "inplane_row_col": [160, 284], "response_error": false}
+{"case": "L43", "condition": "S", "rep": 2, "status": "ok", "value": 3023, "hit": true, "distance_mm": 0.0, "voxel": [160, 236, 196], "inplane_row_col": [160, 236], "response_error": false}
+{"case": "M01", "condition": "R", "rep": 0, "status": "ok", "value": [254.0, 493.0], "hit": true, "distance_mm": 0.0, "voxel": [307, 164, 133], "inplane_row_col": [307, 164], "response_error": false}
+{"case": "M01", "condition": "R", "rep": 1, "status": "ok", "value": [254.0, 493.0], "hit": true, "distance_mm": 0.0, "voxel": [307, 164, 133], "inplane_row_col": [307, 164], "response_error": false}
+{"case": "M01", "condition": "R", "rep": 2, "status": "ok", "value": [253.0, 493.0], "hit": true, "distance_mm": 0.0, "voxel": [308, 164, 133], "inplane_row_col": [308, 164], "response_error": false}
+{"case": "L43", "condition": "S-ex", "rep": 1, "status": "ok", "value": 3023, "hit": true, "distance_mm": 0.0, "voxel": [160, 236, 196], "inplane_row_col": [160, 236], "response_error": false}
+{"case": "M01", "condition": "S", "rep": 0, "status": "ok", "value": 1674, "hit": true, "distance_mm": 0.0, "voxel": [332, 176, 133], "inplane_row_col": [332, 176], "response_error": false}
+{"case": "M01", "condition": "S", "rep": 1, "status": "ok", "value": 1674, "hit": true, "distance_mm": 0.0, "voxel": [332, 176, 133], "inplane_row_col": [332, 176], "response_error": false}
+{"case": "L43", "condition": "S-ex", "rep": 2, "status": "ok", "value": 3023, "hit": true, "distance_mm": 0.0, "voxel": [160, 236, 196], "inplane_row_col": [160, 236], "response_error": false}
+{"case": "M01", "condition": "S-ex", "rep": 1, "status": "ok", "value": 1674, "hit": true, "distance_mm": 0.0, "voxel": [332, 176, 133], "inplane_row_col": [332, 176], "response_error": false}
+{"case": "M01", "condition": "S", "rep": 2, "status": "ok", "value": 1674, "hit": true, "distance_mm": 0.0, "voxel": [332, 176, 133], "inplane_row_col": [332, 176], "response_error": false}
+{"case": "M01", "condition": "S-ex", "rep": 0, "status": "ok", "value": 1674, "hit": true, "distance_mm": 0.0, "voxel": [332, 176, 133], "inplane_row_col": [332, 176], "response_error": false}
+{"case": "M01", "condition": "S-ex", "rep": 2, "status": "ok", "value": 1674, "hit": true, "distance_mm": 0.0, "voxel": [332, 176, 133], "inplane_row_col": [332, 176], "response_error": false}
+{"case": "M07", "condition": "R", "rep": 0, "status": "ok", "value": [435.0, 552.0], "hit": true, "distance_mm": 0.0, "voxel": [104, 67, 80], "inplane_row_col": [104, 67], "response_error": false}
+{"case": "M07", "condition": "R", "rep": 1, "status": "ok", "value": [435.0, 553.0], "hit": true, "distance_mm": 0.0, "voxel": [104, 67, 80], "inplane_row_col": [104, 67], "response_error": false}
+{"case": "M07", "condition": "R", "rep": 2, "status": "ok", "value": [435.0, 552.0], "hit": true, "distance_mm": 0.0, "voxel": [104, 67, 80], "inplane_row_col": [104, 67], "response_error": false}
+{"case": "M07", "condition": "S", "rep": 0, "status": "ok", "value": 76, "hit": true, "distance_mm": 0.0, "voxel": [98, 62, 80], "inplane_row_col": [98, 62], "response_error": false}
+{"case": "M07", "condition": "S", "rep": 1, "status": "ok", "value": 76, "hit": true, "distance_mm": 0.0, "voxel": [98, 62, 80], "inplane_row_col": [98, 62], "response_error": false}
+{"case": "M07", "condition": "S", "rep": 2, "status": "ok", "value": 76, "hit": true, "distance_mm": 0.0, "voxel": [98, 62, 80], "inplane_row_col": [98, 62], "response_error": false}
+{"case": "M07", "condition": "S-ex", "rep": 1, "status": "ok", "value": 76, "hit": true, "distance_mm": 0.0, "voxel": [98, 62, 80], "inplane_row_col": [98, 62], "response_error": false}
+{"case": "M07", "condition": "S-ex", "rep": 2, "status": "ok", "value": 76, "hit": true, "distance_mm": 0.0, "voxel": [98, 62, 80], "inplane_row_col": [98, 62], "response_error": false}
+{"case": "M07", "condition": "S-ex", "rep": 0, "status": "ok", "value": 76, "hit": true, "distance_mm": 0.0, "voxel": [98, 62, 80], "inplane_row_col": [98, 62], "response_error": false}
+{"case": "M08", "condition": "R", "rep": 0, "status": "ok", "value": [340.0, 380.0], "hit": true, "distance_mm": 0.0, "voxel": [156, 141, 70], "inplane_row_col": [156, 141], "response_error": false}
+{"case": "M08", "condition": "S", "rep": 1, "status": "ok", "value": 274, "hit": true, "distance_mm": 0.0, "voxel": [152, 142, 70], "inplane_row_col": [152, 142], "response_error": false}
+{"case": "M08", "condition": "S", "rep": 0, "status": "ok", "value": 274, "hit": true, "distance_mm": 0.0, "voxel": [152, 142, 70], "inplane_row_col": [152, 142], "response_error": false}
+{"case": "M08", "condition": "R", "rep": 2, "status": "ok", "value": [340.0, 380.0], "hit": true, "distance_mm": 0.0, "voxel": [156, 141, 70], "inplane_row_col": [156, 141], "response_error": false}
+{"case": "M08", "condition": "R", "rep": 1, "status": "ok", "value": [340.0, 380.0], "hit": true, "distance_mm": 0.0, "voxel": [156, 141, 70], "inplane_row_col": [156, 141], "response_error": false}
+{"case": "M08", "condition": "S", "rep": 2, "status": "ok", "value": 274, "hit": true, "distance_mm": 0.0, "voxel": [152, 142, 70], "inplane_row_col": [152, 142], "response_error": false}
+{"case": "M08", "condition": "S-ex", "rep": 0, "status": "ok", "value": 274, "hit": true, "distance_mm": 0.0, "voxel": [152, 142, 70], "inplane_row_col": [152, 142], "response_error": false}
+{"case": "M08", "condition": "S-ex", "rep": 1, "status": "ok", "value": 274, "hit": true, "distance_mm": 0.0, "voxel": [152, 142, 70], "inplane_row_col": [152, 142], "response_error": false}
+{"case": "M08", "condition": "S-ex", "rep": 2, "status": "ok", "value": 274, "hit": true, "distance_mm": 0.0, "voxel": [152, 142, 70], "inplane_row_col": [152, 142], "response_error": false}
+{"case": "M09", "condition": "R", "rep": 0, "status": "ok", "value": [163.0, 379.0], "hit": true, "distance_mm": 0.0, "voxel": [315, 202, 108], "inplane_row_col": [315, 202], "response_error": false}
+{"case": "M09", "condition": "R", "rep": 1, "status": "ok", "value": [163.0, 379.0], "hit": true, "distance_mm": 0.0, "voxel": [315, 202, 108], "inplane_row_col": [315, 202], "response_error": false}
+{"case": "M09", "condition": "R", "rep": 2, "status": "ok", "value": [163.0, 380.0], "hit": true, "distance_mm": 0.0, "voxel": [315, 202, 108], "inplane_row_col": [315, 202], "response_error": false}
+{"case": "M09", "condition": "S", "rep": 0, "status": "ok", "value": 661, "hit": true, "distance_mm": 0.0, "voxel": [318, 200, 108], "inplane_row_col": [318, 200], "response_error": false}
+{"case": "M09", "condition": "S", "rep": 1, "status": "ok", "value": 661, "hit": true, "distance_mm": 0.0, "voxel": [318, 200, 108], "inplane_row_col": [318, 200], "response_error": false}
+{"case": "M09", "condition": "S-ex", "rep": 0, "status": "ok", "value": 661, "hit": true, "distance_mm": 0.0, "voxel": [318, 200, 108], "inplane_row_col": [318, 200], "response_error": false}
+{"case": "M09", "condition": "S", "rep": 2, "status": "ok", "value": 661, "hit": true, "distance_mm": 0.0, "voxel": [318, 200, 108], "inplane_row_col": [318, 200], "response_error": false}
+{"case": "M09", "condition": "S-ex", "rep": 1, "status": "ok", "value": 661, "hit": true, "distance_mm": 0.0, "voxel": [318, 200, 108], "inplane_row_col": [318, 200], "response_error": false}
+{"case": "M09", "condition": "S-ex", "rep": 2, "status": "ok", "value": 661, "hit": true, "distance_mm": 0.0, "voxel": [318, 200, 108], "inplane_row_col": [318, 200], "response_error": false}
+{"case": "M21", "condition": "R", "rep": 1, "status": "ok", "value": [295.0, 350.0], "hit": true, "distance_mm": 0.0, "voxel": [147, 130, 304], "inplane_row_col": [147, 130], "response_error": false}
+{"case": "M21", "condition": "R", "rep": 2, "status": "ok", "value": [300.0, 355.0], "hit": true, "distance_mm": 0.0, "voxel": [146, 129, 304], "inplane_row_col": [146, 129], "response_error": false}
+{"case": "M21", "condition": "R", "rep": 0, "status": "ok", "value": [300.0, 355.0], "hit": true, "distance_mm": 0.0, "voxel": [146, 129, 304], "inplane_row_col": [146, 129], "response_error": false}
+{"case": "M21", "condition": "S", "rep": 0, "status": "ok", "value": 271, "hit": true, "distance_mm": 0.0, "voxel": [156, 148, 304], "inplane_row_col": [156, 148], "response_error": false}
+{"case": "M21", "condition": "S", "rep": 2, "status": "ok", "value": 271, "hit": true, "distance_mm": 0.0, "voxel": [156, 148, 304], "inplane_row_col": [156, 148], "response_error": false}
+{"case": "M21", "condition": "S", "rep": 1, "status": "ok", "value": 271, "hit": true, "distance_mm": 0.0, "voxel": [156, 148, 304], "inplane_row_col": [156, 148], "response_error": false}
+{"case": "M21", "condition": "S-ex", "rep": 0, "status": "ok", "value": 271, "hit": true, "distance_mm": 0.0, "voxel": [156, 148, 304], "inplane_row_col": [156, 148], "response_error": false}
+{"case": "M21", "condition": "S-ex", "rep": 1, "status": "ok", "value": 271, "hit": true, "distance_mm": 0.0, "voxel": [156, 148, 304], "inplane_row_col": [156, 148], "response_error": false}
+{"case": "M33", "condition": "R", "rep": 0, "status": "ok", "value": [570.0, 315.0], "hit": true, "distance_mm": 0.0, "voxel": [103, 235, 248], "inplane_row_col": [103, 235], "response_error": false}
+{"case": "M33", "condition": "R", "rep": 1, "status": "ok", "value": [600.0, 340.0], "hit": true, "distance_mm": 0.0, "voxel": [87, 222, 248], "inplane_row_col": [87, 222], "response_error": false}
+{"case": "M33", "condition": "R", "rep": 2, "status": "ok", "value": [585.0, 318.0], "hit": true, "distance_mm": 0.0, "voxel": [95, 234, 248], "inplane_row_col": [95, 234], "response_error": false}
+{"case": "M33", "condition": "S", "rep": 0, "status": "ok", "value": 2433, "hit": true, "distance_mm": 0.0, "voxel": [112, 228, 248], "inplane_row_col": [112, 228], "response_error": false}
+{"case": "M33", "condition": "S", "rep": 2, "status": "ok", "value": 2433, "hit": true, "distance_mm": 0.0, "voxel": [112, 228, 248], "inplane_row_col": [112, 228], "response_error": false}
+{"case": "M21", "condition": "S-ex", "rep": 2, "status": "ok", "value": 271, "hit": true, "distance_mm": 0.0, "voxel": [156, 148, 304], "inplane_row_col": [156, 148], "response_error": false}
+{"case": "M33", "condition": "S-ex", "rep": 0, "status": "ok", "value": 2433, "hit": true, "distance_mm": 0.0, "voxel": [112, 228, 248], "inplane_row_col": [112, 228], "response_error": false}
+{"case": "M33", "condition": "S", "rep": 1, "status": "ok", "value": 2433, "hit": true, "distance_mm": 0.0, "voxel": [112, 228, 248], "inplane_row_col": [112, 228], "response_error": false}
+{"case": "M33", "condition": "S-ex", "rep": 1, "status": "ok", "value": 2433, "hit": true, "distance_mm": 0.0, "voxel": [112, 228, 248], "inplane_row_col": [112, 228], "response_error": false}
+{"case": "M33", "condition": "S-ex", "rep": 2, "status": "ok", "value": 2433, "hit": true, "distance_mm": 0.0, "voxel": [112, 228, 248], "inplane_row_col": [112, 228], "response_error": false}
+{"case": "N01", "condition": "R", "rep": 0, "status": "ok", "value": [414.0, 301.0], "hit": false, "distance_mm": 5.0, "voxel": [115, 152, 164], "inplane_row_col": [115, 152], "response_error": false}
+{"case": "N01", "condition": "S", "rep": 0, "status": "ok", "value": 190, "hit": true, "distance_mm": 0.0, "voxel": [126, 158, 164], "inplane_row_col": [126, 158], "response_error": false}
+{"case": "N01", "condition": "R", "rep": 2, "status": "ok", "value": [414.0, 301.0], "hit": false, "distance_mm": 5.0, "voxel": [115, 152, 164], "inplane_row_col": [115, 152], "response_error": false}
+{"case": "N01", "condition": "R", "rep": 1, "status": "ok", "value": [414.0, 301.0], "hit": false, "distance_mm": 5.0, "voxel": [115, 152, 164], "inplane_row_col": [115, 152], "response_error": false}
+{"case": "N01", "condition": "S-ex", "rep": 0, "status": "ok", "value": 190, "hit": true, "distance_mm": 0.0, "voxel": [126, 158, 164], "inplane_row_col": [126, 158], "response_error": false}
+{"case": "N01", "condition": "S", "rep": 1, "status": "ok", "value": 190, "hit": true, "distance_mm": 0.0, "voxel": [126, 158, 164], "inplane_row_col": [126, 158], "response_error": false}
+{"case": "N01", "condition": "S", "rep": 2, "status": "ok", "value": 190, "hit": true, "distance_mm": 0.0, "voxel": [126, 158, 164], "inplane_row_col": [126, 158], "response_error": false}
+{"case": "N01", "condition": "S-ex", "rep": 1, "status": "ok", "value": 190, "hit": true, "distance_mm": 0.0, "voxel": [126, 158, 164], "inplane_row_col": [126, 158], "response_error": false}
+{"case": "N18", "condition": "R", "rep": 0, "status": "ok", "value": [279.0, 423.0], "hit": true, "distance_mm": 0.0, "voxel": [153, 108, 253], "inplane_row_col": [153, 108], "response_error": false}
+{"case": "N01", "condition": "S-ex", "rep": 2, "status": "ok", "value": 190, "hit": true, "distance_mm": 0.0, "voxel": [126, 158, 164], "inplane_row_col": [126, 158], "response_error": false}
+{"case": "N18", "condition": "S", "rep": 0, "status": "ok", "value": 536, "hit": true, "distance_mm": 0.0, "voxel": [156, 104, 253], "inplane_row_col": [156, 104], "response_error": false}
+{"case": "N18", "condition": "R", "rep": 1, "status": "ok", "value": [280.0, 423.0], "hit": true, "distance_mm": 0.0, "voxel": [153, 108, 253], "inplane_row_col": [153, 108], "response_error": false}
+{"case": "N18", "condition": "S", "rep": 1, "status": "ok", "value": 536, "hit": true, "distance_mm": 0.0, "voxel": [156, 104, 253], "inplane_row_col": [156, 104], "response_error": false}
+{"case": "N18", "condition": "R", "rep": 2, "status": "ok", "value": [280.0, 423.0], "hit": true, "distance_mm": 0.0, "voxel": [153, 108, 253], "inplane_row_col": [153, 108], "response_error": false}
+{"case": "N18", "condition": "S", "rep": 2, "status": "ok", "value": 536, "hit": true, "distance_mm": 0.0, "voxel": [156, 104, 253], "inplane_row_col": [156, 104], "response_error": false}
+{"case": "N18", "condition": "S-ex", "rep": 0, "status": "ok", "value": 536, "hit": true, "distance_mm": 0.0, "voxel": [156, 104, 253], "inplane_row_col": [156, 104], "response_error": false}
+{"case": "N18", "condition": "S-ex", "rep": 1, "status": "ok", "value": 536, "hit": true, "distance_mm": 0.0, "voxel": [156, 104, 253], "inplane_row_col": [156, 104], "response_error": false}
+{"case": "N18", "condition": "S-ex", "rep": 2, "status": "ok", "value": 536, "hit": true, "distance_mm": 0.0, "voxel": [156, 104, 253], "inplane_row_col": [156, 104], "response_error": false}
+{"case": "N21", "condition": "R", "rep": 0, "status": "ok", "value": [425.0, 335.0], "hit": true, "distance_mm": 0.0, "voxel": [54, 68, 107], "inplane_row_col": [54, 68], "response_error": false}
+{"case": "N21", "condition": "R", "rep": 1, "status": "ok", "value": [385.0, 305.0], "hit": true, "distance_mm": 0.0, "voxel": [60, 72, 107], "inplane_row_col": [60, 72], "response_error": false}
+{"case": "N21", "condition": "S", "rep": 0, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [58, 74, 107], "inplane_row_col": [58, 74], "response_error": false}
+{"case": "N21", "condition": "R", "rep": 2, "status": "ok", "value": [390.0, 313.0], "hit": true, "distance_mm": 0.0, "voxel": [59, 71, 107], "inplane_row_col": [59, 71], "response_error": false}
+{"case": "N21", "condition": "S", "rep": 1, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [58, 74, 107], "inplane_row_col": [58, 74], "response_error": false}
+{"case": "N21", "condition": "S", "rep": 2, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [58, 74, 107], "inplane_row_col": [58, 74], "response_error": false}
+{"case": "N21", "condition": "S-ex", "rep": 0, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [58, 74, 107], "inplane_row_col": [58, 74], "response_error": false}
+{"case": "N21", "condition": "S-ex", "rep": 1, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [58, 74, 107], "inplane_row_col": [58, 74], "response_error": false}
+{"case": "N21", "condition": "S-ex", "rep": 2, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [58, 74, 107], "inplane_row_col": [58, 74], "response_error": false}
+{"case": "N26", "condition": "R", "rep": 0, "status": "ok", "value": [375.0, 298.0], "hit": true, "distance_mm": 0.0, "voxel": [128, 153, 112], "inplane_row_col": [128, 153], "response_error": false}
+{"case": "N26", "condition": "R", "rep": 1, "status": "ok", "value": [370.0, 298.0], "hit": true, "distance_mm": 0.0, "voxel": [130, 153, 112], "inplane_row_col": [130, 153], "response_error": false}
+{"case": "N26", "condition": "R", "rep": 2, "status": "ok", "value": [375.0, 298.0], "hit": true, "distance_mm": 0.0, "voxel": [128, 153, 112], "inplane_row_col": [128, 153], "response_error": false}
+{"case": "N26", "condition": "S", "rep": 0, "status": "ok", "value": 313, "hit": true, "distance_mm": 0.0, "voxel": [132, 140, 112], "inplane_row_col": [132, 140], "response_error": false}
+{"case": "N26", "condition": "S", "rep": 2, "status": "ok", "value": 313, "hit": true, "distance_mm": 0.0, "voxel": [132, 140, 112], "inplane_row_col": [132, 140], "response_error": false}
+{"case": "N26", "condition": "S", "rep": 1, "status": "ok", "value": 313, "hit": true, "distance_mm": 0.0, "voxel": [132, 140, 112], "inplane_row_col": [132, 140], "response_error": false}
+{"case": "N26", "condition": "S-ex", "rep": 0, "status": "ok", "value": 333, "hit": true, "distance_mm": 0.0, "voxel": [114, 150, 112], "inplane_row_col": [114, 150], "response_error": false}
+{"case": "N34", "condition": "R", "rep": 0, "status": "ok", "value": [520.0, 630.0], "hit": false, "distance_mm": 18.973665961010276, "voxel": [74, 41, 117], "inplane_row_col": [74, 41], "response_error": false}
+{"case": "N26", "condition": "S-ex", "rep": 1, "status": "ok", "value": 333, "hit": true, "distance_mm": 0.0, "voxel": [114, 150, 112], "inplane_row_col": [114, 150], "response_error": false}
+{"case": "N34", "condition": "R", "rep": 1, "status": "ok", "value": [520.0, 640.0], "hit": false, "distance_mm": 18.24828759089466, "voxel": [74, 38, 117], "inplane_row_col": [74, 38], "response_error": false}
+{"case": "N26", "condition": "S-ex", "rep": 2, "status": "ok", "value": 333, "hit": true, "distance_mm": 0.0, "voxel": [114, 150, 112], "inplane_row_col": [114, 150], "response_error": false}
+{"case": "N34", "condition": "S", "rep": 0, "status": "ok", "value": 901, "hit": true, "distance_mm": 0.0, "voxel": [72, 78, 117], "inplane_row_col": [72, 78], "response_error": false}
+{"case": "N34", "condition": "R", "rep": 2, "status": "ok", "value": [530.0, 630.0], "hit": false, "distance_mm": 16.15549442140351, "voxel": [71, 41, 117], "inplane_row_col": [71, 41], "response_error": false}
+{"case": "N34", "condition": "S", "rep": 1, "status": "ok", "value": 901, "hit": true, "distance_mm": 0.0, "voxel": [72, 78, 117], "inplane_row_col": [72, 78], "response_error": false}
+{"case": "N34", "condition": "S", "rep": 2, "status": "ok", "value": 901, "hit": true, "distance_mm": 0.0, "voxel": [72, 78, 117], "inplane_row_col": [72, 78], "response_error": false}
+{"case": "N34", "condition": "S-ex", "rep": 0, "status": "ok", "value": 901, "hit": true, "distance_mm": 0.0, "voxel": [72, 78, 117], "inplane_row_col": [72, 78], "response_error": false}
+{"case": "N34", "condition": "S-ex", "rep": 1, "status": "ok", "value": 901, "hit": true, "distance_mm": 0.0, "voxel": [72, 78, 117], "inplane_row_col": [72, 78], "response_error": false}
+{"case": "N34", "condition": "S-ex", "rep": 2, "status": "ok", "value": 901, "hit": true, "distance_mm": 0.0, "voxel": [72, 78, 117], "inplane_row_col": [72, 78], "response_error": false}
+{"case": "N40", "condition": "R", "rep": 0, "status": "ok", "value": [447.0, 350.0], "hit": false, "distance_mm": 5.830951894845301, "voxel": [75, 98, 90], "inplane_row_col": [75, 98], "response_error": false}
+{"case": "N40", "condition": "R", "rep": 1, "status": "ok", "value": [447.0, 349.0], "hit": false, "distance_mm": 5.830951894845301, "voxel": [75, 98, 90], "inplane_row_col": [75, 98], "response_error": false}
+{"case": "N40", "condition": "R", "rep": 2, "status": "ok", "value": [447.0, 349.0], "hit": false, "distance_mm": 5.830951894845301, "voxel": [75, 98, 90], "inplane_row_col": [75, 98], "response_error": false}
+{"case": "N40", "condition": "S", "rep": 0, "status": "ok", "value": 194, "hit": true, "distance_mm": 0.0, "voxel": [84, 102, 90], "inplane_row_col": [84, 102], "response_error": false}
+{"case": "N40", "condition": "S", "rep": 1, "status": "ok", "value": 194, "hit": true, "distance_mm": 0.0, "voxel": [84, 102, 90], "inplane_row_col": [84, 102], "response_error": false}
+{"case": "N40", "condition": "S", "rep": 2, "status": "ok", "value": 194, "hit": true, "distance_mm": 0.0, "voxel": [84, 102, 90], "inplane_row_col": [84, 102], "response_error": false}
+{"case": "V37", "condition": "R", "rep": 0, "status": "ok", "value": [487.0, 459.0], "hit": true, "distance_mm": 0.0, "voxel": [73, 80, 65], "inplane_row_col": [73, 80], "response_error": false}
+{"case": "N40", "condition": "S-ex", "rep": 0, "status": "ok", "value": 194, "hit": true, "distance_mm": 0.0, "voxel": [84, 102, 90], "inplane_row_col": [84, 102], "response_error": false}
+{"case": "V37", "condition": "R", "rep": 1, "status": "ok", "value": [488.0, 461.0], "hit": true, "distance_mm": 0.0, "voxel": [73, 80, 65], "inplane_row_col": [73, 80], "response_error": false}
+{"case": "V37", "condition": "R", "rep": 2, "status": "ok", "value": [487.0, 462.0], "hit": true, "distance_mm": 0.0, "voxel": [73, 80, 65], "inplane_row_col": [73, 80], "response_error": false}
+{"case": "V37", "condition": "S", "rep": 0, "status": "ok", "value": 420, "hit": true, "distance_mm": 0.0, "voxel": [70, 74, 65], "inplane_row_col": [70, 74], "response_error": false}
+{"case": "V37", "condition": "S", "rep": 1, "status": "ok", "value": 420, "hit": true, "distance_mm": 0.0, "voxel": [70, 74, 65], "inplane_row_col": [70, 74], "response_error": false}
+{"case": "N40", "condition": "S-ex", "rep": 1, "status": "ok", "value": 201, "hit": true, "distance_mm": 0.0, "voxel": [102, 56, 90], "inplane_row_col": [102, 56], "response_error": false}
+{"case": "V37", "condition": "S", "rep": 2, "status": "ok", "value": 420, "hit": true, "distance_mm": 0.0, "voxel": [70, 74, 65], "inplane_row_col": [70, 74], "response_error": false}
+{"case": "N40", "condition": "S-ex", "rep": 2, "status": "ok", "value": 201, "hit": true, "distance_mm": 0.0, "voxel": [102, 56, 90], "inplane_row_col": [102, 56], "response_error": false}
+{"case": "V37", "condition": "S-ex", "rep": 0, "status": "ok", "value": 420, "hit": true, "distance_mm": 0.0, "voxel": [70, 74, 65], "inplane_row_col": [70, 74], "response_error": false}
+{"case": "V37", "condition": "S-ex", "rep": 2, "status": "ok", "value": 420, "hit": true, "distance_mm": 0.0, "voxel": [70, 74, 65], "inplane_row_col": [70, 74], "response_error": false}
+{"case": "V37", "condition": "S-ex", "rep": 1, "status": "ok", "value": 420, "hit": true, "distance_mm": 0.0, "voxel": [70, 74, 65], "inplane_row_col": [70, 74], "response_error": false}
+{"case": "V46", "condition": "R", "rep": 1, "status": "ok", "value": [540.0, 272.0], "hit": true, "distance_mm": 0.0, "voxel": [101, 220, 274], "inplane_row_col": [101, 220], "response_error": false}
+{"case": "V46", "condition": "R", "rep": 0, "status": "ok", "value": [565.0, 272.0], "hit": true, "distance_mm": 0.0, "voxel": [90, 220, 274], "inplane_row_col": [90, 220], "response_error": false}
+{"case": "V46", "condition": "R", "rep": 2, "status": "ok", "value": [530.0, 265.0], "hit": true, "distance_mm": 0.0, "voxel": [105, 223, 274], "inplane_row_col": [105, 223], "response_error": false}
+{"case": "V46", "condition": "S", "rep": 0, "status": "ok", "value": 4037, "hit": true, "distance_mm": 0.0, "voxel": [120, 228, 274], "inplane_row_col": [120, 228], "response_error": false}
+{"case": "V46", "condition": "S", "rep": 2, "status": "ok", "value": 4037, "hit": true, "distance_mm": 0.0, "voxel": [120, 228, 274], "inplane_row_col": [120, 228], "response_error": false}
+{"case": "V46", "condition": "S", "rep": 1, "status": "ok", "value": 4037, "hit": true, "distance_mm": 0.0, "voxel": [120, 228, 274], "inplane_row_col": [120, 228], "response_error": false}
+{"case": "V46", "condition": "S-ex", "rep": 0, "status": "ok", "value": 4037, "hit": true, "distance_mm": 0.0, "voxel": [120, 228, 274], "inplane_row_col": [120, 228], "response_error": false}
+{"case": "V46", "condition": "S-ex", "rep": 2, "status": "ok", "value": 4037, "hit": true, "distance_mm": 0.0, "voxel": [120, 228, 274], "inplane_row_col": [120, 228], "response_error": false}
+{"case": "V46", "condition": "S-ex", "rep": 1, "status": "ok", "value": 4037, "hit": true, "distance_mm": 0.0, "voxel": [120, 228, 274], "inplane_row_col": [120, 228], "response_error": false}
+{"case": "V54", "condition": "R", "rep": 0, "status": "ok", "value": [333.0, 195.0], "hit": false, "distance_mm": 1.0, "voxel": [68, 90, 27], "inplane_row_col": [68, 90], "response_error": false}
+{"case": "V54", "condition": "R", "rep": 1, "status": "ok", "value": [330.0, 220.0], "hit": false, "distance_mm": 1.0, "voxel": [69, 86, 27], "inplane_row_col": [69, 86], "response_error": false}
+{"case": "V54", "condition": "S", "rep": 0, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [74, 94, 27], "inplane_row_col": [74, 94], "response_error": false}
+{"case": "V54", "condition": "S", "rep": 1, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [74, 94, 27], "inplane_row_col": [74, 94], "response_error": false}
+{"case": "V54", "condition": "R", "rep": 2, "status": "ok", "value": [330.0, 215.0], "hit": false, "distance_mm": 1.0, "voxel": [69, 87, 27], "inplane_row_col": [69, 87], "response_error": false}
+{"case": "V54", "condition": "S-ex", "rep": 1, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [74, 94, 27], "inplane_row_col": [74, 94], "response_error": false}
+{"case": "V54", "condition": "S-ex", "rep": 0, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [74, 94, 27], "inplane_row_col": [74, 94], "response_error": false}
+{"case": "V54", "condition": "S-ex", "rep": 2, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [74, 94, 27], "inplane_row_col": [74, 94], "response_error": false}
+{"case": "V55", "condition": "R", "rep": 1, "status": "ok", "value": [251.0, 379.0], "hit": true, "distance_mm": 0.0, "voxel": [121, 91, 37], "inplane_row_col": [121, 91], "response_error": false}
+{"case": "V55", "condition": "R", "rep": 0, "status": "ok", "value": [251.0, 378.0], "hit": true, "distance_mm": 0.0, "voxel": [121, 91, 37], "inplane_row_col": [121, 91], "response_error": false}
+{"case": "V55", "condition": "R", "rep": 2, "status": "ok", "value": [251.0, 378.0], "hit": true, "distance_mm": 0.0, "voxel": [121, 91, 37], "inplane_row_col": [121, 91], "response_error": false}
+{"case": "V55", "condition": "S", "rep": 0, "status": "ok", "value": 69, "hit": true, "distance_mm": 0.0, "voxel": [122, 92, 37], "inplane_row_col": [122, 92], "response_error": false}
+{"case": "V54", "condition": "S", "rep": 2, "status": "ok", "value": 44, "hit": true, "distance_mm": 0.0, "voxel": [74, 94, 27], "inplane_row_col": [74, 94], "response_error": false}
+{"case": "V55", "condition": "S", "rep": 2, "status": "ok", "value": 69, "hit": true, "distance_mm": 0.0, "voxel": [122, 92, 37], "inplane_row_col": [122, 92], "response_error": false}
+{"case": "V55", "condition": "S", "rep": 1, "status": "ok", "value": 69, "hit": true, "distance_mm": 0.0, "voxel": [122, 92, 37], "inplane_row_col": [122, 92], "response_error": false}
+{"case": "V55", "condition": "S-ex", "rep": 0, "status": "ok", "value": 69, "hit": true, "distance_mm": 0.0, "voxel": [122, 92, 37], "inplane_row_col": [122, 92], "response_error": false}
+{"case": "V55", "condition": "S-ex", "rep": 1, "status": "ok", "value": 69, "hit": true, "distance_mm": 0.0, "voxel": [122, 92, 37], "inplane_row_col": [122, 92], "response_error": false}
+{"case": "V57", "condition": "R", "rep": 0, "status": "ok", "value": [300.0, 207.0], "hit": true, "distance_mm": 0.0, "voxel": [98, 117, 222], "inplane_row_col": [98, 117], "response_error": false}
+{"case": "V55", "condition": "S-ex", "rep": 2, "status": "ok", "value": 69, "hit": true, "distance_mm": 0.0, "voxel": [122, 92, 37], "inplane_row_col": [122, 92], "response_error": false}
+{"case": "V57", "condition": "R", "rep": 1, "status": "ok", "value": [300.0, 205.0], "hit": true, "distance_mm": 0.0, "voxel": [98, 118, 222], "inplane_row_col": [98, 118], "response_error": false}
+{"case": "V57", "condition": "R", "rep": 2, "status": "ok", "value": [300.0, 205.0], "hit": true, "distance_mm": 0.0, "voxel": [98, 118, 222], "inplane_row_col": [98, 118], "response_error": false}
+{"case": "V57", "condition": "S", "rep": 1, "status": "ok", "value": 223, "hit": true, "distance_mm": 0.0, "voxel": [100, 118, 222], "inplane_row_col": [100, 118], "response_error": false}
+{"case": "V57", "condition": "S", "rep": 0, "status": "ok", "value": 223, "hit": true, "distance_mm": 0.0, "voxel": [100, 118, 222], "inplane_row_col": [100, 118], "response_error": false}
+{"case": "V57", "condition": "S", "rep": 2, "status": "ok", "value": 223, "hit": true, "distance_mm": 0.0, "voxel": [100, 118, 222], "inplane_row_col": [100, 118], "response_error": false}
+{"case": "V57", "condition": "S-ex", "rep": 0, "status": "ok", "value": 223, "hit": true, "distance_mm": 0.0, "voxel": [100, 118, 222], "inplane_row_col": [100, 118], "response_error": false}
+{"case": "V57", "condition": "S-ex", "rep": 1, "status": "ok", "value": 223, "hit": true, "distance_mm": 0.0, "voxel": [100, 118, 222], "inplane_row_col": [100, 118], "response_error": false}
+{"case": "V57", "condition": "S-ex", "rep": 2, "status": "ok", "value": 223, "hit": true, "distance_mm": 0.0, "voxel": [100, 118, 222], "inplane_row_col": [100, 118], "response_error": false}
+{"case": "V65", "condition": "R", "rep": 0, "status": "ok", "value": [465.0, 503.0], "hit": true, "distance_mm": 0.0, "voxel": [112, 98, 66], "inplane_row_col": [112, 98], "response_error": false}
+{"case": "V65", "condition": "R", "rep": 2, "status": "ok", "value": [430.0, 485.0], "hit": true, "distance_mm": 0.0, "voxel": [125, 105, 66], "inplane_row_col": [125, 105], "response_error": false}
+{"case": "V65", "condition": "R", "rep": 1, "status": "ok", "value": [425.0, 482.0], "hit": true, "distance_mm": 0.0, "voxel": [127, 106, 66], "inplane_row_col": [127, 106], "response_error": false}
+{"case": "V65", "condition": "S", "rep": 0, "status": "ok", "value": 222, "hit": true, "distance_mm": 0.0, "voxel": [144, 112, 66], "inplane_row_col": [144, 112], "response_error": false}
+{"case": "V65", "condition": "S", "rep": 1, "status": "ok", "value": 222, "hit": true, "distance_mm": 0.0, "voxel": [144, 112, 66], "inplane_row_col": [144, 112], "response_error": false}
+{"case": "V65", "condition": "S", "rep": 2, "status": "ok", "value": 222, "hit": true, "distance_mm": 0.0, "voxel": [144, 112, 66], "inplane_row_col": [144, 112], "response_error": false}
+{"case": "V65", "condition": "S-ex", "rep": 1, "status": "ok", "value": 222, "hit": true, "distance_mm": 0.0, "voxel": [144, 112, 66], "inplane_row_col": [144, 112], "response_error": false}
+{"case": "V65", "condition": "S-ex", "rep": 2, "status": "ok", "value": 222, "hit": true, "distance_mm": 0.0, "voxel": [144, 112, 66], "inplane_row_col": [144, 112], "response_error": false}
+{"case": "V65", "condition": "S-ex", "rep": 0, "status": "ok", "value": 222, "hit": true, "distance_mm": 0.0, "voxel": [144, 112, 66], "inplane_row_col": [144, 112], "response_error": false}

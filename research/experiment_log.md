@@ -164,7 +164,48 @@ the harness changes did not change behaviour because the agent never iterated.
 3. Start version control (git; DVC for heavy artifacts); harness v1 = tag `harness-v1`.
 4. Keep iterating in the development phase; record everything here.
 
-## 5. Next experiments (planned)
+## 5. Development phase continued (after harness v1)
+
+### E10. Phase 2 `dev-02`: reference examples, descriptions, thinking level — runs `phase2_dev__dev-02-*`
+Same images and scoring as E4 (`dev-01`); code `harness-v1-1-g51b7064`; 3 reps × 30 cases per condition.
+
+| run | thinking | R | S | S-gen | S-desc | S-ex |
+|---|---|---|---|---|---|---|
+| dev-01 | medium | 0.722 | 0.889 | 0.900 | – | – |
+| dev-02-medium | medium | – | – | – | 0.889 | 0.900 |
+| dev-02-high | high | 0.700 | 0.911 | – | – | 0.900 |
+| dev-02-xhigh | xhigh | 0.733 | 0.900 | – | – | 0.900 |
+| dev-02-max | max | (running) | | | | |
+
+- **No condition and no thinking level changes single-slice pointing**: every S-family condition sits at 0.89–0.91.
+  The misses are the same three cases in every condition and repetition: **F14, F15, L33** (S, S-gen, S-desc, S-ex).
+  R misses stay the near-miss set (N01, N34, N40, V37, V55; 3–6 mm).
+- Offline look at the three (GT outline on the largest slice): F14 = subtle heterogeneous posterolateral pelvic lesion
+  next to a large dark anterior mass that the model picks; F15 = 2 mL lesion beside a bright structure; L33 = T2
+  fat-suppressed lipomatous tumor (dark, wrapped around the bone). Showing another patient's outlined tumor (S-ex) or a
+  literature description (S-desc) does not move these.
+- **Interpretation:** on a given correct slice, localization is at a ceiling of ~0.90 for this model; S-ex/S-desc add
+  nothing on the dev set. The agent's localization failures therefore come mostly from *search* (which slice/region it
+  looks at), which the single-slice study does not test.
+
+### E11. Phase 1 at higher thinking levels (harness v1 unchanged) — runs `phase1-06-high`, `phase1-07-xhigh`, `phase1-08-max`
+| run | thinking | mean | median | localized mean | loc. fails | tool calls | prompts | cost USD |
+|---|---|---|---|---|---|---|---|---|
+| phase1-05 | medium | 0.597 | 0.750 | 0.779 | 7 | 6.0 | 1.03 | 1.18 |
+| phase1-06-high | high | 0.659 | 0.806 | 0.791 | 5 | 10.4 | 1.27 | 2.50 |
+| phase1-07-xhigh | xhigh | **0.706** | **0.832** | 0.795 | 4 | 21.6 | 1.67 | 7.58 |
+| phase1-08-max | max | (running) | | | | | | |
+
+- Higher thinking makes the agent **search more** (more sheets/views) and localize more cases: L43 and V57 found at high
+  and xhigh, V46 found at xhigh; L35 extended to the full tumor (0.53 → 0.90 at high). xhigh mean 0.706 is the first
+  pass above the one-click oracle mean (0.697).
+- Model prompts per case rise only to 1.3–1.7: the agent still rarely refines with nnInteractive; gains are localization.
+- Persistent failures across all levels: F15 (2 mL), L33 (T2 lipomatous), N40; delineation: M33, N01, N34 (under-segmentation
+  relative to the inclusive GT), F32 (over-segmentation).
+- max thinking: single Phase 2 calls on hard cases take 6–8 min and 47–66 k output tokens; Phase 1 cases hit the 10-min
+  wall-time limit (forced finishes) — results pending.
+
+## 6. Next experiments (planned)
 
 | ID | Question | Runs |
 |---|---|---|

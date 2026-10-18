@@ -1,0 +1,39 @@
+{
+  "case_id": "N40",
+  "shape": [
+    181,
+    181,
+    319
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 8688001,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    319
+  ],
+  "created_at": "2026-10-18T23:23:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T23:25:27Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Oval mass in the popliteal region is well outlined on axial slices 220-250. The upper end (about 258-277) and the lower end (about 210-216) are ambiguous, and the coronal and sagittal views are low resolution.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

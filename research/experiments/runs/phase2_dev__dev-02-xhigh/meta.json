@@ -1,0 +1,63 @@
+{
+  "run": "dev-02-xhigh",
+  "git_commit": "51b7064fa1e0e6aac5355564b6349e7512b987dd",
+  "git_describe": "harness-v1-1-g51b7064",
+  "git_dirty_files": [],
+  "stage": "phase2_localization_ask",
+  "created_at": "2026-10-18T23:06:22.139Z",
+  "model": "anthropic/claude-sonnet-5-5",
+  "thinking": "xhigh",
+  "conditions": [
+    "R",
+    "S",
+    "S-ex"
+  ],
+  "reps": 3,
+  "concurrency": 4,
+  "wall_min_per_call": 5,
+  "tools": "none (tools: [])",
+  "compaction": "off",
+  "transport_retries": "SDK auto-retry, max 2; parse failures are never retried",
+  "pi_sdk_version": "1.2.0",
+  "pi_sdk_package_version": "1.2.0",
+  "pi_sdk_version_note": "VERSION (export) follows the installed pi CLI release; pi_sdk_package_version is the exact @earendil-works/pi-coding-agent pin in harness/study/package.json",
+  "auth_shim_path": "/home/ubuntu/.pi/agent/npm/node_modules/@gotgenes/pi-anthropic-auth",
+  "auth_shim_version": "3.4.3",
+  "prepare_manifest": "results/phase2_dev/prepare/manifest.jsonl",
+  "prompts": {
+    "system": {
+      "path": "harness/study/prompts/system.md",
+      "sha256": "f82af69f8a56c3b42149a924dac29a6689d2884111141d954eeca89ea2f1a472"
+    },
+    "r": {
+      "path": "harness/study/prompts/r.md",
+      "sha256": "ba0ff05d6676a72b2338be4155931c9d04530ce9df241752f01cf593d3554ec5"
+    },
+    "s": {
+      "path": "harness/study/prompts/s.md",
+      "sha256": "1698b5e32c9f459724e4f64cebce29abb12c1696c8c6343b4781221883575d7b"
+    },
+    "s_desc": {
+      "path": "harness/study/prompts/s_desc.md",
+      "sha256": "d1c32b97a3fafbfc5f274fe57c59e38282ef69553c349af73bd84866f53265ec"
+    },
+    "s_ex": {
+      "path": "harness/study/prompts/s_ex.md",
+      "sha256": "7f7aed1da16e7222b0527b8e57e860de323e2c163683f34de96860bfdfbebdd8"
+    }
+  },
+  "system_prompt": {
+    "path": "harness/study/prompts/system.md",
+    "sha256": "f82af69f8a56c3b42149a924dac29a6689d2884111141d954eeca89ea2f1a472"
+  },
+  "s_gen_target": "soft-tissue mass",
+  "descriptions_file": "harness/study/descriptions.json",
+  "planned_calls": 270,
+  "resumed_from_lines": 0,
+  "finished_at": "2026-10-18T23:15:18.595Z",
+  "recorded_lines": 270,
+  "system_prompt_sent_to_provider": "You are Claude Code, Anthropic's official CLI for Claude.\n\nYou answer questions about a single medical image. Follow the answer format requested in the user message exactly.\n\n\n<cwd>\n/home/ubuntu/agentic-segmentation/results/phase2_dev/dev-02-xhigh\n</cwd>",
+  "system_prompt_sent_to_provider_sha256": "1aa191b7956d1da66dc4ebd99da3004124b848da2cc7abc090793573484cdc7e",
+  "system_prompt_shaped_by_auth_shim": "x-anthropic-billing-header: cc_version=2.1.280.654; cc_entrypoint=sdk-cli; cch=094ac;\n\nYou are Claude Code, Anthropic's official CLI for Claude.\n\nYou answer questions about a single medical image. Follow the answer format requested in the user message exactly.\n\n\n<cwd>\n/home/ubuntu/agentic-segmentation/results/phase2_dev/dev-02-xhigh\n</cwd>",
+  "system_prompt_notes": "captured at pi's before_provider_request hook (pre-shim); the shaped field applies @gotgenes/pi-anthropic-auth request shaping, which the shim performs after that hook"
+}

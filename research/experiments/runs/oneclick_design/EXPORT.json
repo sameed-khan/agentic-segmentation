@@ -1,0 +1,5 @@
+{
+  "source": "results/oneclick_design",
+  "kind": "oneclick_baseline",
+  "note": "text-only export; heavy artifacts (renders, masks, versions, full sessions) are in results/ (DVC). Transcript image payloads are replaced by sha256 stubs."
+}

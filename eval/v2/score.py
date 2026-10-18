@@ -696,7 +696,7 @@ def main(argv: list[str] | None = None) -> int:
 
     write_scores_md(out_dir, ordered, oneclick, harness_sha, model)
 
-    print("\n----- design_log entry (paste into eval/v2/design_log.md) -----", flush=True)
+    print("\n----- design_log entry (paste into research/experiments/phase1_design_log.md) -----", flush=True)
     print(design_log_block(ordered, harness_sha, args.run_dir.name), flush=True)
     print("----- end design_log entry -----", flush=True)
     print(f"wrote {out_dir / 'scores.csv'}, {out_dir / 'scores.md'}"

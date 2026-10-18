@@ -1,0 +1,29 @@
+{
+  "run_id": "smoke-ext",
+  "model": "anthropic/claude-sonnet-5-5",
+  "thinking_level": "medium",
+  "extension": "/home/sameed/Documents/rsna-agentic-segmentation/harness/extension",
+  "segd_url": "http://127.0.0.1:36879",
+  "nni_url": "http://127.0.0.1:1527",
+  "concurrency": 4,
+  "harness_sha256": "a621370d29950c11adaba6b2d4a16b03161a7dd2b65389716668fc3b349f75db",
+  "system_prompt_sha256": "87674383df3a1b5bf3389845ef453368d72bb8b493a61ce0419033cd2bbc0bfc",
+  "auth_shim_version": "3.4.2",
+  "pi_version": "1.2.0",
+  "cases": [
+    {
+      "case": "F14",
+      "ok": true,
+      "done": true,
+      "forced_finish": false,
+      "meta_path": "/home/sameed/Documents/rsna-agentic-segmentation/results/smoke-ext/F14/meta.json",
+      "wall_time_s": 10.5,
+      "turns": 7,
+      "nudges": 1,
+      "errors": []
+    }
+  ],
+  "started_at": "2026-10-18T15:57:21.445Z",
+  "finished_at": "2026-10-18T15:57:31.946Z",
+  "wall_time_s": 10.501
+}

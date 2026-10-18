@@ -1,0 +1,5 @@
+{
+  "source": "results/phase2_dev/smoke2",
+  "kind": "phase2_localization",
+  "note": "text-only export; heavy artifacts (renders, masks, versions, full sessions) are in results/ (DVC). Transcript image payloads are replaced by sha256 stubs."
+}

@@ -1,0 +1,6 @@
+outs:
+- md5: 899e6207bc63fdc346475701ba88bbac.dir
+  size: 4439680
+  nfiles: 31
+  hash: md5
+  path: slices

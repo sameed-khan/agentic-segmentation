@@ -1,0 +1,39 @@
+{
+  "case_id": "L19",
+  "shape": [
+    451,
+    451,
+    365
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 55115991,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    451,
+    451,
+    365
+  ],
+  "created_at": "2026-10-18T21:25:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T21:25:51Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Outline follows mass in all planes",
+  "tool_calls": 5,
+  "model_prompts": 1
+}

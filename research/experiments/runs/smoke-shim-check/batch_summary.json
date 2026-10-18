@@ -1,0 +1,29 @@
+{
+  "run_id": "smoke-shim-check",
+  "model": "anthropic/claude-sonnet-5-5",
+  "thinking_level": "medium",
+  "extension": "/home/ubuntu/rsna-agentic-segmentation/harness/checks/ping_ext.ts",
+  "segd_url": "http://127.0.0.1:39833",
+  "nni_url": "http://127.0.0.1:1527",
+  "concurrency": 4,
+  "harness_sha256": "33ec122420160cd52f67f1c413aec12af26eaacd6cd9db74e878ab197895d4d8",
+  "system_prompt_sha256": "c24b04a1470a7d999077a237b776eff5f43f98f6cd9d6e74ea009d5803f98e22",
+  "auth_shim_version": "3.4.3",
+  "pi_version": "1.3.0",
+  "cases": [
+    {
+      "case": "F14",
+      "ok": true,
+      "done": true,
+      "forced_finish": true,
+      "meta_path": "/home/ubuntu/rsna-agentic-segmentation/results/smoke-shim-check/F14/meta.json",
+      "wall_time_s": 2.731,
+      "turns": 2,
+      "nudges": 0,
+      "errors": []
+    }
+  ],
+  "started_at": "2026-10-18T18:18:54.683Z",
+  "finished_at": "2026-10-18T18:18:57.415Z",
+  "wall_time_s": 2.732
+}

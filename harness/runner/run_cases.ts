@@ -11,6 +11,7 @@
  * See harness/runner/README.md for how to run it.
  */
 import { spawn, type ChildProcess } from "node:child_process";
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
 	copyFileSync,
@@ -89,6 +90,7 @@ interface Options {
 	dryStub: boolean;
 	authShim: string;
 	resultsDir: string;
+	note: string;
 	systemFile: string;
 	taskFile: string;
 }
@@ -111,6 +113,7 @@ function parseArgs(argv: string[]): Options {
 		dryStub: false,
 		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
 		resultsDir: join(PROJECT_ROOT, "results"),
+		note: "",
 		systemFile: DEFAULT_SYSTEM_FILE,
 		taskFile: DEFAULT_TASK_FILE,
 	};
@@ -168,6 +171,9 @@ function parseArgs(argv: string[]): Options {
 			case "--auth-shim":
 				opts.authShim = resolve(next());
 				break;
+			case "--note":
+				opts.note = next();
+				break;
 			case "--results-dir":
 				opts.resultsDir = resolve(next());
 				break;
@@ -206,6 +212,7 @@ function printHelp(): void {
   --nni-url <url>           (default http://127.0.0.1:1527)
   --extension <path>        default harness/extension (dir); checks/ping_ext.ts for smoke
   --dry-stub                spawn the bundled stub segd and use it as --segd-url
+  --note <text>             free-text note stored in batch_summary.json (experiment log)
   --auth-shim <path>        auth shim package dir (default @gotgenes/pi-anthropic-auth)
   --results-dir <path>      (default <project>/results)
   --system-file <path>      (default harness/prompts/system.md)
@@ -267,9 +274,26 @@ function walkFiles(root: string, skipSegments: Set<string>): string[] {
 	return out;
 }
 
-/** sha256 over the harness source tree, computed without git. */
+/** git provenance of the code that runs (commit, tag/describe, dirty files under harness/ and eval/v2/). */
+function gitInfo(): { commit: string | null; describe: string | null; dirty: string[] } {
+	const run = (cmd: string): string | null => {
+		try {
+			return execSync(cmd, { cwd: PROJECT_ROOT, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+		} catch {
+			return null;
+		}
+	};
+	const status = run("git status --porcelain -- harness eval/v2");
+	return {
+		commit: run("git rev-parse HEAD"),
+		describe: run("git describe --tags --always --dirty"),
+		dirty: status ? status.split("\n").filter((l) => l.trim()) : [],
+	};
+}
+
+/** sha256 over the harness source tree (excludes venvs/caches), kept alongside the git commit. */
 function hashHarnessTree(): string {
-	const skip = new Set(["node_modules", "__pycache__", "logs", "results", ".git"]);
+	const skip = new Set(["node_modules", "__pycache__", "logs", "results", ".git", ".venv", ".pytest_cache"]);
 	const files = walkFiles(HARNESS_DIR, skip).sort();
 	const hash = createHash("sha256");
 	for (const file of files) {
@@ -419,6 +443,7 @@ interface CaseResult {
 interface Shared {
 	modelRuntime: ModelRuntime;
 	harnessHash: string;
+	git: { commit: string | null; describe: string | null; dirty: string[] };
 	systemPrompt: string;
 	systemPromptSha: string;
 	shimVersion?: string;
@@ -698,6 +723,9 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			auth_shim_path: resolve(opts.authShim),
 			auth_shim_version: shared.shimVersion,
 			harness_sha256: shared.harnessHash,
+			git_commit: shared.git.commit,
+			git_describe: shared.git.describe,
+			git_dirty_files: shared.git.dirty,
 			harness_hash_method:
 				"sha256 over sorted relative paths + bytes of every file under harness/ excluding node_modules/, __pycache__/, logs/, results/, .git/",
 			system_prompt_path: opts.systemFile,
@@ -806,6 +834,7 @@ async function main(): Promise<void> {
 	const shared: Shared = {
 		modelRuntime,
 		harnessHash: hashHarnessTree(),
+		git: gitInfo(),
 		systemPrompt,
 		systemPromptSha: sha256(systemPrompt),
 		shimVersion: authShimVersion(opts.authShim),
@@ -815,7 +844,7 @@ async function main(): Promise<void> {
 		`[runner] run=${opts.runId} cases=${rows.map((r) => r.case).join(",")} concurrency=${opts.concurrency} ` +
 			`model=${opts.model} thinking=${opts.thinking} extension=${opts.extension} segd=${opts.segdUrl}`,
 	);
-	console.log(`[runner] harness_sha256=${shared.harnessHash}`);
+	console.log(`[runner] harness_sha256=${shared.harnessHash} git=${shared.git.describe} dirty_files=${shared.git.dirty.length}`);
 	console.log(`[runner] system_prompt_sha256=${shared.systemPromptSha} auth_shim=${shared.shimVersion}`);
 
 	const queue = [...rows];
@@ -841,6 +870,10 @@ async function main(): Promise<void> {
 		nni_url: opts.nniUrl,
 		concurrency: opts.concurrency,
 		harness_sha256: shared.harnessHash,
+		git_commit: shared.git.commit,
+		git_describe: shared.git.describe,
+		git_dirty_files: shared.git.dirty,
+		note: opts.note,
 		system_prompt_sha256: shared.systemPromptSha,
 		auth_shim_version: shared.shimVersion,
 		pi_version: VERSION,

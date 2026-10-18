@@ -11,6 +11,12 @@ repo until the validation phase (Phases 0–2) is finished; Phase 2 conditions u
 are tuned in Phase 1, so coverage numbers are optimistic and n = 6 per histotype is a coarse go/no-go signal.
 Agent thinking level: medium. Concurrency: 4 cases (matches `--max-sessions 4`). Multi-rater reference (future): voxel-wise majority vote.
 
+**Repository note (2026-10-18, after the validation phase):** the project directory is now `agentic-segmentation`
+(git repo, tag `harness-v1`). The May 2026 first-run material (`abstract_draft.md`, `figure.*`, old `eval/` scripts,
+manifests, examples, skill guides) was moved to the unversioned `archive/first_run_2026-05/`; paths below that point
+to `eval/<old file>` or `abstract_draft.md` now live there. The Phase 1 pass log moved from `eval/v2/design_log.md` to
+`research/experiments/phase1_design_log.md`; the master experiment log is `research/experiment_log.md`.
+
 Related documents:
 - `abstract_draft.md`: the RSNA 2026 abstract (Sonnet 4.6, GT-centroid seed, median Dice 0.80).
 - `research/potential_plan1.md`: earlier design brainstorm (code-first harness, set-of-marks, grounding).

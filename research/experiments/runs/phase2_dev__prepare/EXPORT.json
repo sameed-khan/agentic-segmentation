@@ -1,0 +1,5 @@
+{
+  "source": "results/phase2_dev/prepare",
+  "kind": "phase2_prepare",
+  "note": "text-only export; heavy artifacts (renders, masks, versions, full sessions) are in results/ (DVC). Transcript image payloads are replaced by sha256 stubs."
+}

@@ -1,0 +1,19 @@
+{
+  "n_cases": 30,
+  "n_coverage": 30,
+  "coverage_rate": 1.0,
+  "conditions_prepared": [
+    "R",
+    "S",
+    "S-gen",
+    "S-desc",
+    "S-ex"
+  ],
+  "marks_cache_dir": "results/cache/marks",
+  "manifest": "results/phase2_dev/prepare/manifest.jsonl",
+  "notes": [
+    "coverage = cases with >=1 drawn coarse mark whose projection lies inside GT on k*",
+    "dev cases: marks are tuned on these same 30 cases (optimistic coverage)"
+  ],
+  "finished_at": "2026-10-18T20:41:08Z"
+}

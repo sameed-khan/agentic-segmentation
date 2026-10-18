@@ -19,6 +19,7 @@
  * Run:  npx tsx ask.ts --run phase2-dev-01 [--conditions R,S,S-gen] [--reps 3]
  *                       [--cases F14,M07] [--concurrency 4]
  */
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
 	appendFileSync,
@@ -567,8 +568,18 @@ async function main(): Promise<void> {
 		? (JSON.parse(readFileSync(sdkPkgPath, "utf8")).version as string)
 		: undefined;
 
+	const git = (cmd: string): string | null => {
+		try {
+			return execSync(cmd, { cwd: PROJECT_ROOT, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+		} catch {
+			return null;
+		}
+	};
 	const meta = {
 		run: opts.run,
+		git_commit: git("git rev-parse HEAD"),
+		git_describe: git("git describe --tags --always --dirty"),
+		git_dirty_files: (git("git status --porcelain -- harness eval/v2") ?? "").split("\n").filter((l) => l.trim()),
 		stage: "phase2_localization_ask",
 		created_at: new Date().toISOString(),
 		model: opts.model,

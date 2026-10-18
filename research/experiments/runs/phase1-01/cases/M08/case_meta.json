@@ -1,0 +1,39 @@
+{
+  "case_id": "M08",
+  "shape": [
+    280,
+    280,
+    120
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 11484662,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    120
+  ],
+  "created_at": "2026-10-18T20:50:51Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T20:51:03Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Outline follows the bright mass in all three planes; I didn't check the upper end where the edge is fuzzy.",
+  "tool_calls": 4,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F15",
+  "shape": [
+    233,
+    233,
+    121
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1901247,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    233,
+    233,
+    121
+  ],
+  "created_at": "2026-10-18T21:00:26Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T21:00:38Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Dark T2 mass segmented",
+  "tool_calls": 5,
+  "model_prompts": 1
+}

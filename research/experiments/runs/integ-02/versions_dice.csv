@@ -1,0 +1,7 @@
+case,version,parent,op,dice
+F14,v0,,,0.0
+F14,v1,v0,point,0.0
+M33,v0,,,0.0
+M33,v1,v0,point,0.1562
+V55,v0,,,0.0
+V55,v1,v0,point,0.8454

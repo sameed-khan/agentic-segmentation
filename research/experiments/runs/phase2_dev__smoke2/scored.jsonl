@@ -1,0 +1,4 @@
+{"case": "F14", "condition": "R", "rep": 0, "status": "ok", "value": [315.0, 245.0], "hit": false, "distance_mm": 81.93900170248598, "voxel": [181, 209, 90], "inplane_row_col": [181, 209], "response_error": false}
+{"case": "F14", "condition": "S", "rep": 0, "status": "ok", "value": 478, "hit": false, "distance_mm": 75.43208866258443, "voxel": [146, 174, 90], "inplane_row_col": [146, 174], "response_error": false}
+{"case": "F14", "condition": "S-desc", "rep": 0, "status": "ok", "value": 478, "hit": false, "distance_mm": 75.43208866258443, "voxel": [146, 174, 90], "inplane_row_col": [146, 174], "response_error": false}
+{"case": "F14", "condition": "S-ex", "rep": 0, "status": "ok", "value": 478, "hit": false, "distance_mm": 75.43208866258443, "voxel": [146, 174, 90], "inplane_row_col": [146, 174], "response_error": false}

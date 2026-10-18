@@ -1,0 +1,39 @@
+{
+  "case_id": "V46",
+  "shape": [
+    341,
+    341,
+    396
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22113748,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    341,
+    341,
+    396
+  ],
+  "created_at": "2026-10-18T21:02:23Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-18T21:04:32Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Two-lobed mass outlined well in three planes; the lower and upper ends are less certain.",
+  "tool_calls": 12,
+  "model_prompts": 3
+}

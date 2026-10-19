@@ -24,14 +24,14 @@ ROOT = Path(__file__).resolve().parents[2]
 ST = ROOT / "results" / "phase3_state"
 CONC = int(os.environ.get("CONC", "8"))
 BLOCK_S = int(os.environ.get("BLOCK_S", "900"))
-RUNS = [  # run_id, model, thinking
+RUNS = [  # run_id, model, thinking  (Sameed's order 2026-10-19 20:30 UTC)
     ("p3-opus55-medium", "anthropic/claude-opus-5-5", "medium"),
     ("p3-opus55-high", "anthropic/claude-opus-5-5", "high"),
     ("p3-opus55-xhigh", "anthropic/claude-opus-5-5", "xhigh"),
-    ("p3-haiku55-xhigh", "anthropic/claude-haiku-5-5", "xhigh"),
-    ("p3-haiku55-max", "anthropic/claude-haiku-5-5", "max"),
     ("p3-dsv41flash-xhigh", "opencode-go/deepseek-v4.1-flash", "xhigh"),
     ("p3-dsv41flash-max", "opencode-go/deepseek-v4.1-flash", "max"),
+    ("p3-haiku55-xhigh", "anthropic/claude-haiku-5-5", "xhigh"),
+    ("p3-haiku55-max", "anthropic/claude-haiku-5-5", "max"),
     ("p3-muse13-high", "opencode-go/muse-spark-1.3-contributor", "high"),
     ("p3-muse13-xhigh", "opencode-go/muse-spark-1.3-contributor", "xhigh"),
     ("p3-gpt61sol-high", "openai/gpt-6.1-sol", "high"),
@@ -137,6 +137,7 @@ def run_once(run: str, model: str, think: str, s: dict) -> tuple[int, bool]:
     t = threading.Thread(target=reader, daemon=True); t.start()
     while p.poll() is None:
         time.sleep(60)
+        (ST / "sched_heartbeat").write_text(datetime.now(timezone.utc).isoformat())
         hp = higher_priority_free(run, s)
         disk = load_state()
         for k, v in disk.get("blocked_until", {}).items():
@@ -168,6 +169,7 @@ def main() -> None:
     s = load_state()
     reset_services()   # a previous scheduler/runner may have been killed with cases open
     while True:
+        (ST / "sched_heartbeat").write_text(datetime.now(timezone.utc).isoformat())
         # manual blocks (e.g. Sameed: "no Anthropic until the reset") can be added to sched.json while running
         disk = load_state()
         for k, v in disk.get("blocked_until", {}).items():
@@ -175,6 +177,7 @@ def main() -> None:
         pending = [r for r in RUNS if r[0] not in SKIP and not (ST / f"sweep_{r[0]}.done").exists()]
         if not pending:
             log("SWEEP COMPLETE")
+            (ST / "SWEEP_COMPLETE").touch()
             return
         now = time.time()
         pick = None
@@ -211,7 +214,9 @@ def main() -> None:
         elif code == 3:
             n = s.setdefault("limit_streak", {}).get(prov, 0) + 1
             s["limit_streak"][prov] = n
-            block = min(BLOCK_S * 2 ** (n - 1), 4 * 3600)   # 15, 30, 60, 120, 240 min while it stays limited
+            # quota limit: retry the same provider twice after 5 min (a few tries), then switch providers and back
+            # off 15, 30, 60, 120, 240 min while it stays limited (graceful preemption brings it back when free)
+            block = 300 if n <= 2 else min(BLOCK_S * 2 ** (n - 3), 4 * 3600)
             s["blocked_until"][prov] = time.time() + block
             save_state(s)
             log(f"provider {prov} limited on {run} (streak {n}) -> blocked {block}s, switching")

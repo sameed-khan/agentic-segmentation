@@ -89,3 +89,18 @@ come back when its window refreshes (interleave to maximise throughput).
 - 14:40 UTC: p3-opus55-high done (0.745, 4/5), exported. Sameed: no more Anthropic runs until the reset 17:40 UTC (1:40 PM EDT) -> manual block in sched.json; scheduler now re-reads sched.json each loop. DeepSeek v4.1 flash xhigh running (40/169).
 - 15:17 UTC: harness v3 methodology drafted (research/harness_v3_methodology.md) + literature notes; awaiting Sameed's go on deployment/studies.
 - 20:11 UTC: Sameed: sweep STOPPED (scheduler + runner killed; segd/nni left up). Do not restart without his go. Restart = eval/v2/start_sweep.sh.
+
+## 2026-10-19 ~20:20 UTC: Sameed's directives (full autonomy, he stepped away)
+- Sweep restarted (Phase 3 stays on this A10 machine). Order: opus55 m/h/x > deepseek x/max > haiku x/max > muse
+  h/x > gpt-6.1-sol h/x > gpt-6-luna x/max > argon high > opus5 (best opus55 level). On a quota limit: retry twice
+  after 5 min, then switch providers; back off 15->240 min; graceful preemption (STOP file) when an earlier run's
+  provider is free. **Self-healing:** cron `*/10 * * * * eval/v2/sweep_watchdog.sh` restarts the scheduler if dead or
+  heartbeat > 40 min. To stop the sweep: `touch results/phase3_state/STOPPED` then kill tmux p3a.
+  When everything is done: `results/phase3_state/SWEEP_COMPLETE`.
+- Phase 4 data prep: worker in worktree `/home/ubuntu/agseg-p4` (branch phase4-data): Spinal-Multiple-Myeloma-SEG,
+  BEAMSTER (+1–2 more post-2026-06-30 3D lesion datasets, non-MSK). Data -> data/phase4/.
+- Phase 5 (harness v3, runs on an A100 later): worker in worktree `/home/ubuntu/agseg-p5` (branch phase5-v3): local
+  model services (GUI-Actor-2B, Molmo2-8B, MedGemma 1.5 Q4_K_M + BF16), Study A/B code with fake backends.
+  Skip BiomedParse v2 and Qwen3-VL-8B. Study C agent = Sonnet 5.5 high, confirm with Opus 5.5 medium.
+  Next after the worker: review (gpt-6.1-sol), merge branch, then segd v3 integration (seg_locate + MedGemma checkpoints).
+- Never let workers edit the main tree while the sweep runs (segd restarts load main-tree code).

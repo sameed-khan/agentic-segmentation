@@ -276,6 +276,29 @@ probe 0.657 (+.102; best on L +0.13), supervoxel +0.09, ends +0.02. By histotype
 - **Decision:** integrate `intensity` (max 5 candidates) as `seg_candidates` / `seg_accept`, and show candidates in the
   first `seg_finish` review (one required candidate round). Probe kept as a possible second source (L/V cases).
 
+### E15. Agent with candidate corrections, thinking high — run `phase1-10-high-cand` (tag `harness-v2-rc1`)
+Integration (code `dd8e851`): tools `seg_candidates`, `seg_accept`; the first `seg_finish` review of every version also
+shows ≤ 5 intensity candidates (second image, magenta outlines) and asks the agent to accept/reject each; ≤ 3 accept rounds.
+Reviewed by gpt-6.1-sol (3 majors: stale authorization after undo/checkout, authorization before the sheet rendered,
+non-transactional persistence after commit) → fixed and regression-tested (151 tests).
+
+| run | mean | median | loc. fails | localized mean | tool calls | prompts | cost USD |
+|---|---|---|---|---|---|---|---|
+| phase1-06-high (no candidates) | 0.659 | 0.806 | 5 | 0.791 | 10.4 | 1.27 | 2.50 |
+| phase1-10-high-cand | 0.684 | 0.801 | 6 | 0.819 | 9.7 | 1.30 | 2.53 |
+
+- The +0.025 mean is **not from candidates**: the agent accepted a candidate in **1 of 30 cases** (V57, a wrong one).
+  Differences come from localization/run variance (F14 0 → 0.72, V46 0.60 → 0.85, N01 0.00, F44 0.89 → 0.73).
+- **Candidate judgement** (offline, `eval/v2/candidate_judgement.py`: the shown candidates are recomputed deterministically
+  and scored against GT): 32 reviews showed 100 candidates; **18 were mostly tumour** (> 50 % inside GT); the agent
+  accepted **0 of these 18** and 1 of the 82 bad ones. Rejected good candidates include M08 C1–C3 (precision 0.97–0.99),
+  M33 C1 (0.83), N34 C1/C4/C5 (0.73–0.93), L43 C2 (0.77), F50 C4 (0.98), V37 C1 (0.89).
+  Accepting exactly the good ones would have added +0.032 mean Dice over the reviewed states (M33 0.63 → 0.82,
+  N34 0.44 → 0.70, L43 0.67 → 0.82, F44 0.73 → 0.85, M08 0.74 → 0.83).
+- **Interpretation:** the agent rejects almost everything (specificity 81/82, sensitivity 0/18). The bottleneck is
+  judgement of "is this rim/extension part of the lesion" (annotation convention), not candidate availability or tooling.
+  These 100 labelled decisions (images + GT label) are a ready evaluation set for decision models (step 4) or prompt optimisation.
+
 ## 6. Next experiments (planned)
 
 | ID | Question | Runs |

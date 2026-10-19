@@ -251,6 +251,31 @@ Contrast = (mean GT intensity − mean of a 5-voxel ring around GT) / ring SD.
   768 px. Contact sheets are mildly downscaled by the API (1.0–1.6 MP → ~1.15 MP), so a 13 mm lesion is ~15–20 px per
   sheet cell; this could matter for F15 during search but F15 is also missed when shown directly.
 
+### E14. Candidate-correction generators, offline benchmark — `candidate_bench` (`eval/v2/candidate_bench.py`, `segd/candidates.py`)
+Idea (discussion with Sameed, 2026-10-19): turn "find your own error" into "accept/reject proposed corrections".
+Generators are GT-free (image + current mask + nnInteractive): **intensity** (grow into adjacent voxels within the
+mask's intensity band, ≤ 30 mm, split into 10 mm distance shells), **supervoxel** (complete partially covered SLIC
+supervoxels + similar neighbours), **ends** (continue the mask past its end slices while the footprint signal
+persists), **probe** (nnInteractive what-if positive/negative clicks around the mask in a scratch session), combo.
+Starting states: the agent's 240 final masks from 8 passes; 33 with zero GT overlap skipped; 207 evaluated.
+
+| method | cand/state | FN recall @1/@3/@8 | add precision | oracle-accept Dice (start 0.739) | accept-all | time/state |
+|---|---|---|---|---|---|---|
+| intensity | 3.9 | .30/.54/.55 | .30 | .786 (+.047) | .641 | 1.6 s |
+| supervoxel | 6.1 | .36/.56/.57 | .20 | .777 (+.038) | .626 | 5.2 s |
+| ends | 3.3 | .04/.06/.07 | .24 | .750 (+.011) | .644 | 2.7 s |
+| probe | 4.3 | .47/.60/.63 | .30 | .784 (+.045) | .602 | 28.9 s |
+
+Under-segmented states (84; recall < 0.7; start 0.555): intensity oracle-accept 0.663 (+.108, add precision 0.50),
+probe 0.657 (+.102; best on L +0.13), supervoxel +0.09, ends +0.02. By histotype (intensity): N +0.22, M +0.14, V +0.07, L +0.07, F +0.05.
+- The candidate ceiling (+0.05 overall / +0.11 under-segmented) is well below the click oracle (E13, 0.875 with 5 clicks):
+  about half of the missed GT is never proposed; the GT in e.g. N34 is a wide rim around the bright core plus thin
+  extensions that intensity continuation does not reach.
+- Precision is the bottleneck: accepting everything is *worse* than accepting nothing. The tool only helps if the agent
+  judges candidates well.
+- **Decision:** integrate `intensity` (max 5 candidates) as `seg_candidates` / `seg_accept`, and show candidates in the
+  first `seg_finish` review (one required candidate round). Probe kept as a possible second source (L/V cases).
+
 ## 6. Next experiments (planned)
 
 | ID | Question | Runs |

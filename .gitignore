@@ -17,3 +17,4 @@ __pycache__/
 .pytest_cache/
 harness/colab/logs/
 .DS_Store
+harness/server/unused/

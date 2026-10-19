@@ -133,10 +133,14 @@ def candidate_oracle_gain(eval_score, data: CaseData, review_mask: np.ndarray,
     """Oracle-accept Dice gain at a review with candidates (E16 machinery).
 
     Recomputes the deterministic intensity candidates on the reviewed mask version,
-    asserts id/volume match with the logged items, labels 'lesion' iff candidate
-    precision (volume inside GT) > 0.5, and returns the Dice gain of accepting
-    exactly the lesion-labelled ones (candidates are disjoint add-regions outside
-    the mask, so the accepted-subset Dice is additive — see prepare_candidate_replay).
+    asserts the E16 match/invariants (ids AND logged volumes — ids are always C1..Cn
+    after ranking, so they alone detect no drift — plus disjoint add-regions outside
+    the reviewed mask), labels each candidate 'lesion' iff its OWN precision (volume
+    inside GT) > 0.5, and returns the Dice gain of accepting exactly the lesion-labelled
+    subset (E16's GT-positive-candidate oracle: accepting every candidate lets a large
+    normal candidate erase a positive one's gain — review P1-2). Candidates are disjoint
+    add-regions outside the mask, so the accepted-subset Dice is additive — see
+    prepare_candidate_replay.
     """
     from segd import candidates as C
 
@@ -144,17 +148,28 @@ def candidate_oracle_gain(eval_score, data: CaseData, review_mask: np.ndarray,
                       cache={"body": data.body})
     assert [c.id for c in cands] == [i["id"] for i in candidates_items], \
         f"{data.case}: candidate ids drifted from the logged review"
-    inter = sum(int((c.region & data.gt).sum()) for c in cands)
-    region = sum(int(c.region.sum()) for c in cands)
+    for c, item in zip(cands, candidates_items):
+        if item.get("volume_ml") is not None:
+            assert abs(float(c.volume_ml) - float(item["volume_ml"])) < 0.05, \
+                f"{data.case}: candidate {c.id} volume drifted from the logged review"
+        assert not (c.region & review_mask).any(), \
+            f"{data.case}: candidate {c.id} overlaps the reviewed mask (not an add-region)"
+    for a in range(len(cands)):
+        for b in range(a + 1, len(cands)):
+            assert not (cands[a].region & cands[b].region).any(), \
+                f"{data.case}: candidates {cands[a].id}/{cands[b].id} overlap"
     gt_n = int(data.gt.sum())
     mask_n = int(review_mask.sum())
     mask_gt = int((review_mask & data.gt).sum())
     dice_state = eval_score.dice_from_counts(mask_gt, mask_n, gt_n)
+    labels = [{"id": c.id, "label": "lesion" if float((c.region & data.gt).sum()) /
+               max(int(c.region.sum()), 1) > 0.5 else "normal"} for c in cands]
+    accepted = [c for c, lab in zip(cands, labels) if lab["label"] == "lesion"]
+    inter = sum(int((c.region & data.gt).sum()) for c in accepted)
+    region = sum(int(c.region.sum()) for c in accepted)
     # accepted candidates grow the mask (disjoint add-regions outside it):
     # dice_after = 2*(mask_gt + inter) / (mask_n + region + gt_n)
     dice_oracle = eval_score.dice_from_counts(mask_gt + inter, mask_n + region, gt_n)
-    labels = [{"id": c.id, "label": "lesion" if float((c.region & data.gt).sum()) /
-               max(int(c.region.sum()), 1) > 0.5 else "normal"} for c in cands]
     return float(dice_oracle - dice_state), labels
 
 
@@ -258,6 +273,11 @@ def build_done_and_wrong(runs_root: Path, source_root: Path, cache: CaseCache,
                 shape = tuple(int(v) for v in z["shape"])
                 gt, _shape2, _data = cache.gt_only(case)
                 dice_state = dice_of(eval_score, z, vid, shape, gt)
+                # An empty successful version is a representable state (CaseState commits
+                # empty buffers): record its Dice as 0.0 and apply the SAME Dice < 0.1
+                # label rule, so the label never contradicts the recorded Dice (review
+                # P1-9).
+                dice_state = 0.0 if dice_state is None else float(dice_state)
                 img_rel, img_abs = image_rows(case_dir, state_op.get("renders") or [], source_root)
                 wrong_rows.append({
                     "key": f"{run}:{case}:v{vid}:wrong", "set": "wrong_structure", "case": case,
@@ -266,9 +286,8 @@ def build_done_and_wrong(runs_root: Path, source_root: Path, cache: CaseCache,
                     "images": img_rel, "images_abs": img_abs,
                     "text": state_op.get("observation", ""),
                     # GT-derived (offline only, never prompted):
-                    "label": "wrong_structure" if (dice_state is not None and
-                                                   dice_state < WRONG_STRUCTURE_DICE_MAX) else "structures_ok",
-                    "dice_state": round(dice_state, 4) if dice_state is not None else 0.0,
+                    "label": "wrong_structure" if dice_state < WRONG_STRUCTURE_DICE_MAX else "structures_ok",
+                    "dice_state": round(dice_state, 4),
                 })
     return done_rows, wrong_rows
 

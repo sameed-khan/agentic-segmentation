@@ -36,6 +36,12 @@ CMD=("$SERVER"
 )
 
 if [ "${1:-}" = "--tmux" ]; then
+  # Guard an existing session like the other services: a second setup invocation
+  # must not fail under set -e, nor start a duplicate server (review P2-5).
+  if tmux has-session -t medgemma-q4 2>/dev/null; then
+    echo "tmux session medgemma-q4 already running (port $PORT); not starting another"
+    exit 0
+  fi
   # detached tmux session, same name the runner queries for logs
   tmux new-session -d -s medgemma-q4 -c "$MEDGEMMA_MODEL_DIR" "${CMD[*]}"
   echo "started tmux session medgemma-q4 (port $PORT); attach: tmux attach -t medgemma-q4"

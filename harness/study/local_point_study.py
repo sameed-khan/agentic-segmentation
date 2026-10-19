@@ -257,6 +257,29 @@ def load_done_and_prune(resp_path: Path) -> set[tuple]:
     return done
 
 
+# Immutable run configuration (review P2-4): resuming must never mix variants.
+IMMUTABLE_META_KEYS = ("models", "conditions", "reps", "k", "max_tokens",
+                       "prepare_manifest", "prepare_manifest_sha256", "selected_cases",
+                       "images_root", "prompts")
+
+
+def check_immutable_config(run_dir: Path, meta: dict, done: set) -> None:
+    """Refuse to resume a run whose immutable configuration drifted from the prior
+    meta.json (a changed prompt/image/decoding config would mix variants in one
+    aggregate); require a new run name on mismatch."""
+    if not done:
+        return
+    meta_path = run_dir / "meta.json"
+    if not meta_path.exists():
+        return
+    prior = json.loads(meta_path.read_text())
+    drifted = {k: (prior.get(k), meta.get(k)) for k in IMMUTABLE_META_KEYS
+               if prior.get(k) != meta.get(k)}
+    if drifted:
+        raise SystemExit(f"run config drifted from prior meta.json for {run_dir}; "
+                         f"use a new --run name. Drifted keys: {drifted}")
+
+
 def main() -> None:
     opts = parse_args()
     run_dir = PROJECT_ROOT / opts.results_root / opts.run
@@ -294,7 +317,10 @@ def main() -> None:
         **git_provenance(),
         "models": opts.models, "conditions": opts.conditions_filter or "per-model defaults",
         "reps": opts.reps, "k": opts.k, "max_tokens": opts.max_tokens,
-        "prepare_manifest": str(manifest_path), "images_root": opts.images_root,
+        "prepare_manifest": str(manifest_path),
+        "prepare_manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+        "selected_cases": [r["case"] for r in rows],
+        "images_root": opts.images_root,
         "urls": opts.urls, "timeout_s": opts.timeout, "concurrency": opts.concurrency,
         "planned_calls": len(calls), "resumed_from_lines": len(done),
         "prompts": {name: {"path": f"harness/study/prompts/{name}.md",
@@ -302,6 +328,7 @@ def main() -> None:
                     for name in ("local_point_raw", "local_point_marks", "local_point_raw_box",
                                  "local_point_marks_box", "local_point_marks_id")},
     }
+    check_immutable_config(run_dir, meta, done)
     (run_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")
 
     print(f"[studyA] run={opts.run} models={','.join(opts.models)} calls={len(calls)} "

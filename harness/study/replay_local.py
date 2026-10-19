@@ -7,12 +7,16 @@ Decision sets (harness/study/build_decision_sets.py):
 - wrong_structure     : per first-prompt state -> {answer: wrong_structure|structures_ok|uncertain, confidence}
 
 Strict JSON with the explicit `uncertain` option (MedGemmaClient.chat_json); parse
-failures are recorded, never retried. Prompts come from
+failures are recorded, never retried. A parse failure is a FINAL outcome: the row is
+completed with ok=True and parse_error set, stays in responses.jsonl on resume and in
+the scorer's denominators (as a wrong answer). Only transport/HTTP failures are
+ok=False and retried on resume. Prompts come from
 harness/study/prompts/decision_<set>.md (sha256 recorded); only image paths and the
 GT-free `text` enter the prompt — labels/precision/dice stay offline.
 
-Output: results/phase5/studyB/<set>/<run>/responses.jsonl (+ meta.json), resumable
-(ok rows skipped, error rows dropped and retried — the ask.ts convention).
+Output: results/phase5/studyB/<set>/<run>/responses.jsonl (+ meta.json), resumable:
+ok rows are skipped on resume (INCLUDING parse failures — they are final outcomes),
+only transport/HTTP error rows are dropped and retried (the ask.ts convention).
 Frontier models run through harness/study/replay_decisions.ts (same manifests,
 same templates, same scoring).
 
@@ -147,19 +151,44 @@ def build_call(row: dict, rep: int, opts, template_path: Path, template: str) ->
             "uncertain": result.uncertain, "usage": result.usage,
             "latency_ms": result.latency_ms, "model_id": result.model,
             "raw_body": result.raw_body[:2000],
-            # ok = a well-formed reply arrived; a JSON parse failure is itself recorded
-            # (ok=True, parse_error set) because the scorer counts it — never retried.
-            "ok": result.parse_error is None,
+            # Receiving a completion is the outcome: a JSON parse failure is itself
+            # recorded (ok=True, parse_error set) — a final result, kept on resume and
+            # counted by the scorer, NEVER retried (review P1-3). Only the except branch
+            # (transport/HTTP) is ok=False and retried on resume.
+            "ok": True,
         })
     except Exception as exc:  # transport/HTTP failure: record, retry on resume
         line["error"] = f"{type(exc).__name__}: {exc}"
     return line
 
 
+# Immutable run configuration (review P2-4): resuming must never mix variants.
+IMMUTABLE_META_KEYS = ("set", "model", "reps", "max_tokens", "manifest", "manifest_sha256",
+                       "selected_keys", "images_root", "prompt_template", "prompt_sha256")
+
+
+def check_immutable_config(run_dir: Path, meta: dict, done: set) -> None:
+    """Refuse to resume a run whose immutable configuration drifted from the prior
+    meta.json (a changed prompt/decoding would mix variants in one aggregate)."""
+    if not done:
+        return
+    meta_path = run_dir / "meta.json"
+    if not meta_path.exists():
+        return
+    prior = json.loads(meta_path.read_text())
+    drifted = {k: (prior.get(k), meta.get(k)) for k in IMMUTABLE_META_KEYS
+               if prior.get(k) != meta.get(k)}
+    if drifted:
+        raise SystemExit(f"run config drifted from prior meta.json for {run_dir}; "
+                         f"use a new --run name. Drifted keys: {drifted}")
+
+
 def load_done_and_prune(resp_path: Path) -> set[tuple]:
     """Resume bookkeeping (ask.ts convention): returns the completed (key, model, rep)
     keys; rewrites the file without error/malformed/duplicate rows so a rerun with
-    the same --run retries exactly the failures."""
+    the same --run retries exactly the failures. Parse failures are NOT failures here:
+    they are completed rows (ok=True, parse_error set) and are never retried (review
+    P1-3)."""
     done: set[tuple] = set()
     kept: list[str] = []
     n_seen = 0
@@ -207,7 +236,9 @@ def main() -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     resp_path = run_dir / "responses.jsonl"
 
-    # Resumability (ask.ts convention): keep ok rows; drop error/parse rows for retry.
+    # Resumability (ask.ts convention): keep ok rows (including parse failures — they
+    # are final outcomes); drop error/malformed rows so a rerun with the same --run
+    # retries exactly the transport/HTTP failures.
     done = load_done_and_prune(resp_path)
     todo = [(row, rep) for row in rows for rep in range(opts.reps)
             if (row["key"], opts.model, rep) not in done]
@@ -217,7 +248,10 @@ def main() -> None:
         **git_provenance(),
         "set": opts.set_name, "model": opts.model, "url": opts.url, "reps": opts.reps,
         "max_tokens": opts.max_tokens, "concurrency": opts.concurrency,
-        "manifest": str(manifest_path), "images_root": opts.images_root,
+        "manifest": str(manifest_path),
+        "manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+        "selected_keys": [r["key"] for r in rows],
+        "images_root": opts.images_root,
         "prompt_template": f"harness/study/prompts/{template_path.name}",
         "prompt_sha256": hashlib.sha256(template.encode()).hexdigest(),
         "planned_calls": len(rows) * opts.reps, "resumed_from_lines": len(done),
@@ -225,13 +259,11 @@ def main() -> None:
                                  "version_dice_gain", "oracle_dice_gain", "region_vox",
                                  "inter_vox", "dice_reviewed"],
     }
+    check_immutable_config(run_dir, meta, done)
     (run_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")
 
     print(f"[replay] set={opts.set_name} model={opts.model} rows={len(rows)} "
           f"todo={len(todo)} (done {len(done)}) url={opts.url}")
-
-    todo = [(row, rep) for row in rows for rep in range(opts.reps)
-            if (row["key"], opts.model, rep) not in done]
 
     lock = threading.Lock()
     error_rows = 0
@@ -250,11 +282,14 @@ def main() -> None:
                 if not line["ok"]:
                     error_rows += 1
             print(f"[replay] {line['key']}/r{line['rep']} ok={line['ok']} "
-                  f"{line['latency_ms']}ms" + (f" error={line['error']}" if not line["ok"] else ""),
+                  f"{line['latency_ms']}ms"
+                  + (f" error={line['error']}" if not line["ok"] else "")
+                  + (f" parse_error={line['parse_error']}" if line.get("parse_error") else ""),
                   flush=True)
 
     if error_rows:
-        print(f"[replay] {error_rows} error rows recorded (rerun the same --run to retry)")
+        print(f"[replay] {error_rows} transport error rows recorded (rerun the same --run "
+              f"to retry; parse failures are final and were kept)")
         sys.exit(3)
     print(f"[replay] wrote {resp_path}")
 

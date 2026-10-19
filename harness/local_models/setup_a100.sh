@@ -20,6 +20,16 @@ MODELS_DIR="${MODELS_DIR:-$HOME/models}"
 GUI_ACTOR_DIR="${GUI_ACTOR_DIR:-/opt/GUI-Actor}"
 GUI_ACTOR_COMMIT="${GUI_ACTOR_COMMIT:-d98d1bbd01862f9112114b83b032f492c365a173}"
 
+# HF revision pins (review P2-6): mutable default revisions would change model/processor
+# behaviour under a fixed study protocol (Molmo2 also executes remote code from the
+# snapshot). Resolved via the HF API on 2026-10-19; override only deliberately.
+HF_REVISION_GUI_ACTOR="${HF_REVISION_GUI_ACTOR:-8f87b366d004425a9823502553e2097c71116ece}"
+HF_REVISION_VERIFIER="${HF_REVISION_VERIFIER:-30dd0db468762d45df20b5a01c4084c5a3ed3ca3}"
+HF_REVISION_MOLMO2="${HF_REVISION_MOLMO2:-e28fa28597e5ec5e0cca2201dd8ab33d48bc4a1b}"
+HF_REVISION_MEDGEMMA="${HF_REVISION_MEDGEMMA:-91850547d9f0b2fdd21aa7c5f4f3d1a8a52c243b}"
+HF_REVISION_MEDGEMMA_GGUF="${HF_REVISION_MEDGEMMA_GGUF:-3855f948626b7ae42bccd082757f15078c53e758}"
+export HF_REVISION_GUI_ACTOR HF_REVISION_VERIFIER HF_REVISION_MOLMO2 HF_REVISION_MEDGEMMA HF_REVISION_MEDGEMMA_GGUF
+
 step() { printf '\n=== %s\n' "$*"; }
 
 # ---------------------------------------------------------------- 1. uv projects
@@ -32,19 +42,32 @@ if [ "${1:-}" != "--services-only" ]; then
   # ------------------------------------------------------------- 2. weights
   step "2/5 downloading weights into $MODELS_DIR (GUI-Actor, Molmo2 public; MedGemma needs HF_TOKEN)"
   uv run --project "$HERE/pointd_gui_actor" --with "huggingface_hub[cli]" python - "$MODELS_DIR" <<'EOF'
-import os, sys
+import json, os, sys
 from huggingface_hub import snapshot_download
 models_dir = sys.argv[1]
-targets = [
-    ("microsoft/GUI-Actor-2B-Qwen2-VL", os.path.join(models_dir, "GUI-Actor-2B-Qwen2-VL")),
-    ("allenai/Molmo2-8B",               os.path.join(models_dir, "Molmo2-8B")),
-    ("google/medgemma-1.5-4b-it",       os.path.join(models_dir, "medgemma-1.5-4b-it")),
-]
-for repo, dest in targets:
-    print(f"downloading {repo} -> {dest}")
-    snapshot_download(repo, local_dir=dest, token=os.environ.get("HF_TOKEN"))
+# repo -> (local dir, pinned revision)
+targets = {
+    "microsoft/GUI-Actor-2B-Qwen2-VL": (
+        os.path.join(models_dir, "GUI-Actor-2B-Qwen2-VL"), os.environ["HF_REVISION_GUI_ACTOR"]),
+    "microsoft/GUI-Actor-Verifier-2B": (
+        os.path.join(models_dir, "GUI-Actor-Verifier-2B"), os.environ["HF_REVISION_VERIFIER"]),
+    "allenai/Molmo2-8B": (
+        os.path.join(models_dir, "Molmo2-8B"), os.environ["HF_REVISION_MOLMO2"]),
+    "google/medgemma-1.5-4b-it": (
+        os.path.join(models_dir, "medgemma-1.5-4b-it"), os.environ["HF_REVISION_MEDGEMMA"]),
+}
+resolved = {}
+for repo, (dest, revision) in targets.items():
+    print(f"downloading {repo}@{revision} -> {dest}")
+    snapshot_download(repo, local_dir=dest, revision=revision, token=os.environ.get("HF_TOKEN"))
+    resolved[repo] = {"revision": revision, "local_dir": dest}
+with open(os.path.join(models_dir, "weights_manifest.json"), "w") as f:
+    json.dump({"snapshots": resolved, "note": "pinned HF revisions (setup_a100.sh); "
+               "services/run meta should reference this manifest"}, f, indent=2)
+print(f"wrote {os.path.join(models_dir, 'weights_manifest.json')}")
 EOF
-  # MedGemma GGUF (deployment arm): Q4_K_M quant + its F16 mmproj from the same repo.
+  # MedGemma GGUF (deployment arm): Q4_K_M quant + its F16 mmproj from the same repo,
+  # pinned to the same snapshot revision.
   uv run --project "$HERE/medgemma" --with "huggingface_hub[cli]" python - "$MODELS_DIR" <<'EOF'
 import os, sys
 from huggingface_hub import hf_hub_download
@@ -52,6 +75,7 @@ models_dir = sys.argv[1]
 dest = os.path.join(models_dir, "medgemma15")
 for fname in ["medgemma-1.5-4b-it-Q4_K_M.gguf", "mmproj-F16.gguf"]:
     path = hf_hub_download("unsloth/medgemma-1.5-4b-it-GGUF", fname, local_dir=dest,
+                           revision=os.environ["HF_REVISION_MEDGEMMA_GGUF"],
                            token=os.environ.get("HF_TOKEN"))
     print(f"downloaded {path}")
 EOF
@@ -75,12 +99,17 @@ if [ "${1:-}" != "--weights-only" ]; then
   tmux has-session -t pointd-gui 2>/dev/null || \
   GUI_ACTOR_REPO="$GUI_ACTOR_DIR" MODELS_DIR="$MODELS_DIR" tmux new-session -d -s pointd-gui -c "$HERE/pointd_gui_actor" \
     "uv run --project $HERE/pointd_gui_actor python server.py \
-       --model-id $MODELS_DIR/GUI-Actor-2B-Qwen2-VL --gui-actor-repo $GUI_ACTOR_DIR --port 8092"
+       --model-id $MODELS_DIR/GUI-Actor-2B-Qwen2-VL --gui-actor-repo $GUI_ACTOR_DIR \
+       --verifier-model-id $MODELS_DIR/GUI-Actor-Verifier-2B --port 8092"
   tmux has-session -t pointd-molmo 2>/dev/null || \
   tmux new-session -d -s pointd-molmo -c "$HERE/pointd_molmo2" \
     "uv run --project $HERE/pointd_molmo2 python server.py \
        --model-id $MODELS_DIR/Molmo2-8B --port 8093"
-  bash "$HERE/medgemma/start_llama_server.sh" --tmux
+  # Q4 session guarded like the other three (setup stays idempotent), and the
+  # documented MODELS_DIR override is honoured instead of start_llama_server.sh's
+  # independent $HOME/models default (review P2-5).
+  tmux has-session -t medgemma-q4 2>/dev/null || \
+  MEDGEMMA_MODEL_DIR="$MODELS_DIR/medgemma15" bash "$HERE/medgemma/start_llama_server.sh" --tmux
   tmux has-session -t medgemma-bf16 2>/dev/null || \
   tmux new-session -d -s medgemma-bf16 -c "$HERE/medgemma" \
     "uv run --project $HERE/medgemma python start_bf16_server.py \

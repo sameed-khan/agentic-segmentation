@@ -16,9 +16,12 @@ Per set (labels are the GT-derived manifest labels; positive class named below):
   any test-split use).
 Answers: `uncertain` rows are excluded from sens/spec (counted as abstain; a
 second sens/spec WITH uncertain-as-negative is reported for completeness).
-Parse failures count as errors (misses), never retried.
-Case-level bootstrap CIs; per-histotype breakdown; paired McNemar between two
-runs of the same set (--compare-run) for local-vs-frontier contrasts.
+Parse failures and response errors are terminal wrong answers: they enter the
+sensitivity/specificity/accuracy denominators (fn on a positive row, fp on a
+negative) with explicit counts, never retried.
+Case-level CLUSTER bootstrap CIs (resamples cases, carrying every decision of a
+case together); per-histotype breakdown; paired McNemar between two runs of the
+same set (--compare-run) on per-decision correctness (tp + tn, both classes).
 
 Run:  uv run --project harness/server python harness/study/score_decision.py \
           --set done_check --run medgemma-q4 [--compare-run sonnet-high]
@@ -99,15 +102,27 @@ def score_call(resp: dict, row: dict) -> dict:
         "cost_usd": (resp.get("usage") or {}).get("cost_usd"),
         "response_error": bool(resp.get("error")),
         "status": None, "answer": None, "confidence": None, "p_positive": None,
-        "tp": 0, "fp": 0, "tn": 0, "fn": 0, "counted": False,
+        "tp": 0, "fp": 0, "tn": 0, "fn": 0, "counted": False, "missing": False,
     }
+
+    def count_as_error() -> None:
+        """Parse/transport failures are terminal wrong answers: fn on a positive row,
+        fp on a negative row (review P1-4: never dropped from the denominators)."""
+        if out["is_positive"]:
+            out["fn"] = 1
+        else:
+            out["fp"] = 1
+        out["counted"] = True
+
     if out["response_error"]:
         out["status"] = "response_error"
+        count_as_error()
         return out
     parsed = parse_answer(resp.get("raw_text", resp.get("raw")), spec["answers"])
     out.update({"status": parsed["status"], "answer": parsed["answer"],
                 "confidence": parsed["confidence"]})
     if parsed["status"] == "parse_fail":
+        count_as_error()
         return out
     if parsed["status"] == "uncertain":
         return out  # abstain: excluded from sens/spec, counted in the abstain rate
@@ -134,6 +149,7 @@ def confusion(calls: list[dict]) -> dict:
         "n_uncertain": sum(c["status"] == "uncertain" for c in calls),
         "n_parse_fail": sum(c["status"] == "parse_fail" for c in calls),
         "n_response_error": sum(c["status"] == "response_error" for c in calls),
+        "n_missing": sum(1 for c in calls if c.get("missing")),
         "tp": tp, "fp": fp, "tn": tn, "fn": fn,
         "sensitivity": round(tp / (tp + fn), 4) if (tp + fn) else None,
         "specificity": round(tn / (tn + fp), 4) if (tn + fp) else None,
@@ -173,31 +189,65 @@ def threshold_at_specificity(scores_neg: list[float], target: float) -> float | 
     return float(neg[idx - 1]) + 1e-9
 
 
-def bootstrap_ci(flags: list[int], n_boot: int, seed: int) -> tuple[float, float]:
-    if not flags:
+def cluster_bootstrap_ci(rows: list[dict], value_fn, n_boot: int, seed: int) -> tuple[float, float]:
+    """Case-level (cluster) bootstrap percentile CI for a mean over decision rows.
+
+    Resamples CASE ids with replacement and carries EVERY decision row of each selected
+    case together (a case's candidates/reps are correlated), recomputing the mean over
+    all rows of the resampled cases each draw (review P1-5: never resample decisions).
+    """
+    by_case: dict[str, list[float]] = {}
+    for c in rows:
+        by_case.setdefault(c["case"], []).append(float(value_fn(c)))
+    cases = sorted(by_case)
+    if not cases:
         return (None, None)
     rng = np.random.default_rng(seed)
-    arr = np.asarray(flags, dtype=float)
-    stats = [arr[rng.integers(0, len(arr), size=len(arr))].mean() for _ in range(n_boot)]
-    return (round(float(np.percentile(stats, 2.5)), 4), round(float(np.percentile(stats, 97.5)), 4))
+    values = [np.asarray(by_case[c], dtype=float) for c in cases]
+    stats = []
+    for _ in range(n_boot):
+        picked = rng.integers(0, len(cases), size=len(cases))
+        stats.append(float(np.concatenate([values[i] for i in picked]).mean()))
+    return (round(float(np.percentile(stats, 2.5)), 4),
+            round(float(np.percentile(stats, 97.5)), 4))
 
 
 def metrics_for(calls: list[dict], n_boot: int, seed: int) -> dict:
     conf = confusion(calls)
-    counted = [c for c in calls if c["counted"]]
-    pos_scores = [c["p_positive"] for c in counted if c["is_positive"]]
-    neg_scores = [c["p_positive"] for c in counted if not c["is_positive"]]
+    ok_rows = [c for c in calls if c["status"] == "ok"]
+    pos_scores = [c["p_positive"] for c in ok_rows if c["is_positive"]]
+    neg_scores = [c["p_positive"] for c in ok_rows if not c["is_positive"]]
     conf["auroc"] = auroc(pos_scores, neg_scores)
     conf["auroc_all_rows"] = auroc(  # uncertain rows enter as p=0.5 (rank ties)
         [c["p_positive"] if c["p_positive"] is not None else 0.5
          for c in calls if c["status"] in ("ok", "uncertain") and c["is_positive"]],
         [c["p_positive"] if c["p_positive"] is not None else 0.5
          for c in calls if c["status"] in ("ok", "uncertain") and not c["is_positive"]])
-    # sensitivity CI over positive rows (tp as 0/1), specificity CI over negative rows
-    conf["sens_ci95"] = bootstrap_ci([c["tp"] for c in counted if c["is_positive"]], n_boot, seed)
-    conf["spec_ci95"] = bootstrap_ci([c["tn"] for c in counted if not c["is_positive"]], n_boot, seed)
+    # case-level (cluster) bootstrap CIs: sensitivity over counted positive rows
+    # (parse/transport failures included with tp=0), specificity over counted negatives
+    conf["sens_ci95"] = cluster_bootstrap_ci(
+        [c for c in calls if c["counted"] and c["is_positive"]], lambda c: c["tp"], n_boot, seed)
+    conf["spec_ci95"] = cluster_bootstrap_ci(
+        [c for c in calls if c["counted"] and not c["is_positive"]], lambda c: c["tn"], n_boot, seed)
+    # secondary completeness metrics: uncertain counted as a negative prediction
+    u_pos = [c for c in calls if c["is_positive"] and c["status"] in ("ok", "uncertain")]
+    u_neg = [c for c in calls if not c["is_positive"] and c["status"] in ("ok", "uncertain")]
+
+    def predicted_pos(c: dict) -> bool:
+        return c["tp"] == 1 or c["fp"] == 1  # ok rows only: positive answer iff tp/fp set
+
+    conf["sensitivity_uncertain_as_negative"] = (
+        round(sum(1 for c in u_pos if c["status"] == "ok" and predicted_pos(c)) / len(u_pos), 4)
+        if u_pos else None)
+    conf["specificity_uncertain_as_negative"] = (
+        round(sum(1 for c in u_neg if c["status"] == "uncertain"
+                  or (c["status"] == "ok" and not predicted_pos(c))) / len(u_neg), 4)
+        if u_neg else None)
     thr = threshold_at_specificity(neg_scores, SPECIFICITY_TARGET)
-    conf["threshold_at_spec_0.95"] = round(thr, 4) if thr is not None else None
+    # EXACT operational threshold (review P2-3: a rounded value cannot reproduce the
+    # metric; the convention is positive iff p_positive >= threshold)
+    conf["threshold_at_spec_0.95"] = thr
+    conf["threshold_convention"] = "positive iff p_positive >= threshold (negatives score < threshold)"
     if thr is not None and pos_scores:
         sens = sum(1 for s in pos_scores if s >= thr) / len(pos_scores)
         spec = sum(1 for s in neg_scores if s < thr) / len(neg_scores)
@@ -215,25 +265,38 @@ def mcnemar_exact(b: int, c: int) -> float:
 
 
 def paired_compare(calls_a: list[dict], calls_b: list[dict], positive: str) -> dict | None:
-    """McNemar between two runs of the same set, paired per key (majority over reps).
+    """McNemar between two runs of the same set on per-decision CORRECTNESS
+    (tp + tn: both classes; parse/transport failures are wrong; uncertain abstains
+    excluded), paired per key and majority-aggregated over reps (ties -> not correct).
 
-    Only keys where BOTH calls produced a counted decision enter (abstains excluded).
+    Review P1-6: aggregating tp alone hides every negative-class discordance — on a
+    negative row both a TN and an FP have tp=0, so an arm that falsely accepts all
+    negatives looked identical to one that rejects them. The choice (both-class
+    correctness, not a positive-only sensitivity test) is documented in the report.
     """
-    def by_key(calls: list[dict]) -> dict[str, int]:
-        out: dict[str, list[int]] = {}
+    def correct_by_key(calls: list[dict]) -> dict[str, list[int]]:
+        per_rep: dict[tuple[str, object], int] = {}
         for c in calls:
             if c["counted"]:
-                out.setdefault(c["key"], []).append(c["tp"])
-        return {k: int(np.mean(v) >= 0.5) for k, v in out.items()}
+                per_rep[(c["key"], c.get("rep"))] = int(c["tp"] + c["tn"])
+        per_key: dict[str, list[int]] = {}
+        for (key, _rep), correct in per_rep.items():
+            per_key.setdefault(key, []).append(correct)
+        return per_key
 
-    a, b = by_key(calls_a), by_key(calls_b)
+    def majority(flags: list[int]) -> int:
+        return int(sum(flags) * 2 > len(flags))
+
+    a = {k: majority(v) for k, v in correct_by_key(calls_a).items()}
+    b = {k: majority(v) for k, v in correct_by_key(calls_b).items()}
     keys = sorted(set(a) & set(b))
     n_b = sum(1 for k in keys if b[k] and not a[k])
     n_c = sum(1 for k in keys if a[k] and not b[k])
     if not keys:
         return None
     return {"n_paired_keys": len(keys), "n_b_hit_a_miss": n_b, "n_a_hit_b_miss": n_c,
-            "mcnemar_p": round(mcnemar_exact(n_b, n_c), 5)}
+            "mcnemar_p": round(mcnemar_exact(n_b, n_c), 5),
+            "outcome": "per-decision correctness (tp+tn, both classes), majority over reps"}
 
 
 # ------------------------------------------------------------------ report
@@ -266,6 +329,30 @@ def main() -> None:
     spec = SET_SPEC[args.set_name]
 
     calls = [score_call(resp, rows[resp["key"]]) for resp in resp_lines]
+
+    # ---- coverage validation (review P1-4): every planned manifest key × rep must have
+    # a response row; missing calls become explicit error rows instead of vanishing.
+    meta_path = set_dir / args.run / "meta.json"
+    run_meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+    reps_planned = run_meta.get("reps")
+    if reps_planned is None:
+        reps_planned = max((r.get("rep") for r in resp_lines), default=-1) + 1
+    # planned keys: the run's recorded --keys subset when present, else the whole manifest
+    planned_keys = [k for k in (run_meta.get("selected_keys") or []) if k in rows]
+    if not planned_keys:
+        planned_keys = sorted(rows)
+    recorded = {(r["key"], r.get("rep")) for r in resp_lines}
+    missing = [(key, rep) for key in planned_keys for rep in range(reps_planned)
+               if (key, rep) not in recorded]
+    for m_key, m_rep in missing:
+        m_row = rows[m_key]
+        m_call = score_call({"run": args.run, "key": m_key, "case": m_row["case"],
+                             "rep": m_rep, "model": None, "raw_text": "",
+                             "error": "missing response: planned call never recorded",
+                             "latency_ms": None, "usage": None}, m_row)
+        m_call["missing"] = True
+        calls.append(m_call)
+
     (set_dir / args.run / "scored.jsonl").write_text(
         "".join(json.dumps(c) + "\n" for c in calls))
 
@@ -278,44 +365,84 @@ def main() -> None:
 
     comparison = None
     compare_calls = None
+    compare_missing = []
     if args.compare_run:
         compare_path = set_dir / args.compare_run / "responses.jsonl"
         if not compare_path.exists():
             raise SystemExit(f"no responses for --compare-run: {compare_path}")
         compare_resp = [json.loads(l) for l in compare_path.read_text().splitlines() if l.strip()]
         compare_calls = [score_call(resp, rows[resp["key"]]) for resp in compare_resp]
+        # report the compare run's coverage (its missing calls simply do not pair;
+        # disclosed rather than silently shrinking the paired set)
+        compare_meta_path = set_dir / args.compare_run / "meta.json"
+        compare_meta = json.loads(compare_meta_path.read_text()) if compare_meta_path.exists() else {}
+        c_reps = compare_meta.get("reps")
+        if c_reps is None:
+            c_reps = max((r.get("rep") for r in compare_resp), default=-1) + 1
+        c_planned = [k for k in (compare_meta.get("selected_keys") or []) if k in rows]
+        if not c_planned:
+            c_planned = sorted(rows)
+        c_recorded = {(r["key"], r.get("rep")) for r in compare_resp}
+        compare_missing = [(k, rep) for k in c_planned for rep in range(c_reps)
+                           if (k, rep) not in c_recorded]
         comparison = paired_compare(calls, compare_calls, spec["positive"])
         (set_dir / args.compare_run / "scored.jsonl").write_text(
             "".join(json.dumps(c) + "\n" for c in compare_calls))
 
     out = {"set": args.set_name, "run": args.run, "positive_class": spec["positive"],
-           "metrics": metrics, "per_histotype": per_hist, "n_boot": args.n_boot, "seed": args.seed}
+           "metrics": metrics, "per_histotype": per_hist, "n_boot": args.n_boot, "seed": args.seed,
+           "coverage": {"planned": len(planned_keys) * reps_planned, "recorded": len(recorded),
+                        "missing": len(missing),
+                        "missing_keys": [f"{k}/r{rep}" for k, rep in missing]}}
     if comparison:
-        out["paired_vs"] = {"run": args.compare_run, **comparison}
+        out["paired_vs"] = {"run": args.compare_run, **comparison,
+                            "compare_missing": [f"{k}/r{rep}" for k, rep in compare_missing]}
     (set_dir / args.run / "score.json").write_text(json.dumps(out, indent=2) + "\n")
 
     # ---- report -------------------------------------------------------------
     lines = [f"# Phase 5 Study B — decision replay, set `{args.set_name}`, run `{args.run}`", ""]
     lines.append(f"Scored {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}; "
                  f"positive class = **{spec['positive']}**; `uncertain` rows excluded from "
-                 f"sens/spec (n_uncertain reported); parse failures are errors.")
+                 f"sens/spec (n_uncertain reported; a secondary uncertain-as-negative "
+                 f"sens/spec is reported); parse failures and response errors are terminal "
+                 f"wrong answers in the denominators (never retried).")
+    if missing:
+        lines.append(f"")
+        lines.append(f"**Coverage: {len(missing)} planned call(s) never recorded "
+                     f"({', '.join(f'{k}/r{rep}' for k, rep in missing[:10])}"
+                     f"{'…' if len(missing) > 10 else ''}) — counted as errors.**")
     lines.append("")
     lines.append("| n | counted | sens | spec | acc | AUROC | sens @ spec 0.95 | threshold | "
-                 "uncertain | parse fail | resp error |")
-    lines.append("|---|" + "---|" * 10)
+                 "uncertain | parse fail | resp error | missing |")
+    lines.append("|---|" + "---|" * 11)
     m = metrics
     lines.append(f"| {m['n']} | {m['n_counted']} | {fmt(m['sensitivity'])} | {fmt(m['specificity'])} | "
                  f"{fmt(m['accuracy'])} | {fmt(m['auroc'])} | {fmt(m.get('sens_at_spec_0.95'))} | "
                  f"{fmt(m.get('threshold_at_spec_0.95'))} | {m['n_uncertain']} | "
-                 f"{m['n_parse_fail']} | {m['n_response_error']} |")
+                 f"{m['n_parse_fail']} | {m['n_response_error']} | {m['n_missing']} |")
+    lines.append("")
+    lines.append(f"Secondary (uncertain counted as negative): sens "
+                 f"{fmt(m.get('sensitivity_uncertain_as_negative'))}, spec "
+                 f"{fmt(m.get('specificity_uncertain_as_negative'))}.")
     lines.append("")
     lines.append(f"Sensitivity CI95 {m['sens_ci95']}, specificity CI95 {m['spec_ci95']} "
-                 f"(case-level bootstrap, {args.n_boot} resamples, seed {args.seed}).")
+                 f"(case-level CLUSTER bootstrap: resamples cases with replacement, carrying "
+                 f"every decision of each selected case; {args.n_boot} resamples, seed {args.seed}).")
+    lines.append("")
+    lines.append("`sens @ spec 0.95` uses the exact operational threshold stored in score.json "
+                 "(`threshold_at_spec_0.95`, applied as p_positive >= threshold).")
     if comparison:
         lines.append("")
         lines.append(f"Paired vs `{args.compare_run}`: {comparison['n_paired_keys']} paired keys, "
                      f"McNemar p = {comparison['mcnemar_p']} "
-                     f"(b = {comparison['n_b_hit_a_miss']}, c = {comparison['n_a_hit_b_miss']}).")
+                     f"(b = {comparison['n_b_hit_a_miss']}, c = {comparison['n_a_hit_b_miss']}) "
+                     f"on per-decision correctness (tp + tn, BOTH classes; uncertain abstains "
+                     "excluded; keys aggregated over reps by majority). Chosen over a "
+                     "positive-only test so negative-class discordances count.")
+        if compare_missing:
+            lines.append(f"  note: {len(compare_missing)} response(s) of `{args.compare_run}` "
+                         f"were never recorded ({', '.join(f'{k}/r{rep}' for k, rep in compare_missing[:5])}"
+                         f"{'…' if len(compare_missing) > 5 else ''}) — those keys do not pair.")
     lines.append("")
     lines.append("## Per histotype")
     lines.append("")
@@ -330,7 +457,8 @@ def main() -> None:
     lines.append("")
     lines.append("## Scoring rules")
     lines.append("- Strict JSON: {\"answer\": ...} among " + ", ".join(spec["answers"]) +
-                 "; anything else = parse_fail (counted, never retried).")
+                 "; anything else = parse_fail, counted as a wrong answer in the "
+                 "denominators (never retried; missing responses count as errors too).")
     lines.append("- AUROC from `confidence` in the stated answer (p(positive) = confidence for "
                  "positive answers, 1 - confidence otherwise; missing confidence -> 0.5).")
     if args.set_name == "wrong_structure":

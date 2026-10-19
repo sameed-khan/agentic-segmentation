@@ -113,6 +113,7 @@ class GuiActorRealBackend:
         self._tokenizer = None
         self._verifier = None
         self._verifier_processor = None
+        self._verifier_load_error = None
         self._loaded = False
 
     def load(self) -> None:
@@ -145,16 +146,28 @@ class GuiActorRealBackend:
         self._loaded = True
 
     def _load_verifier(self, torch) -> None:  # noqa: ANN001
+        """OFFICIAL verifier path (gui-actor/verifier/verifier_model.py): a multimodal
+        Qwen2VLForConditionalGeneration + AutoProcessor — NOT a causal LM with a plain
+        tokenizer as image processor (review P1-11)."""
         try:
-            from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: PLC0415
+            from transformers import AutoProcessor, Qwen2VLForConditionalGeneration  # noqa: PLC0415
 
-            self._verifier = AutoModelForCausalLM.from_pretrained(
-                self.verifier_model_id, torch_dtype=torch.bfloat16, device_map=self.device).eval()
-            self._verifier_processor = AutoTokenizer.from_pretrained(self.verifier_model_id)
-            log.info("loaded verifier %s", self.verifier_model_id)
-        except Exception as exc:  # verifier is optional; actor keeps serving without it
-            log.warning("verifier load failed (%s); continuing without reranking", exc)
+            self._verifier = Qwen2VLForConditionalGeneration.from_pretrained(
+                self.verifier_model_id, torch_dtype=torch.bfloat16, device_map=self.device,
+                trust_remote_code=True).eval()
+            self._verifier_processor = AutoProcessor.from_pretrained(self.verifier_model_id)
+            self._verifier_processor.tokenizer.pad_token = \
+                self._verifier_processor.tokenizer.eos_token
+            log.info("loaded verifier %s (Qwen2VLForConditionalGeneration + AutoProcessor)",
+                     self.verifier_model_id)
+        except Exception as exc:
+            # Loading may be skipped (--no-verifier) or fail; verify=false keeps serving,
+            # but a verify=true request now fails EXPLICITLY instead of silently running
+            # without verification and returning verifier:null.
             self._verifier = None
+            self._verifier_processor = None
+            self._verifier_load_error = str(exc)
+            log.warning("verifier load failed (%s); verify=true requests will fail", exc)
 
     # -- inference ----------------------------------------------------------
     def predict(self, png_bytes: bytes, query: str, k: int, verify: bool) -> dict[str, Any]:
@@ -172,56 +185,93 @@ class GuiActorRealBackend:
         norm_points = [(float(p[0]), float(p[1])) for p in (pred.get("topk_points") or [])]
         scores = [float(v) for v in (pred.get("topk_values") or [])]
         verifier_out = None
-        if verify and self._verifier is not None and norm_points:
-            order, verifier_out = self._verify(image, query, norm_points, w, h)
-            norm_points = [norm_points[i] for i in order]
-            scores = [scores[i] for i in order] if scores else scores
+        if verify:
+            if self._verifier is None or self._verifier_processor is None:
+                # Fail explicitly: silently running without verification would fake a result.
+                raise RuntimeError(
+                    "verify=true but the official GUI-Actor verifier is unavailable"
+                    + (f" (load error: {self._verifier_load_error})" if self._verifier_load_error else ""))
+            if norm_points:
+                order, verifier_out = self._verify(image, query, norm_points, w, h)
+                norm_points = [norm_points[i] for i in order]
+                scores = [scores[i] for i in order] if scores else scores
         points = [{"x_norm": px, "y_norm": py,
                    "score": (scores[i] if i < len(scores) else None)}
                   for i, (px, py) in enumerate(norm_points)]
         return {"points": points, "raw": str(pred.get("output_text")), "verifier": verifier_out}
 
     def _system_message(self) -> str:
+        """Checkpoint-specific OFFICIAL system prompt (eval/screenSpot.py).
+
+        The Qwen2-VL 2B card and its ScreenSpot eval use the short pyautogui prompt; the
+        longer gui_actor.constants.grounding_system_message is the Qwen2.5-VL variant
+        (review P2-1: the 2B Qwen2-VL service must not claim the longer prompt as exact
+        official inference).
+        """
+        if "qwen2.5" not in self.model_id.lower():
+            return ("You are a GUI agent. You are given a task and a screenshot of the screen. "
+                    "You need to perform a series of pyautogui actions to complete the task.")
         from gui_actor.constants import grounding_system_message  # noqa: PLC0415
 
         return grounding_system_message
 
     def _verify(self, image, query: str, norm_points: list, w: int, h: int):  # noqa: ANN001
-        """Official verifier protocol: red hollow circle at the candidate point ->
-        "exame whether the hollow red circle accurately placed ... Answer True or False"."""
-        import io as _io  # noqa: PLC0415
+        """Official verifier protocol (verifier/verifier_model.py, method='score').
 
+        Per candidate: draw_point_list (red hollow circle, radius ceil(7*1), line width
+        ceil(3*1), 500 px half-size crop around the point) at the ABSOLUTE pixel
+        (x*W, y*H), then the exact verify prompt; score = P(True)/(P(True)+P(False))
+        from the last-token logits; candidates reranked by score.
+        """
         import numpy as np  # noqa: PLC0415
         from PIL import ImageDraw  # noqa: PLC0415
 
         probs: list[float] = []
         for (px, py) in norm_points:
+            cx, cy = px * w, py * h
             img = image.copy()
             draw = ImageDraw.Draw(img)
-            radius = 8 * max(img.width, img.height) / 1000.0  # official radius 8 at 1000 px scale
-            cx, cy = px * w, py * h
+            radius = int(np.ceil(7 * 1.0))
             draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius],
-                         outline="red", width=4)
-            buf = _io.BytesIO()
-            img.save(buf, format="PNG")
-            prompt = ("Please observe the screenshot and exame whether the hollow red circle "
-                      f"accurately placed on the intended position in the image: '{query}'. "
-                      "Answer True or False.")
-            text = self._verifier_processor.apply_chat_template(
-                [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]}],
-                tokenize=False, add_generation_prompt=True)
-            inputs = self._verifier_processor(images=[PIL.Image.open(_io.BytesIO(buf.getvalue()))],
-                                              text=[text], return_tensors="pt").to(self._verifier.device)
-            with self._torch.inference_mode():
-                logits = self._verifier(**inputs).logits[0, -1]
-            true_id = self._verifier_processor.encode("True", add_special_tokens=False)[0]
-            false_id = self._verifier_processor.encode("False", add_special_tokens=False)[0]
-            pair = np.array([logits[false_id].item(), logits[true_id].item()], dtype=np.float64)
-            pair -= pair.max()
-            exp = np.exp(pair)
-            probs.append(float(exp[1] / exp.sum()))  # P(True)
+                         outline="red", width=int(np.ceil(3 * 1.0)))
+            left, top = max(0, int(cx) - 500), max(0, int(cy) - 500)
+            right, bottom = min(w - 1, int(cx) + 500), min(h - 1, int(cy) + 500)
+            try:
+                img = img.crop((left, top, right, bottom))
+            except Exception:  # official behaviour: keep the full image on crop failure
+                pass
+            probs.append(self._verifier_score(query, img))
         order = sorted(range(len(probs)), key=lambda i: probs[i], reverse=True)
-        return order, {"used": True, "p_true": [round(p, 4) for p in probs]}
+        return order, {"used": True, "p_true": [round(p, 4) for p in probs],
+                       "method": "official verifier_model.py score path"}
+
+    def _verifier_score(self, instruction: str, image) -> float:  # noqa: ANN001
+        """One official verifier score (verifier_model.py GroundingVerifier.verify):
+        user message with the marked image, chat template, process_vision_info image
+        protocol, P(True)/(P(True)+P(False)) from the full-vocab softmax ratio."""
+        from qwen_vl_utils import process_vision_info  # noqa: PLC0415  (official image protocol)
+
+        full_prompt = ("Please observe the screenshot and exame whether the hollow red circle "
+                       f"accurately placed on the intended position in the image: '{instruction}'. "
+                       "Answer True or False.")
+        messages = [{"role": "user", "content": [
+            {"type": "image", "image": image},
+            {"type": "text", "text": full_prompt},
+        ]}]
+        text_input = self._verifier_processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True)
+        image_inputs, video_inputs = process_vision_info(messages)
+        inputs = self._verifier_processor(text=[text_input], images=image_inputs,
+                                          videos=video_inputs, padding=True,
+                                          return_tensors="pt").to(self._verifier.device)
+        with self._torch.inference_mode():
+            logits = self._verifier(**inputs).logits[:, -1, :]
+        true_id = self._verifier_processor.tokenizer.encode("True", add_special_tokens=False)[0]
+        false_id = self._verifier_processor.tokenizer.encode("False", add_special_tokens=False)[0]
+        row = logits[0]
+        p_true = float(row[true_id])
+        p_false = float(row[false_id])
+        return p_true / (p_true + p_false)
 
 
 # --------------------------------------------------------------------------- app

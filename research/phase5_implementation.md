@@ -17,8 +17,12 @@ harness/local_models/                    own uv projects (pinned versions per th
                        Wraps the OFFICIAL GUI-Actor-2B inference (microsoft/GUI-Actor repo checkout,
                        transformers==4.51.3, qwen-vl-utils==0.0.8, accelerate==1.1.1; BF16; attn sdpa
                        default, flash_attention_2 behind an extra). Optional verifier flag reranks
-                       the connected-region candidates with GUI-Actor-Verifier-2B (official red-circle
-                       protocol). --fake mode: deterministic dummy points, torch never imported.
+                       the connected-region candidates with GUI-Actor-Verifier-2B (official
+                       red-circle protocol per verifier/verifier_model.py: Qwen2VLForConditional-
+                       Generation + AutoProcessor, circle radius 7 / width 3 / 500 px half-size
+                       crop, score = P(True)/(P(True)+P(False)); a verify=true request FAILS
+                       explicitly when the verifier could not be loaded). --fake mode:
+                       deterministic dummy points, torch never imported.
     pyproject.toml     pins + [tool.uv] package=false (app-style project)
   pointd_molmo2/
     server.py          same /point API. Port 8093. Molmo2-8B via transformers==4.57.1,
@@ -128,19 +132,24 @@ uv run --project harness/server python harness/study/score_local_point.py \
     --baseline-dir results/phase2_dev/dev-02-high --baseline-condition S
 ```
 
-- Conditions: **raw** = clean image (`image_R`, pixel rulers) -> point; **marks** = marked image
-  (`image_S`, clean left + numbered marks right) -> point snapped to the nearest drawn mark
-  (predeclared rule: Euclidean over the manifest `combined_px`, ties -> lowest id); for MedGemma
-  also **marks_id** (answer a mark id) and **marks_box** (box `[y0,x0,y1,x1]` in [0,1] of the
-  whole image -> centre -> snapped). The unsnapped raw point is scored separately as a secondary
-  diagnostic and never mixed with the snapped answer.
+- Conditions: **raw** = clean image (`image_R`, pixel rulers) -> point answered in WHOLE-PNG
+  pixels (the scorer subtracts the ruler margins — the panel is pasted at (40, 22) with a 26 px
+  bottom margin — before `panel_to_voxel`; margin points are `outside_panel` misses); **marks** =
+  marked image (`image_S`, clean left + numbered marks right) -> point snapped to the nearest
+  drawn mark (predeclared rule: Euclidean over the manifest `combined_px`, ties -> lowest id);
+  for MedGemma also **marks_id** (answer a mark id; non-integer ids are parse failures, unknown
+  integer ids `invalid_mark`) and **marks_box** (box `[y0,x0,y1,x1]` in [0,1] of the whole image
+  -> centre -> snapped). The unsnapped raw point is scored separately as a secondary diagnostic
+  and never mixed with the snapped answer.
 - Prompt templates: `harness/study/prompts/local_point_*.md` (initial versions; {{target}} =
   histotype text, {{sequence_text}}). Up to 8 variants per model × condition — tune on the
   design split ONLY, then freeze (sha256 in meta.json) before the test split.
 - Scorer: hit@1, hit@3 (any of ranks 0-2), EDT distance in mm, parse/abstain rates, latency,
   per-histotype breakdown, case-bootstrap CIs, and paired exact McNemar vs the Phase 2 frontier
-  run (default baseline: the main tree's `results/phase2_test/p2-test-high` for test-split runs;
-  pass `--baseline-dir results/phase2_dev/dev-02-high` for design tuning).
+  run (both arms use the SAME per-case summary: majority over reps of per-rep hit flags, ties ->
+  miss; error/parse reps count as misses) (default baseline: the main tree's
+  `results/phase2_test/p2-test-high` for test-split runs; pass `--baseline-dir
+  results/phase2_dev/dev-02-high` for design tuning).
 - Outputs: `results/phase5/studyA/<run>/{responses,scored}.jsonl`, `score.json`, `report.md`,
   `meta.json` (model ids, prompt hashes, git state, urls). Resumable: rerun the same `--run`
   to retry only failed calls (deterministic decoding -> reps=1 default).
@@ -185,7 +194,8 @@ uv run --project harness/server python harness/study/score_decision.py \
      candidates, recomputed + matched as in `prepare_candidate_replay.py`) improves Dice by
      >= 0.05. Positive class not_done (the risky miss is calling a fixable state done).
   3. **wrong_structure** — state after the first model prompt (first successful
-     version-creating op, eval/v2 convention); label wrong_structure iff Dice < 0.1.
+     version-creating op, eval/v2 convention); label wrong_structure iff Dice < 0.1 (an empty
+     successful version records Dice 0.0 and takes the same rule).
      Positive class wrong_structure; report sens at specificity >= 0.95.
 - Answer contracts (prompts/decision_*.md): `{"answer": lesion|not_lesion|uncertain,
   "confidence": 0-1}` (candidate), `{done|not_done|uncertain}`, `{wrong_structure|structures_ok|
@@ -193,6 +203,11 @@ uv run --project harness/server python harness/study/score_decision.py \
   positive answers, 1-conf otherwise; missing confidence -> 0.5). Parse failures are counted
   errors, never retried; uncertain rows are abstains (excluded from sens/spec, counted, and an
   uncertain-as-negative AUROC is also reported).
+- Scoring/stats (score_decision.py): CIs are CASE-LEVEL CLUSTER bootstraps (resample case ids,
+  carrying every decision of the case together — candidates/reps within a case are correlated);
+  the paired McNemar (`--compare-run`) pairs per-decision CORRECTNESS (tp + tn, both classes;
+  parse/transport failures are wrong; keys aggregated over reps by majority) so negative-class
+  discordances count.
 - Output per run: `results/phase5/studyB/<set>/<run>/{responses,scored}.jsonl`, `score.json`,
   `report.md`, `meta.json`.
 

@@ -19,6 +19,7 @@ STUDY_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(STUDY_DIR))
 
 import build_decision_sets as bds  # noqa: E402
+import local_point_study as runner  # noqa: E402
 import replay_local as replay  # noqa: E402
 import score_decision as D  # noqa: E402
 from segd.case_state import pack_region  # noqa: E402
@@ -146,6 +147,69 @@ def test_done_label_not_done_on_candidate_oracle(tmp_path, cache, eval_score, mo
     assert done[0]["oracle_dice_gain"] == pytest.approx(2 * 112 / 256 - 2 * 64 / 208, abs=1e-3)
 
 
+def test_done_oracle_accepts_only_gt_positive_candidates(tmp_path, cache, eval_score, monkeypatch):
+    """The oracle accepts EXACTLY the GT-positive (precision > 0.5) candidates: a large
+    normal candidate must not erase a positive one's gain (review P1-2)."""
+    gt = gt_volume()
+    mask = blob(center=(4, 4), half=2, depth=4)          # reviewed state: 64 vox, in GT
+    lesion = np.zeros(SHAPE, dtype=bool)
+    lesion[6:7, 2:8, :] = True                           # 24 vox, precision 1.0
+    normal = np.zeros(SHAPE, dtype=bool)
+    normal[0:2, 0:10, :] = True                          # 80 vox, precision 0.0
+    make_case_dir(tmp_path, "phase1-10-high-cand", "C11",
+                  {1: mask},
+                  [{"op": "point", "parent": "v0", "child": "v1", "error": None, "args": {}},
+                   {"op": "finish", "parent": "v1", "renders": ["renders/010_finish.png"],
+                    "error": None, "observation": "review",
+                    "candidates": {"version": "v1", "method": "intensity",
+                                   "items": [{"id": "C1", "volume_ml": 2.4},
+                                             {"id": "C2", "volume_ml": 8.0}]}}])
+    monkeypatch.setattr("segd.candidates.propose",
+                        lambda img, m, spacing, method, max_n, cache: [
+                            SimpleNamespace(id="C1", region=lesion, volume_ml=2.4),
+                            SimpleNamespace(id="C2", region=normal, volume_ml=8.0)])
+    done, _ = bds.build_done_and_wrong(tmp_path, tmp_path, cache, eval_score,
+                                       runs=("phase1-10-high-cand",), meta_of=meta_of)
+    # accepting only the lesion: dice 2*(64+24)/(64+24+144) = 0.7586 (+0.143) -> not_done
+    assert done[0]["label"] == "not_done"
+    assert done[0]["oracle_dice_gain"] == pytest.approx(2 * 88 / 232 - 2 * 64 / 208, abs=1e-3)
+    # counterfactual (the OLD bug): accepting BOTH candidates erases the gain —
+    # dice 2*(64+24)/(64+24+80+144) = 0.564 < dice_state 0.615 -> improvement 0 -> done
+    assert 2 * 88 / 312 < 2 * 64 / 208
+
+
+def test_done_oracle_volume_drift_detected(tmp_path, cache, eval_score, monkeypatch):
+    """Matching checks logged VOLUMES, not just the always-C1..Cn ids (review P2-2)."""
+    gt = gt_volume()
+    mask = blob(center=(4, 4), half=2, depth=4)
+    region = np.zeros(SHAPE, dtype=bool)
+    region[6:7, 2:8, :] = True
+    make_case_dir(tmp_path, "phase1-10-high-cand", "C11",
+                  {1: mask},
+                  [{"op": "point", "parent": "v0", "child": "v1", "error": None, "args": {}},
+                   {"op": "finish", "parent": "v1", "renders": ["renders/010_finish.png"],
+                    "error": None, "observation": "review",
+                    "candidates": {"items": [{"id": "C1", "volume_ml": 99.0}]}}])
+    monkeypatch.setattr("segd.candidates.propose",
+                        lambda img, m, spacing, method, max_n, cache: [
+                            SimpleNamespace(id="C1", region=region, volume_ml=2.4)])
+    with pytest.raises(AssertionError, match="volume drifted"):
+        bds.build_done_and_wrong(tmp_path, tmp_path, cache, eval_score,
+                                 runs=("phase1-10-high-cand",), meta_of=meta_of)
+
+
+def test_wrong_structure_empty_version_labelled_wrong_structure(tmp_path, cache, eval_score):
+    """An empty first version records dice_state 0.0 and is labelled by the SAME Dice < 0.1
+    rule (never structures_ok with a 0.0 Dice — review P1-9)."""
+    make_case_dir(tmp_path, "phase1-06-high", "C11", {1: None},   # v1 = empty mask
+                  [{"op": "point", "parent": "v0", "child": "v1", "error": None,
+                    "renders": ["renders/007_point.png"], "args": {}, "observation": "version v1"}])
+    _done, wrong = bds.build_done_and_wrong(tmp_path, tmp_path, cache, eval_score,
+                                            runs=("phase1-06-high",), meta_of=meta_of)
+    assert wrong[0]["dice_state"] == 0.0
+    assert wrong[0]["label"] == "wrong_structure"
+
+
 def test_done_candidate_ids_must_match(tmp_path, cache, eval_score, monkeypatch):
     gt = gt_volume()
     make_case_dir(tmp_path, "phase1-10-high-cand", "C11",
@@ -253,10 +317,63 @@ def test_score_call_candidate_confusion():
              call(pos, '{"answer": "uncertain"}'),                      # abstain
              call(pos, "prose only")]                                   # parse fail
     m = D.confusion(calls)
-    assert (m["tp"], m["fn"], m["tn"], m["fp"]) == (1, 1, 1, 1)
-    assert m["sensitivity"] == 0.5 and m["specificity"] == 0.5
+    # parse failures are terminal WRONG answers: the malformed positive adds a fn
+    # (review P1-4: failures stay in the denominators with explicit counts)
+    assert (m["tp"], m["fn"], m["tn"], m["fp"]) == (1, 2, 1, 1)
+    assert m["sensitivity"] == pytest.approx(1 / 3, abs=1e-3)
+    assert m["specificity"] == 0.5
     assert m["n_uncertain"] == 1 and m["n_parse_fail"] == 1
-    assert calls[4]["counted"] is False and calls[5]["status"] == "parse_fail"
+    assert calls[4]["counted"] is False and calls[5]["counted"] is True
+    assert calls[5]["fn"] == 1
+
+
+def test_parse_failures_cannot_inflate_sensitivity():
+    """One correct positive + nine malformed positive replies -> sens 0.1, never 1.0."""
+    pos = _row("candidate_judgement", "A:v1:C1", "lesion")
+    calls = [D.score_call({"run": "r", "key": pos["key"], "case": "A", "rep": 0,
+                           "model": "m", "raw_text": '{"answer": "lesion"}',
+                           "error": None, "latency_ms": 1.0, "usage": None}, pos)]
+    calls += [D.score_call({"run": "r", "key": pos["key"], "case": "A", "rep": i + 1,
+                            "model": "m", "raw_text": f"malformed reply {i}",
+                            "error": None, "latency_ms": 1.0, "usage": None}, pos)
+              for i in range(9)]
+    m = D.confusion(calls)
+    assert m["sensitivity"] == 0.1
+    assert m["n_parse_fail"] == 9 and m["n_counted"] == 10 and m["fn"] == 9
+
+
+def test_response_error_counts_as_error():
+    pos = _row("done_check", "A:v1:done", "not_done")
+    neg = _row("done_check", "B:v1:done", "done")
+    err_p = D.score_call({"run": "r", "key": pos["key"], "case": "A", "rep": 0, "model": "m",
+                          "raw_text": "", "error": "timeout", "latency_ms": None,
+                          "usage": None}, pos)
+    err_n = D.score_call({"run": "r", "key": neg["key"], "case": "B", "rep": 0, "model": "m",
+                          "raw_text": "", "error": "timeout", "latency_ms": None,
+                          "usage": None}, neg)
+    assert err_p["status"] == "response_error" and err_p["fn"] == 1 and err_p["counted"] is True
+    assert err_n["fp"] == 1
+
+
+def test_uncertain_as_negative_secondary_metrics():
+    pos = _row("candidate_judgement", "A:v1:C1", "lesion")
+    neg = _row("candidate_judgement", "B:v1:C1", "normal")
+
+    def call(row, raw):
+        return D.score_call({"run": "r", "key": row["key"], "case": row["case"], "rep": 0,
+                             "model": "m", "raw_text": raw, "error": None,
+                             "latency_ms": 1.0, "usage": None}, row)
+
+    calls = [call(pos, '{"answer": "uncertain"}'),                       # abstain on positive
+             call(neg, '{"answer": "uncertain"}'),                       # abstain on negative
+             call(pos, '{"answer": "lesion", "confidence": 0.9}'),       # tp
+             call(neg, '{"answer": "not_lesion", "confidence": 0.9}')]   # tn
+    m = D.metrics_for(calls, n_boot=20, seed=1)
+    assert m["sensitivity"] == 1.0 and m["specificity"] == 1.0  # abstains excluded
+    assert m["n_uncertain"] == 2
+    # secondary completeness: uncertain = negative prediction
+    assert m["sensitivity_uncertain_as_negative"] == 0.5
+    assert m["specificity_uncertain_as_negative"] == 1.0
 
 
 def test_auroc_perfect_and_with_ties():
@@ -272,6 +389,32 @@ def test_threshold_at_specificity():
     assert thr is not None and thr > 0.4
     thr5 = D.threshold_at_specificity(neg, 0.5)
     assert 0.2 < thr5 <= 0.2 + 1e-6  # smallest threshold with spec >= 0.5
+
+
+def test_stored_threshold_is_the_exact_operational_value():
+    """The persisted threshold must reproduce the metric (review P2-3): a 4-decimal
+    round of 0.4+1e-9 applied with >= would reach only 0.75 specificity."""
+    rows = [_row("candidate_judgement", f"K{i}:v1:C1", "lesion" if i < 2 else "normal")
+            for i in range(6)]
+    calls = []
+    for i, row in enumerate(rows):
+        p = (0.9, 0.8, 0.1, 0.2, 0.3, 0.4)[i]
+        pos = int(row["label"] == "lesion")
+        calls.append({"run": "r", "key": row["key"], "case": row["case"], "rep": 0,
+                      "model": "m", "set": "candidate_judgement", "histotype": "F",
+                      "label": row["label"], "is_positive": pos, "latency_ms": 1.0,
+                      "cost_usd": None, "response_error": False, "status": "ok",
+                      "answer": "lesion" if pos else "not_lesion", "confidence": p if pos else 1 - p,
+                      "p_positive": p, "counted": True,
+                      "tp": int(pos and p >= 0), "fp": int(not pos and False),
+                      "tn": int(not pos), "fn": 0, "missing": False})
+    m = D.metrics_for(calls, n_boot=10, seed=1)
+    thr = m["threshold_at_spec_0.95"]
+    assert thr == pytest.approx(0.4 + 1e-9, abs=1e-12)   # exact, not rounded to 0.4
+    assert m["threshold_convention"].startswith("positive iff p_positive >=")
+    assert m["spec_at_threshold"] == 1.0                 # >= convention on the exact value
+    # applying the ROUNDED 0.4 with >= would misclassify the 0.4 negative -> spec 0.75
+    assert sum(1 for c in calls if not c["is_positive"] and c["p_positive"] >= 0.4) == 1
 
 
 def test_metrics_for_sens_at_spec():
@@ -310,6 +453,58 @@ def test_done_set_positive_class_is_not_done():
     assert call["fn"] == 1 and call["p_positive"] == pytest.approx(0.1)
 
 
+def test_cluster_bootstrap_resamples_cases_not_decisions():
+    """CI resampling carries every decision of a case together (review P1-5): with two
+    internally consistent cases the statistic can only be 0.0 or 1.0, never an
+    in-between row-mixture."""
+    def tp_rows(case, n, value):
+        return [{"run": "r", "key": f"{case}:v1:C{i}", "case": case, "rep": 0, "model": "m",
+                 "set": "candidate_judgement", "histotype": "F", "label": "lesion",
+                 "is_positive": 1, "status": "ok", "counted": True, "tp": value,
+                 "missing": False} for i in range(n)]
+
+    rows = tp_rows("A", 10, 1) + tp_rows("B", 10, 0)
+    lo, hi = D.cluster_bootstrap_ci(rows, lambda c: c["tp"], n_boot=300, seed=3)
+    assert (lo, hi) == (0.0, 1.0)  # a flat row bootstrap gives an in-between CI here
+    # single case: cluster bootstrap degrades to that case's constant statistic
+    lo1, hi1 = D.cluster_bootstrap_ci(tp_rows("A", 5, 1), lambda c: c["tp"], n_boot=50, seed=3)
+    assert (lo1, hi1) == (1.0, 1.0)
+    assert D.cluster_bootstrap_ci([], lambda c: 0, 10, 1) == (None, None)
+
+
+def test_paired_compare_uses_correctness_both_classes():
+    """McNemar pairs per-decision correctness (tp+tn): arms differing ONLY on negative
+    rows must produce discordances (review P1-6; the old tp-only rule saw none)."""
+    def calls(answers):
+        out = []
+        for i, (label, ans) in enumerate(zip(["normal", "normal", "lesion", "lesion"], answers)):
+            row = _row("candidate_judgement", f"K{i}:v1:C1", label)
+            out.append({"run": "r", "key": row["key"], "case": row["case"], "rep": 0,
+                        "model": "m", "set": "candidate_judgement", "histotype": "F",
+                        "label": label, "is_positive": int(label == "lesion"),
+                        "latency_ms": 1.0, "cost_usd": None, "response_error": False,
+                        "status": "ok", "answer": ans, "confidence": 0.9,
+                        "p_positive": 0.9 if ans == "lesion" else 0.1,
+                        "counted": True,
+                        "tp": int(label == "lesion" and ans == "lesion"),
+                        "fp": int(label == "normal" and ans == "lesion"),
+                        "tn": int(label == "normal" and ans == "not_lesion"),
+                        "fn": int(label == "lesion" and ans != "lesion"),
+                        "missing": False})
+        return out
+
+    # both arms agree on positives; differ ONLY on the two negative rows
+    a = calls(["not_lesion", "not_lesion", "lesion", "lesion"])   # all correct
+    b = calls(["lesion", "not_lesion", "lesion", "not_lesion"])    # fp on K0, fn on K3
+    comp = D.paired_compare(a, b, "lesion")
+    assert comp is not None
+    assert comp["n_paired_keys"] == 4
+    assert comp["n_b_hit_a_miss"] == 0 and comp["n_a_hit_b_miss"] == 2
+    assert comp["outcome"].startswith("per-decision correctness")
+    # sanity: the old tp-only rule aggregated b/a tp flags (0/0) and would have seen NO
+    # discordance at all on these two negative-row differences.
+
+
 def test_paired_compare_mcnamar():
     keys = [f"K{i}:v1:C1" for i in range(4)]
     rows = [_row("done_check", k, "not_done" if i % 2 else "done") for i, k in enumerate(keys)]
@@ -333,8 +528,10 @@ def test_paired_compare_mcnamar():
     b = run_calls(["not_done", "done", "not_done", "not_done"])
     comp = D.paired_compare(a, b, "not_done")
     assert comp["n_paired_keys"] == 4
-    assert comp["n_b_hit_a_miss"] == 1 and comp["n_a_hit_b_miss"] == 1
-    assert comp["mcnemar_p"] == 1.0
+    # per-decision correctness (tp+tn): a is wrong on K0 (fp) and K3 (fn); b is wrong on
+    # K1/K2 — a discordance on a NEGATIVE row (K2: a tn, b fp) now counts (review P1-6).
+    assert comp["n_b_hit_a_miss"] == 1 and comp["n_a_hit_b_miss"] == 2
+    assert comp["mcnemar_p"] == pytest.approx(1.0)  # exact binomial n=3, min(1,2)=1 -> 2*4/8
 
 
 # ------------------------------------------------------------------ replay resumability
@@ -348,6 +545,137 @@ def test_replay_resume_keeps_ok_drops_errors(tmp_path):
     assert done == {("A:v1:C1", "medgemma_q4", 0)}
     kept = [json.loads(l) for l in resp.read_text().splitlines()]
     assert len(kept) == 1 and kept[0]["key"] == "A:v1:C1"
+
+
+def _replay_row(tmp_path, images_file="a.png"):
+    png = tmp_path / images_file
+    png.write_bytes(b"png")
+    return {"key": "A:v1:done", "set": "done_check", "case": "A", "histotype": "F",
+            "sequence": "T1", "source_run": "r", "version": "v1", "text": "review v1",
+            "images": [images_file], "images_abs": [str(png)],
+            "candidate": {"id": "C1", "volume_ml": 1.0, "overlap_mask_vox": 0}}
+
+
+def test_replay_parse_failure_is_final_outcome_not_retried(tmp_path, monkeypatch):
+    """A malformed model reply is a COMPLETED outcome (ok=True, parse_error set): the row
+    is retained verbatim on resume and never retried (review P1-3)."""
+    class FakeResult:
+        text = "oops not json"
+        parsed = None
+        parse_error = "no JSON object found"
+        uncertain = None
+        usage = None
+        latency_ms = 3.0
+        model = "medgemma-1.5-4b-it"
+        raw_body = "oops not json"
+
+    class FakeClient:
+        def __init__(self, base_url=None, timeout_s=None):
+            pass
+
+        def chat_json(self, *args, **kwargs):
+            return FakeResult()
+
+    monkeypatch.setattr(replay, "MedGemmaClient", FakeClient)
+    row = _replay_row(tmp_path)
+    opts = replay.parse_args(["--set", "done_check", "--run", "x"])
+    line = replay.build_call(row, 0, opts, Path("decision_done.md"), "template {{case}}")
+    assert line["ok"] is True and line["error"] is None
+    assert line["parse_error"] == "no JSON object found" and line["parsed"] is None
+    resp = tmp_path / "responses.jsonl"
+    resp.write_text(json.dumps(line) + "\n")
+    done = replay.load_done_and_prune(resp)
+    assert done == {("A:v1:done", opts.model, 0)}
+    kept = [json.loads(l) for l in resp.read_text().splitlines()]
+    assert len(kept) == 1 and kept[0]["parse_error"] == "no JSON object found"
+
+
+def test_replay_transport_error_is_retried_on_resume(tmp_path, monkeypatch):
+    """Only transport/HTTP failures are ok=False and get dropped for retry on resume."""
+    class FailingClient:
+        def __init__(self, base_url=None, timeout_s=None):
+            pass
+
+        def chat_json(self, *args, **kwargs):
+            raise RuntimeError("connection refused")
+
+    monkeypatch.setattr(replay, "MedGemmaClient", FailingClient)
+    row = _replay_row(tmp_path)
+    opts = replay.parse_args(["--set", "done_check", "--run", "x"])
+    line = replay.build_call(row, 0, opts, Path("decision_done.md"), "t")
+    assert line["ok"] is False and "connection refused" in line["error"]
+    resp = tmp_path / "responses.jsonl"
+    resp.write_text(json.dumps(line) + "\n")
+    assert replay.load_done_and_prune(resp) == set()      # dropped -> retried next run
+    assert resp.read_text().strip() == ""
+
+
+def test_replay_refuses_config_drift_on_resume(tmp_path):
+    """Resuming with a drifted prompt/decoding config is refused (review P2-4)."""
+    run_dir = tmp_path / "done_check" / "r1"
+    run_dir.mkdir(parents=True)
+    (run_dir / "responses.jsonl").write_text(
+        json.dumps({"key": "k", "model": "medgemma_q4", "rep": 0, "ok": True}) + "\n")
+    prior = {"set": "done_check", "model": "medgemma_q4", "reps": 1, "max_tokens": 256,
+             "manifest": "m", "images_root": None, "prompt_template": "p.md", "prompt_sha256": "x"}
+    (run_dir / "meta.json").write_text(json.dumps(prior))
+    drifted = dict(prior, max_tokens=999)
+    with pytest.raises(SystemExit, match="drifted"):
+        replay.check_immutable_config(run_dir, drifted, {("k", "medgemma_q4", 0)})
+    replay.check_immutable_config(run_dir, dict(prior), {("k", "medgemma_q4", 0)})  # same config ok
+    replay.check_immutable_config(run_dir, drifted, set())                          # fresh run ok
+
+
+def test_runner_refuses_config_drift_on_resume(tmp_path):
+    run_dir = tmp_path / "studyA" / "r1"
+    run_dir.mkdir(parents=True)
+    (run_dir / "responses.jsonl").write_text(
+        json.dumps({"case": "A", "model": "gui_actor", "condition": "raw", "rep": 0, "ok": True}) + "\n")
+    prior = {"models": ["gui_actor"], "conditions": "per-model defaults", "reps": 1, "k": 3,
+             "max_tokens": 256, "prepare_manifest": "/m/manifest.jsonl", "images_root": None,
+             "prompts": {"local_point_raw": {"sha256": "abc"}}}
+    (run_dir / "meta.json").write_text(json.dumps(prior))
+    drifted = dict(prior, prompts={"local_point_raw": {"sha256": "zzz"}})
+    with pytest.raises(SystemExit, match="drifted"):
+        runner.check_immutable_config(run_dir, drifted, {("A", "gui_actor", "raw", 0)})
+    runner.check_immutable_config(run_dir, dict(prior), {("A", "gui_actor", "raw", 0)})
+
+
+def test_score_coverage_missing_calls_counted_as_errors(tmp_path, monkeypatch):
+    """Planned calls with no response row become explicit error rows in the denominators
+    and are listed in score.json coverage (review P1-4: calls never silently vanish)."""
+    set_dir = tmp_path / "done_check"
+    set_dir.mkdir(parents=True)
+    rows = [_row("done_check", "K0:v1:done", "not_done"), _row("done_check", "K1:v1:done", "done")]
+    (set_dir / "manifest.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    run_dir = set_dir / "r1"
+    run_dir.mkdir()
+    (run_dir / "meta.json").write_text(json.dumps({"reps": 1}))
+    resp = [{"run": "r1", "key": "K0:v1:done", "case": "K0", "rep": 0, "model": "m",
+             "raw_text": '{"answer": "not_done", "confidence": 0.9}', "error": None,
+             "usage": None, "latency_ms": 1.0}]
+    (run_dir / "responses.jsonl").write_text("".join(json.dumps(r) + "\n" for r in resp))
+    monkeypatch.setattr(sys, "argv", ["score_decision.py", "--set", "done_check", "--run", "r1",
+                                      "--results-root", str(tmp_path), "--n-boot", "10"])
+    D.main()
+    score = json.loads((run_dir / "score.json").read_text())
+    m = score["metrics"]
+    assert m["n"] == 2 and m["n_missing"] == 1 and m["n_response_error"] == 1
+    # the recorded call is correct on the positive row (tp=1); the missing negative call
+    # counts as fp -> specificity 0.0, accuracy 0.5 — NOT a 1.0/1.0 headline
+    assert m["tp"] == 1 and m["fp"] == 1
+    assert m["sensitivity"] == 1.0 and m["specificity"] == 0.0 and m["accuracy"] == 0.5
+    assert score["coverage"] == {"planned": 2, "recorded": 1, "missing": 1,
+                                 "missing_keys": ["K1:v1:done/r0"]}
+    report = (run_dir / "report.md").read_text()
+    assert "never recorded" in report and "K1:v1:done/r0" in report
+
+    # a run that recorded its --keys subset validates only its planned calls: selecting
+    # exactly the recorded key yields complete coverage (subset runs stay scoreable)
+    (run_dir / "meta.json").write_text(json.dumps({"reps": 1, "selected_keys": ["K0:v1:done"]}))
+    D.main()
+    score = json.loads((run_dir / "score.json").read_text())
+    assert score["coverage"] == {"planned": 1, "recorded": 1, "missing": 0, "missing_keys": []}
 
 
 def test_replay_template_rendering(tmp_path):

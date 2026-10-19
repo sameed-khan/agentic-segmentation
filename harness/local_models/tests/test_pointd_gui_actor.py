@@ -136,3 +136,195 @@ def test_real_predict_uses_official_inference(gui_actor_server_mod, monkeypatch)
     assert captured["conversation"][1]["content"][1]["text"] == "the OK button"
     assert out["points"][0] == {"x_norm": 0.5, "y_norm": 0.5, "score": 0.8}
     assert out["raw"] == "pred"
+
+
+# ------------------------------------------------ official verifier path (review P1-11)
+def test_verifier_uses_official_multimodal_classes(gui_actor_server_mod):
+    """The verifier loader must declare the OFFICIAL classes: a multimodal
+    Qwen2VLForConditionalGeneration + AutoProcessor — never a causal LM with a plain
+    tokenizer as image processor. (Source-level check: the real load needs a GPU; this
+    regression test would have caught the AutoModelForCausalLM/AutoTokenizer bug.)"""
+    import inspect
+
+    src = inspect.getsource(gui_actor_server_mod.GuiActorRealBackend._load_verifier)
+    assert "Qwen2VLForConditionalGeneration.from_pretrained" in src
+    assert "AutoProcessor.from_pretrained" in src
+    assert "AutoModelForCausalLM" not in src
+    assert "AutoTokenizer.from_pretrained" not in src
+
+
+def test_verify_true_fails_explicitly_without_verifier(gui_actor_server_mod):
+    """verify=true with an unavailable verifier must RAISE — silently returning
+    verifier:null (running without verification) is the bug under review."""
+    gui_server = gui_actor_server_mod
+    backend = gui_server.GuiActorRealBackend()
+    backend._loaded = True  # skip load()
+    backend._gui_inference = lambda *a, **k: {"output_text": "x", "topk_points": [(0.5, 0.5)],
+                                              "topk_values": [0.9]}
+    backend._system_message = lambda: "s"
+    backend._model, backend._tokenizer, backend._processor = object(), object(), object()
+    backend._verifier = None
+    buf = io.BytesIO()
+    Image.new("RGB", (32, 32)).save(buf, format="PNG")
+    with pytest.raises(RuntimeError, match="verifier"):
+        backend.predict(buf.getvalue(), "q", k=1, verify=True)
+
+
+def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
+    """The verify path follows verifier/verifier_model.py: red hollow circle (radius 7,
+    width 3) + 500 px half-size crop on a copy at (x*W, y*H), the exact prompt via the
+    chat template + process_vision_info image protocol, score = p_true/(p_true+p_false),
+    candidates reranked by score."""
+    import sys
+    import types
+    from types import SimpleNamespace
+
+    import numpy as np
+
+    gui_server = gui_actor_server_mod
+    captured = {}
+
+    def fake_process_vision_info(messages):
+        captured["messages"] = messages
+        return [messages[0]["content"][0]["image"]], None
+
+    fake_qvu = types.ModuleType("qwen_vl_utils")
+    fake_qvu.process_vision_info = fake_process_vision_info
+    monkeypatch.setitem(sys.modules, "qwen_vl_utils", fake_qvu)
+
+    class FakeTok:
+        def encode(self, s, add_special_tokens=False):
+            return {"True": [7], "False": [9]}[s]
+
+    class FakeInputs(dict):
+        """A mapping so the fake model can be called with **inputs."""
+
+        def to(self, device):
+            captured["device"] = device
+            return self
+
+    class FakeProc:
+        tokenizer = FakeTok()
+
+        def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=True):
+            return "TEMPLATE"
+
+        def __call__(self, text=None, images=None, videos=None, padding=True, return_tensors="pt"):
+            captured["images"] = images
+            return FakeInputs()
+
+    class FakeModel:
+        device = "cuda:0"
+
+        def __init__(self):
+            self.calls = 0
+
+        def __call__(self, **inputs):
+            self.calls += 1
+            row = np.zeros(16, dtype=float)
+            row[7] = 0.0 if self.calls == 1 else 2.0   # candidate 1 first: p_true 0 / (0+1)
+            row[9] = 1.0 if self.calls == 1 else 1.0   # candidate 2: p_true 2/(2+1)
+            return SimpleNamespace(logits=row.reshape(1, 1, 16))
+
+    class FakeTorch:
+        class inference_mode:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+    backend = gui_server.GuiActorRealBackend()
+    backend._torch = FakeTorch()
+    backend._verifier = FakeModel()
+    backend._verifier_processor = FakeProc()
+
+    img = Image.new("RGB", (100, 80), (5, 5, 5))
+    order, out = backend._verify(img, "the OK button", [(0.5, 0.5), (0.1, 0.1)], 100, 80)
+    # candidate 0 p_true = 0/(0+1) = 0.0; candidate 1 = 2/(2+1) = 0.6667 -> reranked
+    assert out["p_true"] == [0.0, round(2.0 / 3.0, 4)]
+    assert order == [1, 0]
+    # official prompt text in the user message
+    content = captured["messages"][0]["content"]
+    assert content[0]["type"] == "image"
+    assert "hollow red circle" in content[1]["text"] and "the OK button" in content[1]["text"]
+    assert content[1]["text"].rstrip().endswith("Answer True or False.")
+    # the marked COPY differs from the input (circle drawn) and is cropped to the
+    # official min(w-1, x+500) convention: a 100x80 image crops to 99x79
+    marked = captured["images"][0]
+    assert marked.size == (99, 79)
+    assert np.asarray(marked).sum() != np.asarray(img).sum()
+
+
+def test_predict_verify_reranks_points(gui_actor_server_mod, monkeypatch):
+    """predict(verify=True) reorders the returned points by the verifier scores."""
+    gui_server = gui_actor_server_mod
+    backend = gui_server.GuiActorRealBackend()
+    backend._loaded = True
+    backend._gui_inference = lambda *a, **k: {"output_text": "x",
+                                              "topk_points": [(0.5, 0.5), (0.1, 0.1)],
+                                              "topk_values": [0.9, 0.8]}
+    backend._system_message = lambda: "s"
+    backend._model, backend._tokenizer, backend._processor = object(), object(), object()
+    backend._verifier, backend._verifier_processor = object(), object()
+    monkeypatch.setattr(backend, "_verify",
+                        lambda image, query, pts, w, h: ([1, 0], {"used": True, "p_true": [0.1, 0.9]}))
+    buf = io.BytesIO()
+    Image.new("RGB", (32, 32)).save(buf, format="PNG")
+    out = backend.predict(buf.getvalue(), "q", k=2, verify=True)
+    assert out["points"][0]["x_norm"] == 0.1 and out["points"][1]["x_norm"] == 0.5
+    assert out["verifier"]["used"] is True
+
+
+def test_point_verify_unavailable_is_http_500(gui_actor_server_mod):
+    """The HTTP layer surfaces an unavailable verifier as an explicit 500, not a
+    verifier:null success."""
+    gui_server = gui_actor_server_mod
+
+    class VerifyUnavailableBackend(gui_server.GuiActorRealBackend):
+        model_id = "microsoft/GUI-Actor-2B-Qwen2-VL"
+
+        def __init__(self):  # no torch
+            self._loaded = True
+
+        def predict(self, png_bytes, query, k, verify):
+            if verify:
+                raise RuntimeError("verify=true but the official GUI-Actor verifier is unavailable")
+            return {"points": [{"x_norm": 0.5, "y_norm": 0.5, "score": 0.9}], "raw": "x",
+                    "verifier": None}
+
+    from fastapi.testclient import TestClient
+
+    app = gui_server.create_app(VerifyUnavailableBackend())
+    with TestClient(app, raise_server_exceptions=False) as client:
+        r = client.post("/point", json={"image_png_b64": b64png(), "query": "q", "k": 1,
+                                        "verify": True})
+    assert r.status_code == 500 and "verifier" in r.json()["detail"]
+
+
+# ------------------------------------------------ official system prompt (review P2-1)
+def test_system_message_matches_official_2b_card(gui_actor_server_mod):
+    """The default (2B Qwen2-VL) checkpoint must use the SHORT official prompt from the
+    model card / eval/screenSpot.py qwen2vl branch — not the longer constants variant."""
+    gui_server = gui_actor_server_mod
+    backend = gui_server.GuiActorRealBackend()  # unloaded; the qwen2vl branch needs no import
+    assert backend._system_message() == (
+        "You are a GUI agent. You are given a task and a screenshot of the screen. "
+        "You need to perform a series of pyautogui actions to complete the task.")
+
+
+def test_system_message_qwen25_checkpoint_uses_constants_variant(gui_actor_server_mod, monkeypatch):
+    import sys
+    import types
+
+    gui_server = gui_actor_server_mod
+    long_prompt = ("You are a GUI agent. Given a screenshot of the current GUI and a human "
+                   "instruction, your task is to locate the screen element.")
+    fake_gui_actor = types.ModuleType("gui_actor")
+    fake_constants = types.ModuleType("gui_actor.constants")
+    fake_constants.grounding_system_message = long_prompt
+    fake_gui_actor.constants = fake_constants
+    monkeypatch.setitem(sys.modules, "gui_actor", fake_gui_actor)
+    monkeypatch.setitem(sys.modules, "gui_actor.constants", fake_constants)
+    backend = gui_server.GuiActorRealBackend(model_id="microsoft/GUI-Actor-2B-Qwen2.5-VL")
+    assert backend._system_message() == long_prompt

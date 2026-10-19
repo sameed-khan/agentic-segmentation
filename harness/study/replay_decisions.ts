@@ -9,10 +9,18 @@
  * REQUIRED auth shim @gotgenes/pi-anthropic-auth), fresh AgentSession per call,
  * isolated resources, compaction off, ZERO tools, no agent loop.
  *
- * Deliberate difference to replay_candidates.ts: NO system prompt — MedGemma has no
- * system instruction (technical report App. B) and the comparison holds inputs fixed,
- * so everything is in the user message. Strict JSON parsing happens in Python
- * (harness/study/score_decision.py), never here.
+ * Deliberate difference to replay_candidates.ts: a MINIMAL NEUTRAL system prompt
+ * (MINIMAL_NEUTRAL_SYSTEM_PROMPT) instead of a study prompt. The SDK default must be
+ * overridden EXPLICITLY: resourceLoaderOptions.systemPrompt undefined/empty falls back
+ * to pi's discovered coding-agent prompt ("You are an expert coding assistant operating
+ * inside pi…"), which would contaminate the decisions. The override uses pi's supported
+ * forced-prompt mechanism (a before_agent_start handler returning `systemPrompt`), so the
+ * request head is EXACTLY the constant — no generated cwd/tools/docs sections. MedGemma
+ * has no system instruction (technical report App. B); the residual difference is
+ * disclosed in meta.json together with the exact text sent (captured pre-shim) and the
+ * auth-shim-shaped text (the @gotgenes/pi-anthropic-auth OAuth shim ADDS an
+ * x-anthropic-billing-header identity/billing system block). Strict JSON parsing
+ * happens in Python (harness/study/score_decision.py), never here.
  *
  * Manifest image paths are relative to the SOURCE tree the design runs came from
  * (e.g. /home/ubuntu/agentic-segmentation); pass --images-root pointing there.
@@ -83,6 +91,23 @@ const SET_TEMPLATE: Record<(typeof SETS)[number], string> = {
 	done_check: "decision_done.md",
 	wrong_structure: "decision_wrong_structure.md",
 };
+
+/**
+ * Deliberately minimal, neutral system prompt (review P1-8).
+ *
+ * `systemPrompt: undefined` does NOT suppress the system prompt: the SDK resolves its
+ * default/discovered coding-agent prompt ("You are an expert coding assistant operating
+ * inside pi…"), and an empty string is falsy and falls back too. Two supported override
+ * mechanisms are combined below:
+ * - resourceLoaderOptions.systemPrompt: a non-empty string replaces the generated prompt
+ *   (customPrompt preamble path in system-prompt.js) so no pi-generated sections are even
+ *   persisted in the session transcript;
+ * - a before_agent_start handler returning `systemPrompt` (forceSystemPrompt) projects
+ *   EXACTLY this constant as the request's leading system message — the loader's custom
+ *   prompt alone would still append a generated `<cwd>` section.
+ * The exact text that reaches the provider is asserted per call and persisted in meta.json.
+ */
+const MINIMAL_NEUTRAL_SYSTEM_PROMPT = "You are a helpful assistant.";
 
 interface ManifestRow {
 	key: string;
@@ -241,6 +266,20 @@ function extractSystemText(payload: unknown): string | undefined {
 	return undefined;
 }
 
+/** Best-effort reproduction of the shim's OAuth payload shaping (see replay_candidates.ts). */
+async function shapeWithShim(shimPath: string, payload: unknown): Promise<unknown | undefined> {
+	try {
+		const modulePath = join(shimPath, "src", "request-shaping.ts");
+		if (!existsSync(modulePath)) return undefined;
+		const mod = (await import(pathToFileURL(modulePath).href)) as {
+			shapeAnthropicOAuthPayload?: (p: unknown) => unknown;
+		};
+		return mod.shapeAnthropicOAuthPayload?.(payload);
+	} catch {
+		return undefined;
+	}
+}
+
 interface AssistantCapture {
 	text?: string;
 	thinking?: string;
@@ -284,6 +323,11 @@ async function runCall(
 			capture.payload = event.payload;
 			capture.system = extractSystemText(event.payload) ?? capture.system;
 		});
+		// Force the minimal neutral prompt as the request's leading system message
+		// (supported mechanism: a before_agent_start handler returning `systemPrompt`
+		// sets forceSystemPrompt, which projects EXACTLY this text with no additional
+		// prompt sections; review P1-8).
+		pi.on("before_agent_start", () => ({ systemPrompt: MINIMAL_NEUTRAL_SYSTEM_PROMPT }));
 	};
 
 	const errors: string[] = [];
@@ -310,7 +354,10 @@ async function runCall(
 				noContextFiles: true,
 				additionalExtensionPaths: [resolve(opts.authShim)],
 				extensionFactories: [captureFactory],
-				systemPrompt: undefined, // NO system prompt: parity with MedGemma (no system role)
+				// Explicit minimal neutral prompt: undefined would select the SDK's
+				// coding-agent default (review P1-8). Asserted against the captured
+				// payload below and persisted in meta.json.
+				systemPrompt: MINIMAL_NEUTRAL_SYSTEM_PROMPT,
 			},
 		});
 		for (const diagnostic of services.diagnostics) {
@@ -376,11 +423,21 @@ async function runCall(
 		}
 		const latencyMs = Date.now() - startedAt;
 
-		if (msg.stopReason === undefined && errors.length === 0) {
-			console.warn(`[${row.key}/r${rep}] no assistant response (aborted=${aborted})`);
-			session.dispose();
-			return;
+		// Never drop a planned call (review P1-4): a missing assistant response is a
+		// terminal error row (ok=false), not a silent return.
+		const noResponse = msg.stopReason === undefined;
+		if (capture.seen && capture.system !== MINIMAL_NEUTRAL_SYSTEM_PROMPT) {
+			errors.push(
+				`provider system prompt mismatch: got ${JSON.stringify((capture.system ?? "").slice(0, 120))}`,
+			);
 		}
+
+		const error = noResponse
+			? (errors.length > 0 ? errors.join("; ") : `no assistant response (aborted=${aborted})`)
+			: (msg.errorMessage ??
+				(msg.stopReason === "aborted" ? `aborted (wall ${opts.wallMin} min)` : undefined) ??
+				(errors.length > 0 ? errors.join("; ") : undefined));
+		const ok = !noResponse && !error && msg.stopReason !== "error";
 
 		const rawSessionFile = sessionManager.getSessionFile();
 		session.dispose();
@@ -398,13 +455,11 @@ async function runCall(
 			if (!sessionFile) sessionFile = rel(dest);
 		}
 
-		const error =
-			msg.errorMessage ??
-			(msg.stopReason === "aborted" ? `aborted (wall ${opts.wallMin} min)` : undefined) ??
-			(errors.length > 0 ? errors.join("; ") : undefined);
-		const ok = !error && msg.stopReason !== "error";
-
-		if (capture.seen && !shared.providerSystem) shared.providerSystem = capture.system;
+		if (capture.seen && !shared.providerSystem) {
+			shared.providerSystem = capture.system;
+			const shaped = await shapeWithShim(opts.authShim, capture.payload);
+			shared.providerSystemShaped = extractSystemText(shaped);
+		}
 
 		const line = {
 			run: opts.run,
@@ -436,14 +491,15 @@ async function runCall(
 				reasoning: usageSum.reasoning,
 				cost_usd: Number(usageSum.costUsd.toFixed(6)),
 			},
-			stop_reason: msg.stopReason,
+			stop_reason: noResponse ? null : msg.stopReason,
 			transport_retries: retries,
+			system_prompt_sha256: sha256Text(MINIMAL_NEUTRAL_SYSTEM_PROMPT),
 			ok,
 			error: error ?? null,
 		};
 		appendFileSync(join(runDir, "responses.jsonl"), JSON.stringify(line) + "\n");
 		console.log(
-			`[${row.key}/r${rep}] ok=${ok} stop=${msg.stopReason} ` +
+			`[${row.key}/r${rep}] ok=${ok} stop=${noResponse ? "none" : msg.stopReason} ` +
 				`in=${usageSum.input} out=${usageSum.output} ${latencyMs}ms`,
 		);
 	} catch (err) {
@@ -452,6 +508,51 @@ async function runCall(
 			join(runDir, "failures.log"),
 			`${new Date().toISOString()} ${row.key}/r${rep}: ${(err as Error).message}\n`,
 		);
+		// Never drop a planned call (review P1-4): the failure also gets a terminal
+		// response row (ok=false) so the scorer's coverage validation and denominators
+		// see it instead of the call silently vanishing.
+		try {
+			appendFileSync(
+				join(runDir, "responses.jsonl"),
+				JSON.stringify({
+					run: opts.run,
+					key: row.key,
+					set: row.set,
+					case: row.case,
+					histotype: row.histotype,
+					sequence: row.sequence,
+					source_run: row.source_run ?? null,
+					version: row.version ?? null,
+					model: opts.model,
+					rep,
+					thinking: opts.thinking,
+					prompt_template: join("harness/study/prompts", `decision_${opts.set}.md`),
+					prompt_sha256: sha256File(templatePath),
+					prompt_text: promptText,
+					images: row.images,
+					session_file: null,
+					raw_text: "",
+					thinking_text: "",
+					latency_ms: null,
+					provider_ms: null,
+					usage: {
+						input: 0,
+						output: 0,
+						cache_read: 0,
+						cache_write: 0,
+						reasoning: 0,
+						cost_usd: 0,
+					},
+					stop_reason: "error",
+					transport_retries: [],
+					system_prompt_sha256: sha256Text(MINIMAL_NEUTRAL_SYSTEM_PROMPT),
+					ok: false,
+					error: (err as Error).message,
+				}) + "\n",
+			);
+		} catch (logErr) {
+			console.error(`[${row.key}/r${rep}] could not write terminal row: ${(logErr as Error).message}`);
+		}
 		try {
 			session?.dispose();
 		} catch {
@@ -465,7 +566,8 @@ async function runCall(
 // ---------------------------------------------------------------------------
 interface Shared {
 	modelRuntime: any;
-	providerSystem?: string;
+	providerSystem?: string;      // system prompt captured pre-shim (before_provider_request)
+	providerSystemShaped?: string; // system prompt after @gotgenes/pi-anthropic-auth shaping
 }
 
 async function main(): Promise<void> {
@@ -554,13 +656,19 @@ async function main(): Promise<void> {
 		wall_min_per_call: opts.wallMin,
 		tools: "none (tools: []); single tool-less turn, decisions parsed in Python",
 		compaction: "off",
-		system_prompt: "none (parity with MedGemma, which has no system instruction)",
+		system_prompt: MINIMAL_NEUTRAL_SYSTEM_PROMPT,
+		system_prompt_note:
+			"deliberate minimal neutral prompt; the SDK default (a coding-agent prompt) is " +
+			"selected whenever resourceLoaderOptions.systemPrompt is undefined/empty, so it is " +
+			"overridden explicitly and the effective payload is asserted per call",
 		transport_retries: "SDK auto-retry, max 2; parse failures are never retried",
 		pi_sdk_version: VERSION,
 		auth_shim_path: resolve(opts.authShim),
 		auth_shim_version: shimVersion,
 		manifest: rel(manifestPath),
+		manifest_sha256: sha256File(manifestPath),
 		manifest_rows: selected.length,
+		selected_keys: selected.map((r) => r.key),
 		images_root: opts.imagesRoot || null,
 		prompt_template: rel(templatePath),
 		prompt_sha256: sha256File(templatePath),
@@ -569,6 +677,17 @@ async function main(): Promise<void> {
 		planned_calls: calls.length + done.size,
 		resumed_from_lines: done.size,
 	};
+	// Immutable-config check (review P2-4): resuming must not mix configuration variants.
+	if (done.size > 0 && existsSync(join(runDir, "meta.json"))) {
+		const prior = JSON.parse(readFileSync(join(runDir, "meta.json"), "utf8"));
+		const immutableKeys = ["set", "model", "thinking", "reps", "manifest", "manifest_sha256", "selected_keys", "images_root", "prompt_sha256"] as const;
+		const drifted = immutableKeys.filter((k) => JSON.stringify(prior[k]) !== JSON.stringify(meta[k]));
+		if (drifted.length > 0) {
+			throw new Error(
+				`run config drifted from prior meta.json (${drifted.join(", ")}); use a new --run name`,
+			);
+		}
+	}
 	writeFileSync(join(runDir, "meta.json"), JSON.stringify(meta, null, 2) + "\n");
 
 	const modelRuntime = await ModelRuntime.create({ authPath: join(getAgentDir(), "auth.json") });
@@ -596,10 +715,24 @@ async function main(): Promise<void> {
 	const recordedLines = existsSync(respPath)
 		? readFileSync(respPath, "utf8").split("\n").filter((l) => l.trim()).length
 		: 0;
+	const providerSystem = shared.providerSystem ?? null;
+	const providerSystemShaped = shared.providerSystemShaped ?? null;
 	const finalMeta = {
 		...meta,
 		finished_at: new Date().toISOString(),
 		recorded_lines: recordedLines,
+		system_prompt_sent_to_provider: providerSystem,
+		system_prompt_sent_to_provider_sha256:
+			typeof providerSystem === "string" ? sha256Text(providerSystem) : null,
+		system_prompt_shaped_by_auth_shim: providerSystemShaped,
+		system_prompt_shaped_by_auth_shim_sha256:
+			typeof providerSystemShaped === "string" ? sha256Text(providerSystemShaped) : null,
+		system_prompt_provider_notes:
+			"captured at pi's before_provider_request hook (pre-shim); the shaped field applies " +
+			"@gotgenes/pi-anthropic-auth request shaping, which the shim performs after that hook. " +
+			"The Anthropic OAuth shim ADDS an x-anthropic-billing-header identity/billing system " +
+			"block (identifying the request as Claude Code usage) and may rewrite the Pi identity; " +
+			"the shaped text is what the provider actually receives.",
 	};
 	writeFileSync(join(runDir, "meta.json"), JSON.stringify(finalMeta, null, 2) + "\n");
 	console.log(`[replay] wrote ${respPath}`);

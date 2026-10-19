@@ -1,0 +1,39 @@
+{
+  "case_id": "F44",
+  "shape": [
+    300,
+    300,
+    136
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 12150816,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    300,
+    300,
+    136
+  ],
+  "created_at": "2026-10-19T00:34:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T00:34:59Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Large thigh mass segmented as one component; outline follows the bright heterogeneous tumor in all three planes. The superior and inferior tapering ends are ambiguous.",
+  "tool_calls": 15,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N18",
+  "shape": [
+    241,
+    241,
+    355
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23044076,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    355
+  ],
+  "created_at": "2026-10-19T00:44:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T00:45:27Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Main mass well delineated in all planes; inferior bright crescent/tail inclusion is uncertain.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

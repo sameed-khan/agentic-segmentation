@@ -1,0 +1,39 @@
+{
+  "case_id": "N34",
+  "shape": [
+    231,
+    231,
+    414
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 26721588,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    231,
+    231,
+    414
+  ],
+  "created_at": "2026-10-19T00:45:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T00:46:36Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright lobulated posterolateral thigh mass segmented; outline fits in all three planes with no stray components, but the upper and lower ends are ill-defined.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

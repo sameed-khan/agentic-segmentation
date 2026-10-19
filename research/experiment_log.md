@@ -175,7 +175,7 @@ Same images and scoring as E4 (`dev-01`); code `harness-v1-1-g51b7064`; 3 reps �
 | dev-02-medium | medium | – | – | – | 0.889 | 0.900 |
 | dev-02-high | high | 0.700 | 0.911 | – | – | 0.900 |
 | dev-02-xhigh | xhigh | 0.733 | 0.900 | – | – | 0.900 |
-| dev-02-max | max | (running) | | | | |
+| dev-02-max | max | abandoned (33/270 calls valid; rest 429 rate limit) | | | | |
 
 - **No condition and no thinking level changes single-slice pointing**: every S-family condition sits at 0.89–0.91.
   The misses are the same three cases in every condition and repetition: **F14, F15, L33** (S, S-gen, S-desc, S-ex).
@@ -194,7 +194,7 @@ Same images and scoring as E4 (`dev-01`); code `harness-v1-1-g51b7064`; 3 reps �
 | phase1-05 | medium | 0.597 | 0.750 | 0.779 | 7 | 6.0 | 1.03 | 1.18 |
 | phase1-06-high | high | 0.659 | 0.806 | 0.791 | 5 | 10.4 | 1.27 | 2.50 |
 | phase1-07-xhigh | xhigh | **0.706** | **0.832** | 0.795 | 4 | 21.6 | 1.67 | 7.58 |
-| phase1-08-max | max | (running) | | | | | | |
+| phase1-08-max | max | abandoned (see below) | | | | | | |
 
 - Higher thinking makes the agent **search more** (more sheets/views) and localize more cases: L43 and V57 found at high
   and xhigh, V46 found at xhigh; L35 extended to the full tumor (0.53 → 0.90 at high). xhigh mean 0.706 is the first
@@ -205,10 +205,23 @@ Same images and scoring as E4 (`dev-01`); code `harness-v1-1-g51b7064`; 3 reps �
 - max thinking: single Phase 2 calls on hard cases take 6–8 min and 47–66 k output tokens; Phase 1 cases hit the 10-min
   wall-time limit (forced finishes) — results pending.
 
+### E12. Example image in the agent's task — run `phase1-09-xhigh-ex` (code `harness-v1-3-gda0ce0b`)
+Harness v1 at xhigh; the task message carries one leave-one-out example (another design case of the same histotype and
+sequence, GT outline in axial/coronal/sagittal; L33 gets a T1 lipomatous donor), images from the Phase 2 prepare step.
+
+| run | mean | median | loc. fails | localized mean | tool calls | prompts | cost USD |
+|---|---|---|---|---|---|---|---|
+| phase1-07-xhigh (no example) | 0.706 | 0.832 | 4 | 0.795 | 21.6 | 1.67 | 7.58 |
+| phase1-09-xhigh-ex (example) | 0.700 | 0.805 | 4 | 0.789 | 20.5 | 1.73 | 7.31 |
+
+- Per-case changes > 0.05 go both ways: better M33 0.38→0.53, N01 0.44→0.53, F32 0.49→0.56, L35 0.87→0.93;
+  worse F14 0.67→0.49 (localization lost), L43 0.90→0.74, V57 0.70→0.60. Net effect ≈ 0, within run-to-run variance.
+- **Decision:** do not add example images to the agent (consistent with E10, where S-ex did not change pointing).
+
 ## 6. Next experiments (planned)
 
 | ID | Question | Runs |
 |---|---|---|
 | E10 | Do reference examples / descriptions improve localization? Does thinking level change pointing? | Phase 2 `dev-02`: S-ex, S-desc (medium) + S, S-ex at high/xhigh/max |
 | E11 | Does a higher thinking level make the agent iterate and localize better? | Phase 1 harness v1 at high, xhigh, max |
-| E12 | Does an example image in the agent's task improve localization end to end? | Phase 1 with S-ex-style example (if E10 positive) |
+| E12 | Does an example image in the agent's task improve localization or extent end to end? | `phase1-09-xhigh-ex`: harness v1 at xhigh + leave-one-out example (another design case, same histotype/sequence, GT outline in 3 planes; L33 gets a T1 lipomatous donor) attached to the task message (`run_cases.ts --examples`). Compare with `phase1-07-xhigh`. |

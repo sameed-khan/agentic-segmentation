@@ -1,0 +1,39 @@
+{
+  "case_id": "L20",
+  "shape": [
+    201,
+    201,
+    244
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10436666,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    244
+  ],
+  "created_at": "2026-10-19T00:36:50Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T00:37:30Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the large anterior thigh lipomatous mass in all planes. The low-signal inferior tip and the small medial-posterior protrusion are less certain.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

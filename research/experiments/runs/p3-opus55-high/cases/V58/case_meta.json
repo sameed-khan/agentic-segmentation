@@ -1,0 +1,39 @@
+{
+  "case_id": "V58",
+  "shape": [
+    201,
+    201,
+    409
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 19634678,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    409
+  ],
+  "created_at": "2026-10-19T13:24:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:25:11Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask covers the heterogeneous T2-bright lesion with flow voids in the posterior thigh compartment and follows its edges in all planes; the exact boundary with the feeding vessels is uncertain.",
+  "tool_calls": 13,
+  "model_prompts": 1
+}

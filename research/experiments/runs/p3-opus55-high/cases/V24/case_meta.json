@@ -1,0 +1,39 @@
+{
+  "case_id": "V24",
+  "shape": [
+    161,
+    161,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4777770,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    156
+  ],
+  "created_at": "2026-10-19T13:20:57Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:23:03Z",
+  "final_version": "v2",
+  "confidence": "low",
+  "reason": "Bright lobulated posterior subcutaneous calf lesion with a skin-surface bulge; deep extent is ill-defined and may include septal/edema signal.",
+  "tool_calls": 22,
+  "model_prompts": 2
+}

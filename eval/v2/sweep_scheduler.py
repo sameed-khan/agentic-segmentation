@@ -138,6 +138,10 @@ def run_once(run: str, model: str, think: str, s: dict) -> tuple[int, bool]:
     while p.poll() is None:
         time.sleep(60)
         hp = higher_priority_free(run, s)
+        disk = load_state()
+        for k, v in disk.get("blocked_until", {}).items():
+            s["blocked_until"][k] = max(v, s["blocked_until"].get(k, 0))
+        hp = higher_priority_free(run, s)
         if hp and p.poll() is None:
             # preempt: a run earlier in Sameed's order is runnable again (its provider's window refreshed).
             # In-flight cases are parked by --resume and rerun later.
@@ -161,6 +165,10 @@ def main() -> None:
     s = load_state()
     reset_services()   # a previous scheduler/runner may have been killed with cases open
     while True:
+        # manual blocks (e.g. Sameed: "no Anthropic until the reset") can be added to sched.json while running
+        disk = load_state()
+        for k, v in disk.get("blocked_until", {}).items():
+            s["blocked_until"][k] = max(v, s["blocked_until"].get(k, 0))
         pending = [r for r in RUNS if r[0] not in SKIP and not (ST / f"sweep_{r[0]}.done").exists()]
         if not pending:
             log("SWEEP COMPLETE")

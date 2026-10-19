@@ -1,0 +1,39 @@
+{
+  "case_id": "N46",
+  "shape": [
+    381,
+    381,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 26890318,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    381,
+    381,
+    163
+  ],
+  "created_at": "2026-10-19T13:19:35Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:20:08Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed mass fully covered in three planes; candidates are thin rim/nerve fragments.",
+  "tool_calls": 7,
+  "model_prompts": 1
+}

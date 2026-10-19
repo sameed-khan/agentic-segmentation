@@ -1,0 +1,39 @@
+{
+  "case_id": "V38",
+  "shape": [
+    201,
+    201,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6766635,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    163
+  ],
+  "created_at": "2026-10-19T13:22:12Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:23:27Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Main bright mass well captured in all planes; feathery inferior intramuscular extension and medial intermediate-signal region included, which are uncertain.",
+  "tool_calls": 15,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L21",
+  "shape": [
+    241,
+    241,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20271361,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    330
+  ],
+  "created_at": "2026-10-19T13:08:36Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:10:53Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Well-circumscribed posterior thigh mass segmented with good boundary in all planes; T1-hypointense so lesion identity somewhat uncertain.",
+  "tool_calls": 16,
+  "model_prompts": 2
+}

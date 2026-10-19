@@ -1,0 +1,39 @@
+{
+  "case_id": "N48",
+  "shape": [
+    176,
+    176,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2892438,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    176,
+    176,
+    165
+  ],
+  "created_at": "2026-10-19T13:19:47Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:20:14Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed bright mass captured in all three planes; candidate C1 is distal tendons/vessels, rejected",
+  "tool_calls": 6,
+  "model_prompts": 1
+}

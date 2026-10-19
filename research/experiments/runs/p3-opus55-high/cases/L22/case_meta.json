@@ -1,0 +1,39 @@
+{
+  "case_id": "L22",
+  "shape": [
+    421,
+    421,
+    153
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23923831,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    153
+  ],
+  "created_at": "2026-10-19T13:08:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:09:52Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Encapsulated fatty oval mass segmented within its capsule across slices 100-152 (truncated at FOV edge); candidates were surrounding normal fat",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

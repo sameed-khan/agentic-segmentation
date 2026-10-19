@@ -1,0 +1,39 @@
+{
+  "case_id": "F29",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33163762,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-19T13:02:56Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:05:14Z",
+  "final_version": "v7",
+  "confidence": "medium",
+  "reason": "Bright lobulated mass wrapping distal femur segmented; vessel tails trimmed; surrounding edematous muscle excluded.",
+  "tool_calls": 24,
+  "model_prompts": 3
+}

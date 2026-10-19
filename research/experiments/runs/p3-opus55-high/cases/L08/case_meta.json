@@ -1,0 +1,39 @@
+{
+  "case_id": "L08",
+  "shape": [
+    301,
+    301,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31748091,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    301,
+    301,
+    372
+  ],
+  "created_at": "2026-10-19T13:07:14Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:07:52Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Mask follows the encapsulated fatty mass in all planes; the edge slices just past the mask show no lesion; candidates were shells of fat/fascia and were rejected",
+  "tool_calls": 8,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V41",
+  "shape": [
+    141,
+    141,
+    256
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5006167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    256
+  ],
+  "created_at": "2026-10-19T13:22:43Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:23:09Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed T2-bright mass adjacent to ulna fully captured; adjacent vessel candidate rejected",
+  "tool_calls": 8,
+  "model_prompts": 1
+}

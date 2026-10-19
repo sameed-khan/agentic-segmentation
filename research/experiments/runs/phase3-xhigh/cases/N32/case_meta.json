@@ -1,0 +1,39 @@
+{
+  "case_id": "N32",
+  "shape": [
+    181,
+    181,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3020002,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    137
+  ],
+  "created_at": "2026-10-19T08:30:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:33:41Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Main mass clearly captured in all planes; the thin inferior extension along the nerve is ambiguous, and the upper tail was trimmed. The candidates are normal vessels or peritumoral rim and were rejected.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

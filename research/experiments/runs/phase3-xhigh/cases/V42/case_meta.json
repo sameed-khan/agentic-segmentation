@@ -1,0 +1,39 @@
+{
+  "case_id": "V42",
+  "shape": [
+    111,
+    111,
+    85
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 961420,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    111,
+    111,
+    85
+  ],
+  "created_at": "2026-10-19T08:51:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:52:21Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Bright heterogeneous vascular mass well covered in three planes; hazy low-intensity periphery inferiorly is ambiguous and only partly included. Candidates rejected as vessels/noise.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

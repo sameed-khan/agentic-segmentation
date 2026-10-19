@@ -1,0 +1,39 @@
+{
+  "case_id": "L18",
+  "shape": [
+    201,
+    201,
+    356
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 16915138,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    356
+  ],
+  "created_at": "2026-10-19T07:54:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:56:01Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask follows the lipomatous mass in all three planes; the proximal and distal tapering ends blend with surrounding fat, so they are less certain. Candidates were subcutaneous fat and were rejected.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

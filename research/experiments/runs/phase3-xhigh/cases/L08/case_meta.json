@@ -1,0 +1,39 @@
+{
+  "case_id": "L08",
+  "shape": [
+    301,
+    301,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31748091,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    301,
+    301,
+    372
+  ],
+  "created_at": "2026-10-19T07:50:11Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:52:37Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the lobulated intermediate-bright lipomatous mass in all three planes, and the slices past each end show no lesion. Contrast is low because of the bias field, so some margins are uncertain. The proposed candidates were subcutaneous fat, so I rejected them.",
+  "tool_calls": 31,
+  "model_prompts": 2
+}

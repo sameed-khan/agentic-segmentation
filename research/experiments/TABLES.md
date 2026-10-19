@@ -85,6 +85,56 @@ Runs: `oneclick_design` (A10 dev server, reference) and `oneclick_design_colab` 
 
 ## 3. Phase 2 localization study (single-turn, design cases)
 
+### candidate_replay__e16 (model anthropic/claude-sonnet-5-5, thinking high, reps 3)
+
+| condition | calls | hit rate (mean over reps) | majority hit/case | dist mean mm | parse fail | invalid |
+|---|---|---|---|---|---|---|
+
+Per histotype (hit rate):
+
+| histotype | base | lesion |
+|---|---|---|
+| F | 0.000 | 0.000 |
+| L | 0.000 | 0.000 |
+| M | 0.000 | 0.000 |
+| N | 0.000 | 0.000 |
+| V | 0.000 | 0.000 |
+
+Per case (hits / reps):
+
+| case | base | lesion |
+|---|---|---|
+| F14 | 0/3 | 0/3 |
+| F15 | 0/3 | 0/3 |
+| F32 | 0/3 | 0/3 |
+| F44 | 0/3 | 0/3 |
+| F49 | 0/3 | 0/3 |
+| F50 | 0/3 | 0/3 |
+| L19 | 0/6 | 0/6 |
+| L20 | 0/3 | 0/3 |
+| L33 | 0/3 | 0/3 |
+| L35 | 0/3 | 0/3 |
+| L38 | 0/3 | 0/3 |
+| L43 | 0/3 | 0/3 |
+| M01 | 0/3 | 0/3 |
+| M07 | – | – |
+| M08 | 0/3 | 0/3 |
+| M09 | – | – |
+| M21 | 0/3 | 0/3 |
+| M33 | 0/3 | 0/3 |
+| N01 | 0/3 | 0/3 |
+| N18 | 0/3 | 0/3 |
+| N21 | 0/3 | 0/3 |
+| N26 | 0/3 | 0/3 |
+| N34 | 0/3 | 0/3 |
+| N40 | – | – |
+| V37 | 0/3 | 0/3 |
+| V46 | 0/3 | 0/3 |
+| V54 | – | – |
+| V55 | – | – |
+| V57 | 0/6 | 0/6 |
+| V65 | 0/3 | 0/3 |
+
 ### phase2_dev__dev-01 (model anthropic/claude-sonnet-5-5, thinking medium, reps 3)
 
 | condition | calls | hit rate (mean over reps) | majority hit/case | dist mean mm | parse fail | invalid |
@@ -296,6 +346,59 @@ Per case (hits / reps):
 | V57 | 3/3 | 3/3 | 3/3 |
 | V65 | 3/3 | 3/3 | 3/3 |
 
+### phase2_test__p2-test-high (model anthropic/claude-sonnet-5-5, thinking high, reps 3)
+
+| condition | calls | hit rate (mean over reps) | majority hit/case | dist mean mm | parse fail | invalid |
+|---|---|---|---|---|---|---|
+| R | 507 | 0.704 | 0.710 | 7.9 | 0 | 0 |
+| S | 507 | 0.826 | 0.823 | 10.9 | 0 | 3 |
+| S-gen | 507 | 0.819 | 0.828 | 11.6 | 0 | 3 |
+
+Per histotype (hit rate):
+
+| histotype | R | S | S-gen |
+|---|---|---|---|
+| F | – | – | – |
+| L | – | – | – |
+| M | – | – | – |
+| N | – | – | – |
+| V | – | – | – |
+
+Per case (hits / reps):
+
+| case | R | S | S-gen |
+|---|---|---|---|
+| F14 | – | – | – |
+| F15 | – | – | – |
+| F32 | – | – | – |
+| F44 | – | – | – |
+| F49 | – | – | – |
+| F50 | – | – | – |
+| L19 | – | – | – |
+| L20 | – | – | – |
+| L33 | – | – | – |
+| L35 | – | – | – |
+| L38 | – | – | – |
+| L43 | – | – | – |
+| M01 | – | – | – |
+| M07 | – | – | – |
+| M08 | – | – | – |
+| M09 | – | – | – |
+| M21 | – | – | – |
+| M33 | – | – | – |
+| N01 | – | – | – |
+| N18 | – | – | – |
+| N21 | – | – | – |
+| N26 | – | – | – |
+| N34 | – | – | – |
+| N40 | – | – | – |
+| V37 | – | – | – |
+| V46 | – | – | – |
+| V54 | – | – | – |
+| V55 | – | – | – |
+| V57 | – | – | – |
+| V65 | – | – | – |
+
 ## 4. Phase 1 agent passes (30 design cases each)
 
 | run | started | model | thinking | git / harness sha256 | mean Dice | median | mean Dice localized | n localized | localization fails | tool calls (mean) | model prompts (mean) | harness errors | forced finishes | cost USD |
@@ -395,4 +498,12 @@ Per case (hits / reps):
 | V55 | 6/1 | 6/1 | 6/1 | 6/1 | 6/1 | 7/1 | 16/2 | 14/1 | 7/1 |
 | V57 | 6/1 | 8/1 | 7/1 | 6/1 | 6/1 | 10/2 | 16/1 | 20/1 | 9/1 |
 | V65 | 5/1 | 7/1 | 7/1 | 7/1 | 6/1 | 9/1 | 28/2 | 23/2 | 7/1 |
+
+## 6. Phase 3 agent passes (169 test cases)
+
+| run | thinking | git | F | L | M | N | V | unweighted mean | case mean | median | > U-Net (of 5) | loc. fails | tool calls | prompts | forced | cost USD |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| published U-Net | – | – | 0.507 | 0.744 | 0.823 | 0.748 | 0.584 | 0.681 | – | – | – | – | – | – | – | – |
+| phase3-high | high | harness-v2.0.1 | 0.504 | 0.798 | 0.792 | 0.746 | 0.602 | 0.688 | 0.689 | 0.837 | 2 | 27 | 9.7 | 1.41 | 0 | 13.88 |
+| phase3-xhigh | xhigh | harness-v2.0.1-1-g2bcff01-dirty | 0.562 | 0.831 | 0.837 | 0.795 | 0.660 | 0.737 | 0.737 | 0.852 | 5 | 18 | 21.3 | 1.83 | 1 | 43.49 |
 

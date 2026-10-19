@@ -1,0 +1,39 @@
+{
+  "case_id": "N39",
+  "shape": [
+    161,
+    161,
+    109
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3330178,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    109
+  ],
+  "created_at": "2026-10-19T08:33:44Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:34:30Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Bright, well-circumscribed T2-hyperintense mass on the posterior-medial knee nerve is outlined in all three planes. Candidates look like adjacent vessels or the thin nerve tail, so I rejected them. Uncertainty remains about how far the lesion extends along the nerve.",
+  "tool_calls": 9,
+  "model_prompts": 1
+}

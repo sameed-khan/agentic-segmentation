@@ -1,0 +1,39 @@
+{
+  "case_id": "L37",
+  "shape": [
+    441,
+    441,
+    216
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31509963,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    216
+  ],
+  "created_at": "2026-10-19T08:03:48Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:04:38Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed encapsulated fat-intensity mass; outline follows boundary in all planes, no tissue past ends; candidates are muscle/subcutaneous fat, rejected",
+  "tool_calls": 8,
+  "model_prompts": 1
+}

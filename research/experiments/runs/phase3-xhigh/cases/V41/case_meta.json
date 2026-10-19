@@ -1,0 +1,39 @@
+{
+  "case_id": "V41",
+  "shape": [
+    141,
+    141,
+    256
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5006167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    256
+  ],
+  "created_at": "2026-10-19T08:50:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:51:42Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Bright T2 vascular mass behind the tibia is outlined in all three planes with a single component. The faint periphery at the ends is ambiguous, and candidate C1 is a linear vessel, so I rejected it.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

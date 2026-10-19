@@ -1,0 +1,39 @@
+{
+  "case_id": "V15",
+  "shape": [
+    161,
+    161,
+    97
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3253814,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    97
+  ],
+  "created_at": "2026-10-19T08:40:37Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:44:39Z",
+  "final_version": "v6",
+  "confidence": "low",
+  "reason": "Mask covers the tangled bright-vessel cluster with flow voids near the proximal tibiofibular region; lesion identity and full extent are uncertain.",
+  "tool_calls": 33,
+  "model_prompts": 3
+}

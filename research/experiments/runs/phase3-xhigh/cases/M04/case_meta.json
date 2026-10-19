@@ -1,0 +1,39 @@
+{
+  "case_id": "M04",
+  "shape": [
+    230,
+    230,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10246017,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    230,
+    230,
+    165
+  ],
+  "created_at": "2026-10-19T08:08:23Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:09:08Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Bright oval mass well covered in all three planes. Candidates were fascia or subcutaneous tissue, so I rejected them. The faint tapered ends are uncertain.",
+  "tool_calls": 10,
+  "model_prompts": 1
+}

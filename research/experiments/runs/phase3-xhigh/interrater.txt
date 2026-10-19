@@ -1,0 +1,1 @@
+MEAN interrater 0.991 run-vs-raters 0.822 run-vs-majority 0.823 (n=15)

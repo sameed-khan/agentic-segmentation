@@ -166,6 +166,28 @@ def main() -> None:
                      for r in runs]
             L.append(f"| {c['case']} | " + " | ".join(cells) + " |")
         L.append("")
+    # --- Phase 3 (test split, 169 cases)
+    unet = {"F": 0.507, "L": 0.744, "M": 0.823, "N": 0.748, "V": 0.584}
+    p3 = [d.name for d in sorted(RUNS.iterdir()) if (d / "batch_summary.json").exists() and (d / "scores.csv").exists()
+          and len(list(csv.DictReader(open(d / "scores.csv")))) == 169]
+    if p3:
+        L += ["## 6. Phase 3 agent passes (169 test cases)", "",
+              "| run | thinking | git | F | L | M | N | V | unweighted mean | case mean | median | > U-Net (of 5) | "
+              "loc. fails | tool calls | prompts | forced | cost USD |", "|---|" + "---|" * 16,
+              "| published U-Net | – | – | " + " | ".join(f"{unet[h]:.3f}" for h in HTYPES) + " | 0.681 | – | – | – | – | – | – | – | – |"]
+        for run in p3:
+            bs = json.loads((RUNS / run / "batch_summary.json").read_text())
+            sc = list(csv.DictReader(open(RUNS / run / "scores.csv")))
+            hm = {h: st.mean(float(r["dice"]) for r in sc if r["histotype"] == h) for h in HTYPES}
+            d = [float(r["dice"]) for r in sc]
+            L.append(f"| {run} | {bs.get('thinking_level')} | {bs.get('git_describe')} | "
+                     + " | ".join(f"{hm[h]:.3f}" for h in HTYPES)
+                     + f" | {st.mean(hm.values()):.3f} | {st.mean(d):.3f} | {st.median(d):.3f} | "
+                     f"{sum(hm[h] > unet[h] for h in HTYPES)} | {sum(r['tag'] == 'localization' for r in sc)} | "
+                     f"{st.mean(int(r['n_tool_calls']) for r in sc):.1f} | {st.mean(int(r['n_model_prompts']) for r in sc):.2f} | "
+                     f"{sum(str(r.get('forced_finish')).lower() in ('true', '1') for r in sc)} | "
+                     f"{sum(float(r.get('cost_usd') or 0) for r in sc):.2f} |")
+        L.append("")
     OUT.write_text("\n".join(L) + "\n")
     print(f"wrote {OUT.relative_to(ROOT)}")
 

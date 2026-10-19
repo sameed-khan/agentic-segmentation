@@ -1,0 +1,39 @@
+{
+  "case_id": "V64",
+  "shape": [
+    376,
+    376,
+    146
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 11176237,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    376,
+    376,
+    146
+  ],
+  "created_at": "2026-10-19T08:56:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:58:44Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Well-circumscribed T2-bright round mass fully outlined in all planes with no lesion past ends; some uncertainty whether it is the intended target.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

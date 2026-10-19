@@ -1,0 +1,39 @@
+{
+  "case_id": "M23",
+  "shape": [
+    270,
+    270,
+    729
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 64370923,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    270,
+    270,
+    729
+  ],
+  "created_at": "2026-10-19T08:13:20Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:15:21Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Large bright myxoid mass well delineated in all planes; upper tail near groin and infiltrative lower end are somewhat ambiguous. Candidates were rim/skin, rejected.",
+  "tool_calls": 21,
+  "model_prompts": 1
+}

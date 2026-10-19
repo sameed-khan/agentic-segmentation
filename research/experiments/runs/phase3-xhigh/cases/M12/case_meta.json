@@ -1,0 +1,39 @@
+{
+  "case_id": "M12",
+  "shape": [
+    451,
+    451,
+    189
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 37330068,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    451,
+    451,
+    189
+  ],
+  "created_at": "2026-10-19T08:10:05Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:10:53Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright T2 mass in left thigh well delineated in all planes; inferior gray tail inclusion is somewhat ambiguous.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

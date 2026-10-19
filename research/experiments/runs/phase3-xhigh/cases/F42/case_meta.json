@@ -1,0 +1,39 @@
+{
+  "case_id": "F42",
+  "shape": [
+    251,
+    251,
+    117
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 8976193,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    117
+  ],
+  "created_at": "2026-10-19T07:41:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:44:25Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask follows the well-defined T2-bright lobulated mass in all three planes with no stray parts. It is the only clearly abnormal mass I found, but I could not be certain it is the intended fibrous tumor.",
+  "tool_calls": 22,
+  "model_prompts": 1
+}

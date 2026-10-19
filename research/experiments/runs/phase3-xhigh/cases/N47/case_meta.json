@@ -1,0 +1,39 @@
+{
+  "case_id": "N47",
+  "shape": [
+    141,
+    141,
+    117
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2769434,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    117
+  ],
+  "created_at": "2026-10-19T08:36:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:37:05Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Bright ovoid mass outlined well in all three planes; the superior candidate is a vessel and was rejected. The faint superior tapering margin is uncertain.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F35",
+  "shape": [
+    211,
+    211,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7250503,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    141
+  ],
+  "created_at": "2026-10-19T07:36:56Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:39:23Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "Target identity is uncertain: the image is dark with poor contrast and the volume is cut off posteriorly. I chose the well-circumscribed rim-and-dark-center mass at the posterior right. Its upper end was trimmed by hand, and the lower pole is uncertain. I rejected all five automatic candidates as normal tissue.",
+  "tool_calls": 32,
+  "model_prompts": 1
+}

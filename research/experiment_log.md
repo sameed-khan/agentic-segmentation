@@ -396,6 +396,27 @@ template; the data are the 169 test cases.)
 - F and V are again the weak histotypes, matching the agent's localization failures (E17).
 - Infra note: `ask.ts --results-root` joined an absolute path under the project root; fixed (`resolve`), output moved.
 
+### E19. Phase 3 second pass: test split, thinking xhigh — run `phase3-xhigh` (harness-v2.0.1)
+169 cases, 1 forced finish (V25, wall time; agent-side, no slow op), 0 harness-tagged, $43.49 (3.1× high),
+21.3 tool calls / 1.83 prompts per case (high: 9.7 / 1.41), median wall 103 s.
+
+| run | F | L | M | N | V | unweighted mean | median | > U-Net | loc. fails |
+|---|---|---|---|---|---|---|---|---|---|
+| published U-Net | 0.507 | 0.744 | 0.823 | 0.748 | 0.584 | 0.681 | – | – | – |
+| phase3-high (primary) | 0.504 | 0.798 | 0.792 | 0.746 | 0.602 | 0.688 | 0.837 | 2/5 | 27 |
+| **phase3-xhigh** | **0.562** | **0.831** | **0.837** | **0.795** | **0.660** | **0.737** | 0.852 | **5/5** | 18 |
+
+- xhigh clears the preregistered gate (≥ 0.681 and > U-Net on ≥ 3/5) on all five histotypes; the preregistered
+  primary (high) does not (2/5, F and N within 0.003). Report both; xhigh was preregistered as the second pass.
+- Paired per case: xhigh − high = +0.048 mean Dice, Wilcoxon p = 0.044. Most of it is localization: failures fall from
+  27 to 18 (10 fixed, 1 new, 17 fail in both); the largest gains are high-pass misses found at xhigh (N44, F42, L22,
+  F11, V18, M37, N41: 0 → 0.71–0.82). Case-wise best of the two passes would give 0.749.
+- Confidence stays informative: high 0.921 (n 35), medium 0.751 (n 117), low 0.262 (n 17).
+- Multi-rater cases: agent vs majority 0.823 (high 0.693).
+- Provenance: high cases ran at `harness-v2-1-gbe9bfd7` (+ untracked `data_check/test.jsonl`), V25 at
+  `harness-v2.0.1`; xhigh at `harness-v2.0.1-1-g2bcff01` with `harness/study/ask.ts` dirty (localization-study script,
+  not used by the agent). Agent-facing prompts/tools identical across both passes; only the bit-identical morphology fix differs.
+
 ## 7. Next experiments (planned)
 
 | ID | Question | Runs |

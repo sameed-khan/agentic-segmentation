@@ -1,0 +1,39 @@
+{
+  "case_id": "M13",
+  "shape": [
+    480,
+    480,
+    294
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 46712041,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    480,
+    480,
+    294
+  ],
+  "created_at": "2026-10-19T08:10:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:16:03Z",
+  "final_version": "v9",
+  "confidence": "medium",
+  "reason": "Lobulated T2-bright right gluteal myxoid mass covered in all three planes with no lesion beyond either end. Fascial tails and the small satellite lobules are uncertain.",
+  "tool_calls": 37,
+  "model_prompts": 2
+}

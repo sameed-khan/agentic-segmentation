@@ -1,0 +1,39 @@
+{
+  "case_id": "L07",
+  "shape": [
+    206,
+    206,
+    166
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7562084,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    206,
+    206,
+    166
+  ],
+  "created_at": "2026-10-19T07:48:57Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:50:07Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Mask follows the bright lipomatous mass boundary in all three planes; ends are tapered partial-volume regions; candidates are subcutaneous fat/normal tissue and were rejected.",
+  "tool_calls": 17,
+  "model_prompts": 3
+}

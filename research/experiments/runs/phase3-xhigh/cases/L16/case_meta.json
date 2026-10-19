@@ -1,0 +1,39 @@
+{
+  "case_id": "L16",
+  "shape": [
+    201,
+    201,
+    157
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7234682,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    157
+  ],
+  "created_at": "2026-10-19T07:53:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:54:39Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single homogeneous fat-intensity mass outlined in all three planes, including the posterior tail. No lesion tissue is visible past either end of the mask, and the automatic candidates were subcutaneous fat or muscle, so I rejected them. Margins are slightly blurred at the superior end.",
+  "tool_calls": 21,
+  "model_prompts": 2
+}

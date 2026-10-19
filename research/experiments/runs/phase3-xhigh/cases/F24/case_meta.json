@@ -1,0 +1,39 @@
+{
+  "case_id": "F24",
+  "shape": [
+    158,
+    181,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5415539,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    158,
+    181,
+    156
+  ],
+  "created_at": "2026-10-19T07:34:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:35:35Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Well-circumscribed heterogeneous round mass segmented; outline fits in all three planes. Some uncertainty about whether the adjacent bright edema/fluid belongs to the lesion.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

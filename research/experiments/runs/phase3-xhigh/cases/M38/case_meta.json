@@ -1,0 +1,39 @@
+{
+  "case_id": "M38",
+  "shape": [
+    280,
+    280,
+    450
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 41454320,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    450
+  ],
+  "created_at": "2026-10-19T08:17:43Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:18:17Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Single lobulated T2-bright mass is outlined cleanly in all three planes with no tumor beyond its ends; the candidates are subcutaneous fat or edema, so I rejected them.",
+  "tool_calls": 8,
+  "model_prompts": 1
+}

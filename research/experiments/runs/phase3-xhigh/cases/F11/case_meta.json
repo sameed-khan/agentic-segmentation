@@ -1,0 +1,39 @@
+{
+  "case_id": "F11",
+  "shape": [
+    249,
+    249,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7994496,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    249,
+    249,
+    163
+  ],
+  "created_at": "2026-10-19T07:25:05Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T07:27:00Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright heterogeneous mass in the anterior chest wall, next to a skin marker, covered in all three planes. Candidates rejected as fat, skin or muscle. Identity as the fibrous tumor and its fuzzy edges are uncertain.",
+  "tool_calls": 23,
+  "model_prompts": 2
+}

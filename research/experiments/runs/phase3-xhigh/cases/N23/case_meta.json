@@ -1,0 +1,39 @@
+{
+  "case_id": "N23",
+  "shape": [
+    221,
+    221,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18753494,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    330
+  ],
+  "created_at": "2026-10-19T08:28:56Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:33:05Z",
+  "final_version": "v7",
+  "confidence": "low",
+  "reason": "Lobulated bright anterior-compartment mass (k134-267) segmented; the exact tumor vs. adjacent muscle edema extent at the proximal/distal ends is ambiguous.",
+  "tool_calls": 34,
+  "model_prompts": 2
+}

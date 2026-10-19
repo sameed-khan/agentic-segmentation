@@ -1,0 +1,39 @@
+{
+  "case_id": "L24",
+  "shape": [
+    241,
+    241,
+    271
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18120808,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    271
+  ],
+  "created_at": "2026-10-19T07:56:43Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:00:31Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Mask covers the large posterior-thigh mass behind the femur in all three planes. The proximal end reaches the signal-faded volume edge, and the extent of the dark homogeneous part versus normal muscle is uncertain. Candidates were rejected as muscle shells.",
+  "tool_calls": 33,
+  "model_prompts": 5
+}

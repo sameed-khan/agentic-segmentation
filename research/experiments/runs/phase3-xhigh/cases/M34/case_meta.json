@@ -1,0 +1,39 @@
+{
+  "case_id": "M34",
+  "shape": [
+    240,
+    240,
+    480
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33833413,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    240,
+    240,
+    480
+  ],
+  "created_at": "2026-10-19T08:16:12Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:20:43Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "No clear mass in the volume. I chose the thin bright subcutaneous lateral-thigh lesion next to the skin marker, a best guess. I rejected the femoral vessel bundle as normal anatomy. The outline fits that structure well in all three planes.",
+  "tool_calls": 35,
+  "model_prompts": 2
+}

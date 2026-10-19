@@ -1,0 +1,39 @@
+{
+  "case_id": "L44",
+  "shape": [
+    251,
+    251,
+    274
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18413572,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    274
+  ],
+  "created_at": "2026-10-19T08:07:05Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:08:19Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the well-defined mass boundary in all three planes. The thin superior tail and the lower margin are less certain. The candidates were all rings of normal muscle, so I rejected them.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N17",
+  "shape": [
+    131,
+    131,
+    110
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2467269,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    110
+  ],
+  "created_at": "2026-10-19T08:27:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:27:57Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Bright well-circumscribed posterior mass; outline follows boundary in axial, coronal and sagittal; no missed tissue beyond the ends.",
+  "tool_calls": 12,
+  "model_prompts": 1
+}

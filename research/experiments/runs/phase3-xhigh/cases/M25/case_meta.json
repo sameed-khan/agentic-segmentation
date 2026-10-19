@@ -1,0 +1,39 @@
+{
+  "case_id": "M25",
+  "shape": [
+    300,
+    300,
+    280
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20755016,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    300,
+    300,
+    280
+  ],
+  "created_at": "2026-10-19T08:14:29Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T08:17:31Z",
+  "final_version": "v8",
+  "confidence": "medium",
+  "reason": "Lobulated T2-bright posterior thigh mass covered in all planes; end slices and lateral/medial margins uncertain amid non-suppressed subcutaneous signal; candidates were shells and rejected",
+  "tool_calls": 30,
+  "model_prompts": 1
+}

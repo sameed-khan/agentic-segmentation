@@ -58,3 +58,5 @@ subagents only when necessary. Use `rg`, never `grep`. Explain codes in plain wo
 ## Log of this phase (append as you go)
 - 2026-10-19: tag `harness-v2` (runner resume infra on top of f3dfede); preregistration f99604f; test download started
   (tmux `dl`, `/tmp/dl_test.log`); worker generalising prepare/ask/score/oneclick to the test split.
+- 2026-10-19: worker finished test-split infra; committed; `harness-v2` re-tagged on that commit (agent-facing files
+  unchanged from f3dfede). Killed tmux `dl`; pipeline started in tmux `p3` (download step resumes the download).

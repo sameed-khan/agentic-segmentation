@@ -1,0 +1,33 @@
+[project]
+name = "pointd-gui-actor"
+version = "1.0.0"
+description = "FastAPI pointer service around Microsoft GUI-Actor-2B (official pointer-head inference)"
+requires-python = ">=3.10,<3.13"          # official GUI-Actor repo range (3.10-3.12)
+dependencies = [
+    # Official microsoft/GUI-Actor pyproject pins (research/literature/pointer_models_gui_actor_molmo2.md):
+    "transformers==4.51.3",
+    "qwen-vl-utils==0.0.8",
+    "accelerate==1.1.1",
+    "torch==2.7.1",                        # CUDA 12.x Linux wheels on PyPI include sm_80 (A100)
+    "pillow>=11.0.0",
+    "numpy>=2.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "pydantic>=2.9.0",
+]
+
+[project.optional-dependencies]
+# Official repo pins flash-attn==2.7.3; the service defaults to SDPA so the A100 setup
+# does not depend on a source build. Validate the FA2 arm against SDPA on the design set.
+flash = ["flash-attn==2.7.3"]
+
+[dependency-groups]
+dev = ["pytest>=8.3.0", "httpx>=0.27.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Application-style uv project (no wheel to build/install); uv syncs the venv only.
+package = false

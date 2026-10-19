@@ -104,3 +104,4 @@ come back when its window refreshes (interleave to maximise throughput).
   Skip BiomedParse v2 and Qwen3-VL-8B. Study C agent = Sonnet 5.5 high, confirm with Opus 5.5 medium.
   Next after the worker: review (gpt-6.1-sol), merge branch, then segd v3 integration (seg_locate + MedGemma checkpoints).
 - Never let workers edit the main tree while the sweep runs (segd restarts load main-tree code).
+- 22:05 UTC: Phase 5 tooling reviewed twice by gpt-6.1-sol; fixes committed on branch phase5-v3 (c025c27, 123 tests). NOT merged into main while the sweep runs (would change harness hash mid-sweep; Phase 5 runs on the A100 anyway). segd v3 integration worker started in agseg-p5.

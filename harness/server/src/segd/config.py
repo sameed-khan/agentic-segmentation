@@ -48,7 +48,15 @@ V3_POINTER_DEFAULT_URLS = {"gui_actor": "http://127.0.0.1:8092", "molmo2": "http
 V3_MEDGEMMA_DEFAULT_URLS = {"q4": "http://127.0.0.1:8091", "bf16": "http://127.0.0.1:8094"}
 V3_LOCATE_K = 5                          # points requested from the pointer service
 V3_POINTER_TIMEOUT_S = 60.0
-V3_MEDGEMMA_TIMEOUT_S = 180.0            # fixed checkpoints must never hang an op for long
+V3_MEDGEMMA_TIMEOUT_S = 180.0            # per-call cap: a single call must never hang forever
+V3_MEDGEMMA_GROUP_TIMEOUT_S = 150.0      # TOTAL MedGemma seconds per op, shared by ALL
+                                         # checkpoint calls of the op: the extension aborts
+                                         # one segd op after SEGD_OP_TIMEOUT_MS (180 s) and a
+                                         # finish op runs the review plus up to five candidate
+                                         # calls sequentially, so the group stays 30 s below
+                                         # that deadline (reserved for render saving, trajectory
+                                         # logging and response transport); checkpoints that
+                                         # cannot finish get their unavailable note instead
 V3_MEDGEMMA_MAX_TOKENS = 256
 # Single-sourced helpers that live outside the segd package (Phase 5 local models):
 _V3_REPO_ROOT = Path(__file__).resolve().parents[3]

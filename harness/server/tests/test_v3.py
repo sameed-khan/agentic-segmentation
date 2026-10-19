@@ -9,7 +9,11 @@ Covered: flag plumbing/validation, observation byte-identity when v3 is off, seg
 declaration-gating (server-side guard), pixel->mark mapping/dedup/ranking (global and
 edge marks), budget counting, error paths, checkpoint injection exactly once per
 checkpoint per version, trajectory v3 logging, review_code/authorization unaffected,
-case_meta recording, full-flow with pointer + MedGemma together.
+case_meta recording, full-flow with pointer + MedGemma together, the MedGemma group
+deadline (per-op total below the extension HTTP deadline; unavailable notes for
+skipped checkpoints), candidate-id binding (a reply naming another candidate is
+unusable), per-checkpoint finish-hook protection with notes retained, and
+checkpoint-delivery state restore so a failed persistence retry still delivers.
 """
 from __future__ import annotations
 
@@ -18,6 +22,7 @@ import importlib.util
 import io
 import json
 import re
+import shutil
 import sys
 import threading
 import time
@@ -138,6 +143,53 @@ class ScriptedMedGemmaBackend:
             return json.dumps({"candidate_id": m.group(1) if m else "?",
                                "verdict": self.verdict, "confidence": 0.8})
         return json.dumps({"answer": "uncertain", "confidence": 0.5})
+
+
+class ShiftIdBackend:
+    """Malicious/off-contract candidate backend: answers every row with the NEXT
+    candidate id (a C1 request gets candidate_id C2) — regression for review P1 #2."""
+
+    name = "scripted"
+    model_id = "google/medgemma-1.5-4b-it"
+
+    def __init__(self):
+        self.calls: list[str] = []
+
+    def load(self):
+        pass
+
+    def generate(self, prompt_text: str, images_b64, temperature: float, max_tokens: int) -> str:
+        m = re.search(r"candidate (C\d+)", prompt_text)
+        requested = m.group(1) if m else "C?"
+        self.calls.append(requested)
+        return json.dumps({"candidate_id": f"C{int(requested[1:]) + 1}",
+                           "verdict": "lesion", "confidence": 0.9})
+
+
+class DelayedBackend:
+    """MedGemma backend that sleeps before every reply (group-deadline regression,
+    review P1 #1): delayed responses, not only immediate connection refusal."""
+
+    name = "delayed"
+    model_id = "google/medgemma-1.5-4b-it"
+
+    def __init__(self, delay: float):
+        self.delay = delay
+        self.calls: list[str] = []
+
+    def load(self):
+        pass
+
+    def generate(self, prompt_text: str, images_b64, temperature: float, max_tokens: int) -> str:
+        self.calls.append(prompt_text[:60])
+        time.sleep(self.delay)
+        if '"complete"' in prompt_text:
+            return json.dumps({"complete": "no", "problems": [], "confidence": 0.6})
+        if '"verdict"' in prompt_text:
+            m = re.search(r"candidate (C\d+)", prompt_text)
+            return json.dumps({"candidate_id": m.group(1) if m else "?",
+                               "verdict": "lesion", "confidence": 0.8})
+        return json.dumps({"box": None, "confidence": 0.5})
 
 
 @pytest.fixture()
@@ -316,6 +368,28 @@ def test_seg_locate_edge_marks_and_error_path(tmp_path, pointer_url):
     assert rec["v3"][0]["ok"] is False and rec["v3"][0]["error"]
 
 
+def test_locate_record_keeps_structured_response(tmp_path, pointer_url):
+    """Review P2 #9: the trajectory keeps the pointer service's structured response
+    (points + model/service provenance), not only a truncated raw string."""
+    from segd.v3 import normalize_v3
+    cs, lesion = make_case_state_v3(tmp_path, root="locateparse")
+    k = lesion_center(lesion)[2]
+    segd.ops.run_op(cs, "view", {"axis": "axial", "slice": k, "marks": "fine"})
+    drawn = _drawn_positions(cs)
+    mid = sorted(drawn)[0]
+    cs.v3 = normalize_v3({"pointer": "gui_actor",
+                          "pointer_url": pointer_url([(drawn[mid][0], drawn[mid][1], 0.95)]),
+                          "checkpoints": []})
+    out = segd.ops.run_op(cs, "locate", {})
+    assert f"P1 mark {mid}" in out.text
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3rec = [r for r in recs if r["op"] == "locate"][-1]["v3"][0]
+    pts = v3rec["parsed"]["points"]
+    assert len(pts) == 1 and pts[0]["x"] == pytest.approx(drawn[mid][0])
+    assert v3rec["parsed"]["model"] == "test/pointer"
+    assert v3rec["parsed"]["version"] and v3rec["parsed"]["image_w"] > 0
+
+
 # --------------------------------------------------------- medgemma second reader
 def test_localize_checkpoint_on_first_sheet_only(tmp_path, medgemma_url):
     backend = ScriptedMedGemmaBackend()
@@ -476,6 +550,182 @@ def test_all_v3_on_full_flow(tmp_path, pointer_url, medgemma_url):
     assert out.text and not out.done
     out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})
     assert "review_code" in out.text
+
+
+# ----------------------------------------------------- group deadline (review P1 #1)
+def test_medgemma_call_skips_when_group_deadline_exhausted(tmp_path):
+    """Group budget spent -> the call is NOT sent and the record says why (the caller
+    appends the unavailable note)."""
+    from segd.v3 import medgemma_call
+    cs, _lesion = make_case_state_v3(tmp_path, root="deadgroup",
+                                     v3={"medgemma": "q4", "medgemma_url": DEAD_URL,
+                                         "checkpoints": ["review"]})
+    cs._log_extra = {}
+    cs._v3_group_deadline = time.perf_counter() - 1.0      # budget already spent
+    parsed = medgemma_call(cs, "review", Image.new("RGB", (4, 4)), "prompt")
+    assert parsed is None
+    rec = cs._log_extra["v3"][0]
+    assert rec["ok"] is False and rec["parsed"] is None and rec["latency_ms"] == 0.0
+    assert "deadline" in rec["error"] and "not sent" in rec["error"]
+
+
+def test_medgemma_call_deadline_clamps_single_slow_call(tmp_path, medgemma_url, monkeypatch):
+    """A single delayed reply is cut off at the group budget, so the unavailable note is
+    delivered while the op is still inside the extension's HTTP deadline (previously a
+    180 s call raced the 180 s op abort and the note was lost)."""
+    monkeypatch.setattr(config, "V3_MEDGEMMA_GROUP_TIMEOUT_S", 1.0)
+    backend = DelayedBackend(delay=6.0)
+    url = medgemma_url(backend)
+    cs, lesion = make_case_state_v3(tmp_path, root="slowcall",
+                                    v3={"medgemma": "q4", "medgemma_url": url,
+                                        "checkpoints": ["localize"]})
+    out = segd.ops.run_op(cs, "sheet", {"axis": "axial", "start": 10, "stop": 70})
+    assert "Medical second reader (MedGemma): unavailable this checkpoint" in out.text
+    assert len(backend.calls) == 1                        # the call reached the service once
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3rec = [r for r in recs if r["op"] == "sheet"][0]["v3"][0]
+    assert v3rec["ok"] is False and "timed out" in (v3rec["error"] or "")
+    assert v3rec["latency_ms"] < 2 * 1000 * config.V3_MEDGEMMA_GROUP_TIMEOUT_S
+
+
+def test_medgemma_group_deadline_bounds_whole_checkpoint_group(tmp_path, medgemma_url,
+                                                              monkeypatch):
+    """Delayed fake replies whose aggregate duration exceeds the client deadline: the op
+    still returns its review code with unavailable notes (never a lost response), and
+    checkpoints that cannot finish are skipped with an explicit not-sent record."""
+    monkeypatch.setattr(config, "V3_MEDGEMMA_GROUP_TIMEOUT_S", 1.0)
+    backend = DelayedBackend(delay=6.0)
+    url = medgemma_url(backend)
+    cs, lesion = make_case_state_v3(tmp_path, root="groupdead",
+                                    v3={"medgemma": "q4", "medgemma_url": url,
+                                        "checkpoints": ["review", "candidates"]})
+    cs.commit_mask(_partial_lesion_mask(lesion))          # v1: candidates will be found
+    out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})   # no raise
+    assert not out.done and 'review_code "' in out.text   # the op itself stays intact
+    assert out.text.count("unavailable") >= 2             # review + candidates notes
+    assert len(backend.calls) == 1                        # only the review call was sent
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3 = [r for r in recs if r["op"] == "finish" and r.get("error") is None][-1]["v3"]
+    review = [e for e in v3 if e["checkpoint"] == "review"]
+    cand = [e for e in v3 if e["checkpoint"] == "candidates"]
+    assert len(review) == 1 and "timed out" in (review[0]["error"] or "")
+    assert len(cand) == len(cs.candidate_cache[cs.current])   # one record per candidate
+    assert all(e["ok"] is False and ("deadline" in (e["error"] or "")
+                                     or "timed out" in (e["error"] or "")) for e in cand)
+
+
+# --------------------------------------------- candidate id binding (review P1 #2)
+def test_candidates_checkpoint_binds_requested_candidate_id(tmp_path, medgemma_url):
+    """A reply that names ANOTHER candidate (C2 for a C1 request) is unusable: no advice
+    under either id, and the trajectory record stays bound to the requested id so
+    offline adherence can never attribute it."""
+    backend = ShiftIdBackend()
+    url = medgemma_url(backend)
+    cs, lesion = make_case_state_v3(tmp_path, root="idbind",
+                                    v3={"medgemma": "q4", "medgemma_url": url,
+                                        "checkpoints": ["candidates"]})
+    cs.commit_mask(_partial_lesion_mask(lesion))
+    out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})
+    line = next(l for l in out.text.splitlines() if l.startswith("Medical second reader"))
+    verdicts = line.split("candidate verdicts: ")[1].split(". ")[0].split(", ")
+    assert verdicts == [f"{c.id} unavailable" for c in cs.candidate_cache[cs.current]]
+    med_lines = [l for l in out.text.splitlines() if l.startswith("Medical second reader")]
+    assert med_lines and not any("lesion" in l for l in med_lines)   # no advice delivered
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3 = [r for r in recs if r["op"] == "finish" and r.get("error") is None][-1]["v3"]
+    for e in v3:
+        assert e["ok"] is False and e["parsed"] is None
+        assert e["returned_candidate_id"] == f"C{int(e['candidate_id'][1:]) + 1}"
+        assert "candidate id mismatch" in e["error"] and f"{e['candidate_id']}" in e["error"]
+
+
+# ----------------------------- checkpoint-delivery state restore (review P1 #3)
+def test_localize_checkpoint_retries_after_failed_persistence(tmp_path, medgemma_url,
+                                                              monkeypatch):
+    """save_render failure AFTER the localize call: the op fails, but the checkpoint is
+    NOT consumed (delivery state restored) — the retry delivers the advice. The error
+    record keeps the v3 diagnostics."""
+    backend = ScriptedMedGemmaBackend()
+    url = medgemma_url(backend)
+    cs, _lesion = make_case_state_v3(tmp_path, root="persistfail",
+                                     v3={"medgemma": "q4", "medgemma_url": url,
+                                         "checkpoints": ["localize"]})
+    segd.ops.run_op(cs, "open", {})
+    real_save = cs.log.save_render
+    attempts = {"n": 0}
+
+    def flaky_save(image, op_name):
+        attempts["n"] += 1
+        if attempts["n"] == 1:
+            raise OSError("disk full")
+        return real_save(image, op_name)
+
+    monkeypatch.setattr(cs.log, "save_render", flaky_save)
+    with pytest.raises(OSError, match="disk full"):
+        segd.ops.run_op(cs, "sheet", {"axis": "axial", "start": 10, "stop": 70})
+    assert "localize" not in cs.v3_fired                  # delivery state restored
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    err = [r for r in recs if r.get("error_kind") == "internal"][-1]
+    assert err["op"] == "sheet"
+    assert err["v3"][0]["checkpoint"] == "localize" and err["v3"][0]["ok"] is True
+
+    out = segd.ops.run_op(cs, "sheet", {"axis": "axial", "start": 10, "stop": 70})   # retry
+    assert "Medical second reader (MedGemma): the lesion is nearest mark" in out.text
+    assert cs.v3_fired == {"localize"}
+    assert len(backend.calls) == 2                        # fired again on the retry
+
+
+# ------------------------------ per-checkpoint finish-hook guard (review P1 #4)
+def _prompt_dir_with_only(tmp_path, keep, name="prompts_only", src_dir=None):
+    pdir = tmp_path / name
+    pdir.mkdir(exist_ok=True)
+    for f in keep:                                        # full file names, e.g. review.md
+        shutil.copy((src_dir or config.V3_PROMPT_DIR) / f, pdir / f)
+    return pdir
+
+
+def test_finish_hook_protects_each_checkpoint(tmp_path, medgemma_url, monkeypatch):
+    """A failed checkpoint must not blank the other one's advice: each finish checkpoint
+    is guarded separately (prompt loading included) and produces its own unavailable
+    note + diagnostic; earlier successful notes are kept."""
+    orig_prompt_dir = config.V3_PROMPT_DIR
+
+    # (a) review.md missing: unavailable note for review, candidates still run
+    monkeypatch.setattr(config, "V3_PROMPT_DIR", _prompt_dir_with_only(tmp_path, ["candidates.md"]))
+    cs, lesion = make_case_state_v3(tmp_path, root="hookguard-a",
+                                    v3={"medgemma": "q4",
+                                        "medgemma_url": medgemma_url(ScriptedMedGemmaBackend(box=None)),
+                                        "checkpoints": ["review", "candidates"]})
+    cs.commit_mask(_partial_lesion_mask(lesion))
+    out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})
+    assert "Medical second reader (MedGemma): unavailable this checkpoint" in out.text
+    assert re.search(r"candidate verdicts: C\d+ lesion \(0\.80\)", out.text)
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3 = [r for r in recs if r["op"] == "finish" and r.get("error") is None][-1]["v3"]
+    assert [e for e in v3 if e["checkpoint"] == "review" and e["ok"] is False]
+    assert "FileNotFoundError" in [e for e in v3 if e["checkpoint"] == "review"
+                                  and e["ok"] is False][0]["error"]
+
+    # (b) candidates.md missing: the successful review note is KEPT, candidates show
+    # their per-row unavailable entries
+    monkeypatch.setattr(config, "V3_PROMPT_DIR",
+                        _prompt_dir_with_only(tmp_path, ["review.md"], name="prompts_b",
+                                              src_dir=orig_prompt_dir))
+    cs, lesion = make_case_state_v3(tmp_path, root="hookguard-b",
+                                    v3={"medgemma": "q4",
+                                        "medgemma_url": medgemma_url(ScriptedMedGemmaBackend(box=None)),
+                                        "checkpoints": ["review", "candidates"]})
+    cs.commit_mask(_partial_lesion_mask(lesion))
+    out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})
+    assert "Medical second reader (MedGemma): complete no (confidence 0.60)" in out.text
+    line = next(l for l in out.text.splitlines() if "candidate verdicts" in l)
+    assert f"{cs.candidate_cache[cs.current][0].id} unavailable" in line
+    assert "lesion (0.80)" not in out.text
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3 = [r for r in recs if r["op"] == "finish" and r.get("error") is None][-1]["v3"]
+    assert [e for e in v3 if e["checkpoint"] == "candidates" and e["ok"] is False
+            and "FileNotFoundError" in e["error"]]
+    assert [e for e in v3 if e["checkpoint"] == "review" and e["ok"] is True]
 
 
 # ------------------------------------------------- pure mapping/geometry helpers

@@ -143,7 +143,7 @@ def pointer_request(url: str, image_png_b64: str, query: str, k: int) -> dict:
 _MEDGEMMA_CLIENT_CACHE: dict[str, Any] = {}
 
 
-def _medgemma_client(url: str):
+def _medgemma_client(url: str, timeout_s: float):
     """MedGemmaClient from harness/local_models/medgemma/medgemma_client.py (single
     source; stdlib-only module loaded by path, cached per path)."""
     path = str(config.V3_MEDGEMMA_CLIENT_FILE)
@@ -157,7 +157,22 @@ def _medgemma_client(url: str):
         spec.loader.exec_module(mod)
         cls = mod.MedGemmaClient
         _MEDGEMMA_CLIENT_CACHE[path] = cls
-    return cls(base_url=url, timeout_s=config.V3_MEDGEMMA_TIMEOUT_S)
+    return cls(base_url=url, timeout_s=timeout_s)
+
+
+def _op_group_deadline(cs) -> float:
+    """Absolute deadline (perf_counter) shared by ALL MedGemma calls of the current op.
+
+    The extension aborts one segd op after SEGD_OP_TIMEOUT_MS (180 s) and a finish op
+    runs the review plus up to five candidate calls sequentially, so the group shares
+    config.V3_MEDGEMMA_GROUP_TIMEOUT_S (kept below that deadline) instead of every call
+    spending the per-call cap. run_op resets ``cs._v3_group_deadline`` per op; calls
+    outside run_op initialize it on first use."""
+    deadline = getattr(cs, "_v3_group_deadline", None)
+    if deadline is None:
+        deadline = time.perf_counter() + config.V3_MEDGEMMA_GROUP_TIMEOUT_S
+        cs._v3_group_deadline = deadline
+    return deadline
 
 
 def _prompt(name: str, **variables: str) -> str:
@@ -170,27 +185,75 @@ def _prompt(name: str, **variables: str) -> str:
     return text
 
 
-def medgemma_call(cs, checkpoint: str, image, prompt: str) -> dict | None:
+def medgemma_call(cs, checkpoint: str, image, prompt: str, *, requested_id: str | None = None,
+                  allowed_verdicts: tuple[str, ...] | None = None) -> dict | None:
     """One deterministic MedGemma call; returns the parsed JSON object or None.
 
     Never raises: transport/HTTP/parse failures are logged under `v3` and return None
     (the caller appends MEDGEMMA_UNAVAILABLE; fixed checkpoints must never crash an op).
-    The record carries prompt/image hashes, the raw reply and the latency."""
-    png = _png_bytes(image)
+    The record carries prompt/image hashes, the raw reply and the latency.
+
+    Result binding at this boundary (the advice only counts once it passes):
+      - ``requested_id``: the record is bound to the candidate row the call was made for;
+        a reply naming a DIFFERENT candidate is unusable (a verdict must never attach to
+        a row the model was not asked about).
+      - ``allowed_verdicts``: a reply without one of the contract's verdicts, or without
+        a usable confidence, is unusable.
+    Unusable replies return None with the reason in the record (``parsed`` stays None, so
+    offline adherence can never attribute them).
+
+    Deadline: the call shares the op's MedGemma group deadline (config.
+    V3_MEDGEMMA_GROUP_TIMEOUT_S). When that budget is spent the call is NOT sent and the
+    record says so; otherwise the per-request timeout is min(V3_MEDGEMMA_TIMEOUT_S,
+    remaining), so one slow call cannot consume the extension's whole HTTP deadline."""
     rec = {"call": "checkpoint", "checkpoint": checkpoint,
            "service": f"medgemma/{cs.v3['medgemma']}", "url": cs.v3["medgemma_url"],
-           "prompt_sha256": _sha256(prompt.encode("utf-8")), "image_sha256": _sha256(png),
+           "prompt_sha256": _sha256(prompt.encode("utf-8")), "image_sha256": None,
+           "candidate_id": requested_id, "returned_candidate_id": None,
            "raw": None, "latency_ms": None, "ok": False, "error": None, "parsed": None,
            "model": None}
     t0 = time.perf_counter()
     try:
-        client = _medgemma_client(cs.v3["medgemma_url"])
+        remaining = _op_group_deadline(cs) - t0
+        if remaining <= 0:
+            rec["error"] = (f"medgemma op deadline exhausted (group budget "
+                            f"{config.V3_MEDGEMMA_GROUP_TIMEOUT_S}s); call not sent")
+            rec["latency_ms"] = 0.0
+            return None
+        png = _png_bytes(image)                     # image serialization inside the guard:
+        rec["image_sha256"] = _sha256(png)          # a bad image is a recorded failure too
+        client = _medgemma_client(cs.v3["medgemma_url"],
+                                  timeout_s=min(config.V3_MEDGEMMA_TIMEOUT_S, remaining))
         res = client.chat_json(prompt, images=[png], temperature=0.0,
                                max_tokens=config.V3_MEDGEMMA_MAX_TOKENS)
-        rec.update(raw=res.text, latency_ms=round(res.latency_ms, 3), model=res.model,
-                   parsed=res.parsed,
-                   error=res.parse_error, ok=res.parsed is not None)
-        return res.parsed
+        rec.update(raw=res.text, latency_ms=round(res.latency_ms, 3), model=res.model)
+        parsed = res.parsed
+        if parsed is None:
+            rec["error"] = f"unusable reply: {res.parse_error}"
+            return None
+        rec["parsed"] = parsed
+        rec["returned_candidate_id"] = (str(parsed["candidate_id"])
+                                        if "candidate_id" in parsed else None)
+        problems: list[str] = []
+        if (requested_id is not None and rec["returned_candidate_id"] is not None
+                and rec["returned_candidate_id"] != requested_id):
+            problems.append(f"candidate id mismatch: requested {requested_id}, "
+                            f"reply names {rec['returned_candidate_id']}")
+        if allowed_verdicts is not None:
+            verdict = parsed.get("verdict")
+            if not (isinstance(verdict, str)
+                    and verdict.strip().lower() in allowed_verdicts):
+                problems.append(f"invalid verdict {verdict!r}")
+            c = parsed.get("confidence")
+            if not (isinstance(c, (int, float)) and not isinstance(c, bool)
+                    and 0.0 <= float(c) <= 1.0):
+                problems.append(f"invalid confidence {c!r}")
+        if problems:
+            rec["error"] = "unusable reply: " + "; ".join(problems)
+            rec["parsed"] = None
+            return None
+        rec["ok"] = True
+        return parsed
     except Exception as e:                                  # noqa: BLE001 (by design)
         rec["error"] = f"{type(e).__name__}: {e}"[:300]
         rec["latency_ms"] = round((time.perf_counter() - t0) * 1000.0, 3)
@@ -376,6 +439,11 @@ def op_locate(cs, query: str | None = None):
         rec["raw"] = str(resp.get("raw"))[:2000]
         rec["latency_ms"] = round((time.perf_counter() - t0) * 1000.0, 3)
         rec["ok"] = True
+        # structured response (audit: returned points, model/service provenance); the raw
+        # text stays truncated — coordinates stay out of agent-facing text (CONTRACTS §0)
+        rec["parsed"] = {"points": points, "model": resp.get("model"),
+                         "version": resp.get("version"), "verifier": resp.get("verifier"),
+                         "image_w": resp.get("image_w"), "image_h": resp.get("image_h")}
     except Exception as e:                                  # noqa: BLE001 -> OpError
         rec["error"] = f"{type(e).__name__}: {e}"[:300]
         rec["latency_ms"] = round((time.perf_counter() - t0) * 1000.0, 3)
@@ -463,27 +531,41 @@ def review_note(cs, review_img, vid: int) -> str:
             f"{prob_txt}. It is a hint; the decision is yours.")
 
 
+CANDIDATE_VERDICTS = ("lesion", "normal", "uncertain")   # the checkpoint's JSON contract
+
+
 def candidates_note(cs, sheet_img, row_rects, cands, vid: int) -> str:
     """Run the candidates checkpoint: one MedGemma call per candidate row of the sheet;
-    each (version, candidate) fires at most once."""
+    each (version, candidate) fires at most once.
+
+    Every reply is bound to the REQUESTED candidate id (the row image it saw): a reply
+    naming another candidate is unusable and that row shows as unavailable — so advice
+    can never attach to, or be attributed to, a row the model was not asked about."""
     entries: list[str] = []
     for i, cand in enumerate(cands):
         key = f"candidates:{vid}:{cand.id}"
         if key in cs.v3_fired:
             continue
         cs.v3_fired.add(key)
-        prompt = _prompt("candidates", candidate_id=cand.id)
+        try:
+            prompt = _prompt("candidates", candidate_id=cand.id)
+        except Exception as e:                              # noqa: BLE001 (by design)
+            record_call(cs, call="checkpoint", checkpoint="candidates", ok=False,
+                        candidate_id=str(cand.id),
+                        error=f"prompt: {type(e).__name__}: {e}"[:300])
+            entries.append(f"{cand.id} unavailable")
+            continue
         row = sheet_img
         if row_rects and i < len(row_rects):
             x0, y0, x1, y1 = row_rects[i]
             row = sheet_img.crop((x0, y0, x1, y1))
-        parsed = medgemma_call(cs, "candidates", row, prompt)
+        parsed = medgemma_call(cs, "candidates", row, prompt, requested_id=str(cand.id),
+                               allowed_verdicts=CANDIDATE_VERDICTS)
         if parsed is None:
             entries.append(f"{cand.id} unavailable")
             continue
-        verdict = str(parsed.get("verdict", "uncertain"))
-        seen_id = str(parsed.get("candidate_id", cand.id))
-        entries.append(f"{seen_id} {verdict} ({_fmt_conf(parsed.get('confidence'))})")
+        verdict = str(parsed["verdict"]).strip().lower()
+        entries.append(f"{cand.id} {verdict} ({_fmt_conf(parsed.get('confidence'))})")
     if not entries:
         return ""
     return ("Medical second reader (MedGemma) candidate verdicts: "
@@ -525,12 +607,28 @@ def after_op_hook(cs, op_name: str, out):
 def finish_review_notes(cs, review_img, cand_img, cand_row_rects, cands, vid: int) -> str:
     """Both finish-review checkpoints (review grid + per-candidate rows); each fires at
     most once per version (candidates_note also skips already-fired candidate ids).
-    Returns the combined note text ('' when nothing fired)."""
+    Returns the combined note text ('' when nothing fired).
+
+    Each checkpoint is protected SEPARATELY — including prompt loading and row cropping,
+    which sit outside medgemma_call's request guard: a checkpoint's failure becomes a
+    trajectory diagnostic plus the standard unavailable note, notes produced by earlier
+    checkpoints are kept, and the other enabled checkpoints still run (never a blanket
+    empty-note fallback that silently drops mandatory checkpoints)."""
     notes: list[str] = []
     if medgemma_on(cs) and checkpoint_due(cs, "review") and f"review:{vid}" not in cs.v3_fired:
-        notes.append(review_note(cs, review_img, vid))
+        try:
+            notes.append(review_note(cs, review_img, vid))
+        except Exception as e:                              # noqa: BLE001 (by design)
+            record_call(cs, call="checkpoint", checkpoint="review", ok=False,
+                        error=f"checkpoint: {type(e).__name__}: {e}"[:300])
+            notes.append(MEDGEMMA_UNAVAILABLE)
     if medgemma_on(cs) and checkpoint_due(cs, "candidates") and cands:
-        note = candidates_note(cs, cand_img, cand_row_rects, cands, vid)
-        if note:
-            notes.append(note)
+        try:
+            note = candidates_note(cs, cand_img, cand_row_rects, cands, vid)
+            if note:
+                notes.append(note)
+        except Exception as e:                              # noqa: BLE001 (by design)
+            record_call(cs, call="checkpoint", checkpoint="candidates", ok=False,
+                        error=f"checkpoint: {type(e).__name__}: {e}"[:300])
+            notes.append(MEDGEMMA_UNAVAILABLE)
     return "\n".join(n for n in notes if n)

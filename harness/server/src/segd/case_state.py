@@ -146,8 +146,9 @@ class CaseState:
         from segd.v3 import normalize_v3
         self.v3 = normalize_v3(v3)
         self.v3_fired: set[str] = set()   # checkpoints/injections already delivered
-        # ("localize", f"review:{vid}", f"candidates:{vid}:{cid}"; restored by the
-        # run_op transaction so a failed op can deliver its note on the retry)
+        # ("localize", f"review:{vid}", f"candidates:{vid}:{cid}"; snapshotted and
+        # restored by run_op for EVERY op so a failed op can deliver its note on the
+        # retry — the note never reached the agent when the op failed)
 
         self.shape: tuple = self.image.shape
         self.done = False

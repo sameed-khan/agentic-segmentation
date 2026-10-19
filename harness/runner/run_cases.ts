@@ -38,13 +38,16 @@ import {
 	type ExtensionFactory,
 } from "@earendil-works/pi-coding-agent";
 import { createSegExtension, SEG_TOOL_NAMES } from "../extension/index.ts";
+import {
+	DEFAULT_SYSTEM_FILE,
+	DEFAULT_SYSTEM_V3_FILE,
+	selectSystemFile,
+} from "./system_prompt.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(HERE, "..", "..");
 const HARNESS_DIR = join(PROJECT_ROOT, "harness");
 const DEFAULT_EXTENSION_DIR = join(HARNESS_DIR, "extension");
-const DEFAULT_SYSTEM_FILE = join(HARNESS_DIR, "prompts", "system.md");
-const DEFAULT_SYSTEM_V3_FILE = join(HARNESS_DIR, "prompts", "system_v3.md");
 const DEFAULT_TASK_FILE = join(HARNESS_DIR, "prompts", "task.md");
 const CASES_CSV = join(PROJECT_ROOT, "eval", "v2", "mstt_cases.csv");
 const DESIGN_SHAPES = join(PROJECT_ROOT, "eval", "v2", "data_check", "design.jsonl");
@@ -122,6 +125,7 @@ interface Options {
 	note: string;
 	examples: string;
 	systemFile: string;
+	systemFileSupplied: boolean;
 	taskFile: string;
 	resume: boolean;
 }
@@ -154,6 +158,7 @@ function parseArgs(argv: string[]): Options {
 		resume: false,
 		examples: "",
 		systemFile: DEFAULT_SYSTEM_FILE,
+		systemFileSupplied: false,   // tracked apart from the value: an explicit
 		taskFile: DEFAULT_TASK_FILE,
 	};
 
@@ -242,7 +247,8 @@ function parseArgs(argv: string[]): Options {
 				break;
 			case "--system-file":
 				opts.systemFile = resolve(next());
-				break;
+				opts.systemFileSupplied = true;   // tracked apart from the value: an explicit
+				break;                            // default-path override must still win
 			case "--task-file":
 				opts.taskFile = resolve(next());
 				break;
@@ -972,13 +978,13 @@ async function main(): Promise<void> {
 	if (rows.length === 0) throw new Error("no cases selected");
 
 	// System prompt: harness v3 adds a short seg_locate / second-reader paragraph; the
-	// v3 variant is used only when v3 is on (an explicit --system-file always wins).
-	const systemFileUsed =
-		opts.systemFile !== DEFAULT_SYSTEM_FILE
-			? opts.systemFile
-			: opts.v3
-				? DEFAULT_SYSTEM_V3_FILE
-				: DEFAULT_SYSTEM_FILE;
+	// v3 variant is used only when v3 is on. An explicit --system-file always wins, even
+	// when it resolves to the default path (see harness/runner/system_prompt.ts).
+	const systemFileUsed = selectSystemFile(
+		opts.systemFileSupplied,
+		opts.systemFile,
+		Boolean(opts.v3),
+	);
 	const systemTemplate = readFileSync(systemFileUsed, "utf8");
 	const systemPrompt = renderTemplate(systemTemplate, {
 		max_tool_calls: String(opts.maxToolCalls),

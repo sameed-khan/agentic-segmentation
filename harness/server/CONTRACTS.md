@@ -273,8 +273,9 @@ as the `v3` object. Implementation: `segd/v3.py`; constants in `config.py` (`V3_
   v3 consumers read it.
 - **Medical second reader (MedGemma 1.5 4B; §4 checkpoints).** Enabled by `v3.medgemma`;
   injected into tool observations at fixed checkpoints, once per checkpoint per version
-  (fired-set `CaseState.v3_fired`, restored by the run_op transaction on rollback so a
-  failed op's retry still delivers the note):
+  (fired-set `CaseState.v3_fired`; run_op snapshots and restores it for EVERY op — not
+  only the transactional ones, since the localize hook also fires after
+  open/sheet/view — so a failed op's retry still delivers the note):
   (a) `localize` — the FIRST seg_sheet observation (or, when the agent never calls a
   sheet, the first successful post-open op, using the seg_open overview rendered then):
   lesion box `[y0,x0,y1,x1]` in [0,1] on the shown image + confidence (temperature 0);
@@ -284,25 +285,38 @@ as the `v3` object. Implementation: `segd/v3.py`; constants in `config.py` (`V3_
   missed_lesion|leak|ok}], confidence}`; non-ok problems echoed;
   (c) `candidates` — one call per candidate of the finish review, with the candidate's
   sheet ROW (cropped via panel_rects): `{candidate_id, verdict: lesion|normal|uncertain,
-  confidence}`; per-candidate verdicts appended.
+  confidence}`; per-candidate verdicts appended. Every reply is bound to the REQUESTED
+  candidate id (the row image it saw): a reply naming another candidate, without one of
+  the contract's verdicts, or without a usable confidence is UNUSABLE — that row shows
+  as unavailable and the reason lands in the trajectory record with `parsed: null`.
   Prompt templates: `harness/prompts/medgemma/{localize,review,candidates}.md` (initial
   versions, tuned on the design split only). Client: the Phase 5
   `harness/local_models/medgemma/medgemma_client.py` (loaded by path, single source);
-  deterministic temperature 0, timeouts `config.V3_MEDGEMMA_TIMEOUT_S`. ANY failure
-  (transport, timeout, unparseable reply) appends the short note "Medical second reader
+  deterministic temperature 0. The checkpoint calls of one op share a TOTAL per-op
+  deadline `config.V3_MEDGEMMA_GROUP_TIMEOUT_S` (150 s, kept below the extension HTTP
+  deadline SEGD_OP_TIMEOUT_MS = 180 s: a finish op runs the review plus up to five
+  candidate calls sequentially), each request clamped to min(V3_MEDGEMMA_TIMEOUT_S,
+  remaining); when the group budget is spent a checkpoint is skipped WITHOUT sending and
+  gets its unavailable note. ANY failure (transport, timeout, unparseable or unusable
+  reply) appends the short note "Medical second reader
   (MedGemma): unavailable this checkpoint (service or parse error); continuing without
   it." (or the matching "cannot locate / no usable box" text for off-contract replies)
-  and NEVER fails the op. The appended note is plain text; review codes, candidate
-  authorization and the sync rule are untouched.
+  and NEVER fails the op; each finish checkpoint is guarded separately, so a failed
+  checkpoint cannot blank another's advice. The appended note is plain text; review
+  codes, candidate authorization and the sync rule are untouched.
 - **Trajectory (§4).** Every v3 request/response is appended to the current op's
   trajectory record under the extra field `v3` (list of records): locate calls
   (`{call: "locate", service, url, query, k, image_sha256, raw, latency_ms, ok, error,
-  snapped: [{point, mark, score, dist_px}]}`) and second-reader checkpoints (`{call:
-  "checkpoint", checkpoint, service, url, prompt_sha256, image_sha256, raw, latency_ms,
-  ok, error, parsed, model}`). These diagnostics are logged even when the op itself
-  failed (error records carry only `v3`, never the op's success fields).
+  parsed, snapped: [{point, mark, score, dist_px}]}`) and second-reader checkpoints
+  (`{call: "checkpoint", checkpoint, service, url, prompt_sha256, image_sha256,
+  candidate_id (requested), returned_candidate_id, raw, latency_ms, ok, error, parsed,
+  model}`). Locate records also carry the structured pointer response (returned points,
+  model/service version) in `parsed`. These diagnostics are logged even when the op
+  itself failed (error records carry only `v3`, never the op's success fields).
 - **Scorer (offline).** `eval/v2/score.py` gains the columns `n_locate_calls` and
   `medgemma_checkpoints_seen` (empty on v2 runs); `eval/v2/v3_adherence.py` computes the
-  RQ3 follow/override analysis (pointer proposals vs the first positive click; candidate
-  accepts vs MedGemma verdicts; Dice-delta correctness proxy) from trajectories,
-  versions.npz and offline GT.
+  RQ3 follow/override analysis (pointer proposals vs the first positive click — follow
+  undefined without preceding advice, correctness evaluated on the followed points;
+  candidate accepts matched version- and order-aware, unexposed distinct from overrides;
+  the accept-operation-level Dice delta once per operation, labelled as such) from
+  trajectories, versions.npz and offline GT.

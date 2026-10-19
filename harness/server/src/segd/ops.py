@@ -802,13 +802,24 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
                     "problem, fix it before finishing. " + cand_text + confirm)
         # harness v3 second-reader checkpoints (review grid + per candidate), once per
         # version; appended to the observation, never able to fail the review
-        try:
+        v3_note = ""
+        if cs.v3 is not None:
             from segd import v3 as v3_mod
-            v3_note = v3_mod.finish_review_notes(cs, img, images[1] if len(images) > 1 else None,
-                                                 cand_row_rects, cands, cs.current)
-        except Exception:                                   # noqa: BLE001 (by design)
-            v3_note = ""   # the checkpoints swallow their own failures; a hook crash
-            # must not fail the review either (the trajectory already carries the op)
+            try:
+                v3_note = v3_mod.finish_review_notes(cs, img,
+                                                     images[1] if len(images) > 1 else None,
+                                                     cand_row_rects, cands, cs.current)
+            except Exception as e:                          # noqa: BLE001 (by design)
+                # last resort so a hook crash cannot fail the review either — but it must
+                # stay honest: record the failure and append the standard unavailable note
+                # (the checkpoints above already convert their own failures to notes; the
+                # old empty-string fallback silently dropped mandatory checkpoints)
+                try:
+                    v3_mod.record_call(cs, call="checkpoint", checkpoint="finish", ok=False,
+                                       error=f"hook: {type(e).__name__}: {e}"[:300])
+                    v3_note = v3_mod.MEDGEMMA_UNAVAILABLE
+                except Exception:                           # noqa: BLE001
+                    v3_note = ""
         if v3_note:
             text += "\n" + v3_note
         return OpOutput(text, images)
@@ -934,12 +945,19 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
     cs._log_extra = {}
     cs._last_resolved = []
     cs._last_render_info = None
+    cs._v3_group_deadline = None   # v3 MedGemma group budget, set by v3.medgemma_call
     cs.tool_calls += 1   # every call counts, including the ones that fail below
     if op_name in config.MODEL_PROMPT_OPS and cs.model_prompts >= cs.budgets["max_model_prompts"]:
         raise reject("model prompt budget used; edit with seg_paint/seg_edit or call seg_finish",
                      "budget")
     parent_vid = cs.current
     snap = _transaction_snapshot(cs) if op_name in TRANSACTIONAL_OPS else None
+    # checkpoint-delivery state is snapshotted for EVERY op, independently of the durable-
+    # mask transaction: the v3 localize hook also fires after non-transactional ops
+    # (open/sheet/view), so a failed render save / trajectory record there must restore it
+    # just the same — otherwise a failure permanently consumes the checkpoint and the
+    # retry never delivers the advice
+    v3_fired_snap = set(cs.v3_fired)
     try:
         # an unknown op / malformed args still count as a tool call and are logged below
         if bad_args:
@@ -968,6 +986,7 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
         # unexpected error: undo the op's state changes, then log the full traceback with
         # error_kind 'internal' so scoring can tag `harness` (finding #2)
         _transaction_rollback(cs, snap)
+        cs.v3_fired = v3_fired_snap   # checkpoint-delivery state back to pre-op (all ops)
         v3_extra = {"v3": cs._log_extra["v3"]} if "v3" in cs._log_extra else None
         cs.log.record(op=op_name, args=args, resolved=cs._last_resolved,
                       error=traceback.format_exc(), error_kind="internal",
@@ -991,11 +1010,15 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
                       observation=out.text, renders=render_files, extra=cs._log_extra)
     except Exception:
         _transaction_rollback(cs, snap)
+        cs.v3_fired = v3_fired_snap   # checkpoint-delivery state back to pre-op (all ops):
+        # the note was never delivered (the agent gets the error reply), so the retry must
+        # still fire the checkpoint instead of seeing it as already consumed
         try:   # best effort: persistence itself may be what failed
+            v3_extra = {"v3": cs._log_extra["v3"]} if "v3" in cs._log_extra else None
             cs.log.record(op=op_name, args=args, resolved=cs._last_resolved,
                           error=traceback.format_exc(), error_kind="internal",
                           timings={"total": round(time.time() - t0, 3)},
-                          parent=vid_label(parent_vid))
+                          parent=vid_label(parent_vid), extra=v3_extra)
         except Exception:
             pass
         raise

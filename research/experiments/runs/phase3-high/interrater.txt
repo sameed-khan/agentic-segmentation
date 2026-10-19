@@ -1,0 +1,16 @@
+F11 interrater 1.000  run-vs-raters 0.000  run-vs-majority 0.000
+F38 interrater 0.996  run-vs-raters 0.644  run-vs-majority 0.642
+F39 interrater 0.999  run-vs-raters 0.872  run-vs-majority 0.871
+F51 interrater 0.986  run-vs-raters 0.420  run-vs-majority 0.422
+L11 interrater 0.999  run-vs-raters 0.949  run-vs-majority 0.949
+L31 interrater 0.997  run-vs-raters 0.918  run-vs-majority 0.917
+L42 interrater 0.999  run-vs-raters 0.953  run-vs-majority 0.953
+M43 interrater 0.978  run-vs-raters 0.492  run-vs-majority 0.500
+N15 interrater 0.990  run-vs-raters 0.765  run-vs-majority 0.762
+V02 interrater 0.954  run-vs-raters 0.784  run-vs-majority 0.785
+V09 interrater 0.997  run-vs-raters 0.898  run-vs-majority 0.898
+V18 interrater 0.985  run-vs-raters 0.000  run-vs-majority 0.000
+V35 interrater 0.998  run-vs-raters 0.936  run-vs-majority 0.936
+V41 interrater 0.990  run-vs-raters 0.880  run-vs-majority 0.878
+V48 interrater 0.999  run-vs-raters 0.874  run-vs-majority 0.874
+MEAN interrater 0.991 run-vs-raters 0.692 run-vs-majority 0.693 (n=15)

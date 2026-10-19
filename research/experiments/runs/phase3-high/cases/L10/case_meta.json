@@ -1,0 +1,39 @@
+{
+  "case_id": "L10",
+  "shape": [
+    351,
+    351,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 40766992,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    351,
+    351,
+    372
+  ],
+  "created_at": "2026-10-19T06:06:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:07:27Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask follows the grey lipomatous mass; candidates are normal fat",
+  "tool_calls": 6,
+  "model_prompts": 1
+}

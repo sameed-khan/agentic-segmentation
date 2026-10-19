@@ -1,0 +1,39 @@
+{
+  "case_id": "V52",
+  "shape": [
+    151,
+    151,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3958259,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    137
+  ],
+  "created_at": "2026-10-19T06:29:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:29:52Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Bright multilobulated vascular lesion segmented in 3 planes; candidates rejected as normal tissue; exact extent uncertain",
+  "tool_calls": 12,
+  "model_prompts": 3
+}

@@ -20,6 +20,7 @@ phase2_dev__dev-02-medium,phase2_localization,results/phase2_dev/dev-02-medium,2
 phase2_dev__dev-02-xhigh,phase2_localization,results/phase2_dev/dev-02-xhigh,2026-10-18T23:06:22.139Z,anthropic/claude-sonnet-5-5,xhigh,harness-v1-1-g51b7064,,30,,,"hit: R=0.733, S=0.900, S-ex=0.900",
 phase2_dev__prepare,phase2_prepare,results/phase2_dev/prepare,,,,,,,,,,
 phase2_dev__smoke2,phase2_localization,results/phase2_dev/smoke2,2026-10-18T18:44:50.214Z,anthropic/claude-sonnet-5-5,medium,,,1,,,"hit: R=0.000, S=0.000, S-desc=0.000, S-ex=0.000",
+phase3-high,phase1_agent,results/phase3-high,2026-10-19T06:45:50.334Z,anthropic/claude-sonnet-5-5,high,harness-v2.0.1,ef46241715949952c07f39066715459081ec3ffbc578ed7445994b82ff0cb7dc,169,0.689,0.837,tool_calls_mean=9.72; prompts_mean=1.41; localization_failures=27,"Phase 3 primary: harness-v2, test split (169), thinking high (preregistered, experiment_log §6)"
 smoke-ext,phase1_agent,results/smoke-ext,2026-10-18T15:57:21.445Z,anthropic/claude-sonnet-5-5,medium,,a621370d29950c11adaba6b2d4a16b03161a7dd2b65389716668fc3b349f75db,,,,,
 smoke-ping3,phase1_agent,results/smoke-ping3,2026-10-18T15:57:08.653Z,anthropic/claude-sonnet-5-5,medium,,a621370d29950c11adaba6b2d4a16b03161a7dd2b65389716668fc3b349f75db,,,,,
 smoke-shim-check,phase1_agent,results/smoke-shim-check,2026-10-18T18:18:54.683Z,anthropic/claude-sonnet-5-5,medium,,33ec122420160cd52f67f1c413aec12af26eaacd6cd9db74e878ab197895d4d8,,,,,

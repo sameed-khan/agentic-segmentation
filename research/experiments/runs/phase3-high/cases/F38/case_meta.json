@@ -1,0 +1,39 @@
+{
+  "case_id": "F38",
+  "shape": [
+    321,
+    321,
+    470
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30294147,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    321,
+    321,
+    470
+  ],
+  "created_at": "2026-10-19T06:03:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:04:03Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright posterolateral mass segmented; candidates are normal tissue; target identity somewhat uncertain",
+  "tool_calls": 7,
+  "model_prompts": 1
+}

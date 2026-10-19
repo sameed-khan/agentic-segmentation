@@ -1,0 +1,39 @@
+{
+  "case_id": "V63",
+  "shape": [
+    241,
+    241,
+    89
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6312968,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    89
+  ],
+  "created_at": "2026-10-19T06:30:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:31:14Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Bright anterior mass outlined well in all planes; candidates rejected as normal tissue.",
+  "tool_calls": 9,
+  "model_prompts": 1
+}

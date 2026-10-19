@@ -1,0 +1,39 @@
+{
+  "case_id": "N36",
+  "shape": [
+    241,
+    241,
+    306
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20636991,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    306
+  ],
+  "created_at": "2026-10-19T06:22:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:22:58Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Main mass well covered; thin nerve tails excluded",
+  "tool_calls": 8,
+  "model_prompts": 1
+}

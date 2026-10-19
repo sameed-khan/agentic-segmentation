@@ -1,0 +1,39 @@
+{
+  "case_id": "F20",
+  "shape": [
+    147,
+    147,
+    213
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5558962,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    147,
+    147,
+    213
+  ],
+  "created_at": "2026-10-19T06:00:38Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:01:00Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Dark heterogeneous mass in the lateral calf compartment is well outlined in all planes; the exact lesion identity is somewhat uncertain.",
+  "tool_calls": 7,
+  "model_prompts": 1
+}

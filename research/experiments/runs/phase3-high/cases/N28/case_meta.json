@@ -1,0 +1,39 @@
+{
+  "case_id": "N28",
+  "shape": [
+    426,
+    426,
+    197
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30974149,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    426,
+    426,
+    197
+  ],
+  "created_at": "2026-10-19T06:22:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:23:02Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask covers large lobulated anterior mass and the second target-sign posterior mass; candidates are subcutaneous tissue and were rejected. Assumes multifocal PNST.",
+  "tool_calls": 12,
+  "model_prompts": 3
+}

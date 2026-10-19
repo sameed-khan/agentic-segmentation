@@ -63,3 +63,5 @@ subagents only when necessary. Use `rg`, never `grep`. Explain codes in plain wo
 - 2026-10-19 06:40: V25 blocked segd 11 min (scipy opening r=14 mm). Fixed with bit-identical EDT morphology
   (`segd.ops.ball_morphology`, test `tests/test_ball_morphology.py`), tag `harness-v2.0.1`, see experiment_log §6
   deviation log. segd restarted. V25 parked in `results/phase3-high/_incomplete/V25_api_*` and rerun. Pipeline restarted.
+- 2026-10-19 ~07:10: high pass complete and scored; E17 written (gate NOT met: 2/5 histotypes; unweighted 0.688);
+  exported; committed. Pipeline continues: phase2 (test localization study) then agent_xhigh.

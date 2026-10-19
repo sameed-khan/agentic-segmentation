@@ -356,6 +356,30 @@ development; only test-split numbers are reported as results.
   V25 is rerun from scratch on the fixed code; all other high-pass cases ran on `harness-v2`. Runner: wall-time
   aborts are no longer classified as provider errors. The xhigh pass runs entirely on `harness-v2.0.1`.
 
+### E17. Phase 3 primary result: test split, thinking high — run `phase3-high` (harness-v2; V25 on v2.0.1)
+169 cases, 0 forced finishes, 0 harness-tagged cases after the V25 rerun, mean 9.7 tool calls / 1.41 prompts, $13.88.
+
+| histotype | n | agent mean | agent median | published U-Net mean | one-click oracle (GT centroid) | loc. fails | mean if localized |
+|---|---|---|---|---|---|---|---|
+| F | 34 | 0.504 | 0.666 | 0.507 | 0.625 | 9 | 0.678 |
+| L | 34 | **0.798** | 0.869 | 0.744 | 0.626 | 3 | 0.860 |
+| M | 34 | 0.792 | 0.875 | 0.823 | 0.811 | 2 | 0.841 |
+| N | 34 | 0.746 | 0.873 | 0.748 | 0.781 | 4 | 0.831 |
+| V | 33 | **0.602** | 0.799 | 0.584 | 0.733 | 9 | 0.828 |
+| all | 169 | 0.688 (unweighted) / 0.689 (cases) | 0.837 | 0.681 | 0.715 | 27 | 0.812 |
+
+- **Gate (preregistered): not met.** Unweighted mean 0.688 ≥ 0.681 ✓, but above the U-Net on only **2/5** histotypes
+  (L +0.054, V +0.018); F −0.003 and N −0.002 are ties within noise, M −0.031.
+- **Localization is the dominant loss:** 27/169 (16 %) wrong structure (first positive click outside GT, Dice < 0.5),
+  9 each in F and V. Localized cases average 0.812, above every U-Net histotype mean except M.
+- Agent beats the one-click oracle only on L (+0.17, the lipomatous tumours where one click captures too little);
+  elsewhere the oracle (which is given the location) is higher, consistent with localization being the gap.
+- **Confidence is informative:** high 0.927 (n 16), medium 0.750 (n 127), low 0.242 (n 26).
+- Candidates: accepted in 7 cases (M34, N36, V42, V48, V50, V56, V61); explicit `seg_candidates` in 22.
+- Multi-rater cases (15): mean pairwise inter-rater Dice 0.991 (the three masks are near-identical, so they give no
+  useful variability ceiling); agent vs majority 0.693, vs individual raters 0.692 (`eval/v2/interrater.py`).
+- One-click oracle on test: 0.715 mean (design 0.697), `results/oneclick_test/`.
+
 ## 7. Next experiments (planned)
 
 | ID | Question | Runs |

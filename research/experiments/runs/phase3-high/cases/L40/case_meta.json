@@ -1,0 +1,39 @@
+{
+  "case_id": "L40",
+  "shape": [
+    376,
+    376,
+    177
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 25568109,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    376,
+    376,
+    177
+  ],
+  "created_at": "2026-10-19T06:11:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T06:12:58Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "Assumed the lateral fatty bulge is the tumor; boundary with adjacent subcutaneous fat is ambiguous",
+  "tool_calls": 13,
+  "model_prompts": 3
+}

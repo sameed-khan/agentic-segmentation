@@ -5,6 +5,7 @@ integ-02,phase1_agent,results/integ-02,2026-10-18T19:49:56.227Z,anthropic/claude
 oneclick_design,oneclick_baseline,results/oneclick_design,,nnInteractive one click at GT centroid (no LLM),,,,30,0.697,0.739,,
 oneclick_design_colab,oneclick_baseline,results/oneclick_design_colab,,nnInteractive one click at GT centroid (no LLM),,,,30,0.696,0.739,,
 oracle_refine,oracle_refine,results/oracle_refine,,,,,,,,,,
+p3-opus55-medium,phase1_agent,results/p3-opus55-medium,2026-10-19T12:46:36.550Z,anthropic/claude-opus-5-5,medium,harness-v2.0.1-5-g15c519a-dirty,d8521309abb11d3648d246094690ec6c513b6bc02b252fff68bfb4d90a6512cc,169,0.747,0.857,tool_calls_mean=9.17; prompts_mean=1.34; localization_failures=19,"Phase 3b model sweep: anthropic/claude-opus-5-5 thinking medium, harness-v2.0.1, test split"
 phase1-01,phase1_agent,results/phase1-01,2026-10-18T20:49:45.713Z,anthropic/claude-sonnet-5-5,medium,,5cc4409b96847386fb828d684e642c797660c4c93c67d8b5aadda38f8788abd1,30,0.639,0.750,tool_calls_mean=5.03; prompts_mean=1.03; localization_failures=6,
 phase1-02,phase1_agent,results/phase1-02,2026-10-18T21:00:26.244Z,anthropic/claude-sonnet-5-5,medium,,96903886bae040c2fd5559d42899aab6d5a28eb455eb38ce22e580744ad76a39,30,0.612,0.750,tool_calls_mean=6.30; prompts_mean=1.07; localization_failures=6,
 phase1-03,phase1_agent,results/phase1-03,2026-10-18T21:14:49.340Z,anthropic/claude-sonnet-5-5,medium,,d9cb6eae331b989296d808c215018578f840a4efeae8522f2fd20d276d171462,30,0.573,0.750,tool_calls_mean=5.73; prompts_mean=1.10; localization_failures=7,

@@ -1,0 +1,39 @@
+{
+  "case_id": "V53",
+  "shape": [
+    381,
+    381,
+    316
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 32717895,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    381,
+    381,
+    316
+  ],
+  "created_at": "2026-10-19T12:54:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:57:53Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "Unclear anatomy; segmented focal bright superficial lesion, unsure it is the target.",
+  "tool_calls": 31,
+  "model_prompts": 2
+}

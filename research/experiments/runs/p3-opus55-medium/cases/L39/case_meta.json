@@ -1,0 +1,39 @@
+{
+  "case_id": "L39",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33824056,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-19T12:31:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:32:29Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask covers large lobulated lipomatous thigh mass incl. proximal lobes; candidates were normal fat/marrow.",
+  "tool_calls": 11,
+  "model_prompts": 2
+}

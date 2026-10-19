@@ -504,6 +504,7 @@ Per case (hits / reps):
 | run | thinking | git | F | L | M | N | V | unweighted mean | case mean | median | > U-Net (of 5) | loc. fails | tool calls | prompts | forced | cost USD |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | published U-Net | – | – | 0.507 | 0.744 | 0.823 | 0.748 | 0.584 | 0.681 | – | – | – | – | – | – | – | – |
+| p3-opus55-medium | medium | harness-v2.0.1-5-g15c519a-dirty | 0.606 | 0.841 | 0.846 | 0.764 | 0.674 | 0.746 | 0.747 | 0.857 | 5 | 19 | 9.2 | 1.34 | 0 | 28.14 |
 | phase3-high | high | harness-v2.0.1 | 0.504 | 0.798 | 0.792 | 0.746 | 0.602 | 0.688 | 0.689 | 0.837 | 2 | 27 | 9.7 | 1.41 | 0 | 13.88 |
 | phase3-xhigh | xhigh | harness-v2.0.1-1-g2bcff01-dirty | 0.562 | 0.831 | 0.837 | 0.795 | 0.660 | 0.737 | 0.737 | 0.852 | 5 | 18 | 21.3 | 1.83 | 1 | 43.49 |
 

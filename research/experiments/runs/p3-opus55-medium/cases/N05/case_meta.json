@@ -1,0 +1,39 @@
+{
+  "case_id": "N05",
+  "shape": [
+    441,
+    441,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20644293,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    156
+  ],
+  "created_at": "2026-10-19T12:48:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:50:15Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Lobulated plexiform mass plus connected anterior nodule along nerve segmented",
+  "tool_calls": 17,
+  "model_prompts": 4
+}

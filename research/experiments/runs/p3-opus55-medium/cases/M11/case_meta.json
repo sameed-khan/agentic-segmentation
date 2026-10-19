@@ -1,0 +1,39 @@
+{
+  "case_id": "M11",
+  "shape": [
+    440,
+    440,
+    210
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 27885332,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    440,
+    440,
+    210
+  ],
+  "created_at": "2026-10-19T12:34:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:34:41Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed T2-bright mass fully captured in all planes; candidates are vessels",
+  "tool_calls": 5,
+  "model_prompts": 1
+}

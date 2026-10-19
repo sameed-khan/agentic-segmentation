@@ -1,0 +1,39 @@
+{
+  "case_id": "V18",
+  "shape": [
+    121,
+    121,
+    94
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 900900,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    94
+  ],
+  "created_at": "2026-10-19T12:51:44Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:53:05Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "small hyperintense subcutaneous nodule beneath skin marker, outline fits in 3 planes; C1 is the external marker, rejected",
+  "tool_calls": 23,
+  "model_prompts": 2
+}

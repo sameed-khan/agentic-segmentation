@@ -1,0 +1,39 @@
+{
+  "case_id": "V02",
+  "shape": [
+    181,
+    181,
+    246
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9633781,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    246
+  ],
+  "created_at": "2026-10-19T12:51:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:51:23Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask covers the bright lobulated vascular mass between radius and ulna in all planes; margins somewhat uncertain.",
+  "tool_calls": 6,
+  "model_prompts": 1
+}

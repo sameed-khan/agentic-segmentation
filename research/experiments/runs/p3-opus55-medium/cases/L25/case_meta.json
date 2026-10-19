@@ -1,0 +1,39 @@
+{
+  "case_id": "L25",
+  "shape": [
+    421,
+    421,
+    196
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 24093049,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    196
+  ],
+  "created_at": "2026-10-19T12:28:26Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:28:57Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask follows well-defined bright mass in all planes; candidates were rings of normal tissue.",
+  "tool_calls": 6,
+  "model_prompts": 1
+}

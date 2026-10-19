@@ -1,0 +1,39 @@
+{
+  "case_id": "L24",
+  "shape": [
+    241,
+    241,
+    271
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18120808,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    271
+  ],
+  "created_at": "2026-10-19T12:28:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:31:56Z",
+  "final_version": "v12",
+  "confidence": "medium",
+  "reason": "Large heterogeneous posterior thigh mass covered; leaks into muscle and femur removed manually; boundary near femur uncertain.",
+  "tool_calls": 32,
+  "model_prompts": 4
+}

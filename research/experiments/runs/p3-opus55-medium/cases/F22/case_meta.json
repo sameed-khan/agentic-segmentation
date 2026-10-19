@@ -1,0 +1,39 @@
+{
+  "case_id": "F22",
+  "shape": [
+    161,
+    161,
+    145
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2444883,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    145
+  ],
+  "created_at": "2026-10-19T12:19:35Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:21:44Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Unusual oblique knee volume; segmented lobulated hyperintense lesion posterior/lateral to knee, uncertain it is the intended target.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

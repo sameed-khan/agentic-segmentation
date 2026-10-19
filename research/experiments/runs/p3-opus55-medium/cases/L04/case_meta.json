@@ -1,0 +1,39 @@
+{
+  "case_id": "L04",
+  "shape": [
+    251,
+    251,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20630333,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    330
+  ],
+  "created_at": "2026-10-19T12:25:54Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:26:18Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Mask follows the well-defined fatty mass in all planes; candidates are subcutaneous/intermuscular fat.",
+  "tool_calls": 5,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L27",
+  "shape": [
+    221,
+    221,
+    176
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9880771,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    176
+  ],
+  "created_at": "2026-10-19T12:29:03Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T12:30:10Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Mask follows large lipomatous mass in all planes; candidates are muscle/subcutaneous fat",
+  "tool_calls": 12,
+  "model_prompts": 2
+}

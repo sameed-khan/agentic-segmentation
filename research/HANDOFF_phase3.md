@@ -85,3 +85,4 @@ come back when its window refreshes (interleave to maximise throughput).
   genuine agent failures (killed/infra attempts never count; fixed 12:45 after kills were counted).
 - After each run is done: analyse vs phase3-high/xhigh (per histotype, gate, loc. fails, tools, tokens/cost), write
   E-entry, export_run.py, build_log_tables.py, dvc add/push, commit. Report to Sameed when he is back.
+- 13:14 UTC: p3-opus55-medium done (unweighted 0.746, 5/5 > U-Net, 19 loc fails, $28), exported. Narrative E20 (whole sweep) to write at the end; use eval/v2/sweep_summary.py.

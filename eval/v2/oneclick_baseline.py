@@ -1,4 +1,4 @@
-"""One-click nnInteractive baseline on the MSTT design cases (no LLM).
+"""One-click nnInteractive baseline on an MSTT split (design or test; no LLM).
 
 For each case: seed the GT largest connected component at its centroid (snapping to the
 nearest voxel inside the component when the rounded centroid lands outside it), upload the
@@ -9,10 +9,13 @@ Scores: Dice vs the full GT mask (all components) and vs the GT largest componen
 volume (mL), GT volume (mL), number of predicted connected components; timings for the image
 upload and the point prompt.
 
-Writes ``results/oneclick_design/results.csv``, ``results/oneclick_design/masks/<case>.nii.gz``
-(uint8, original affine) and ``results/oneclick_design/summary.md``.
+Resumable: completed cases (status=ok) already in results.csv are skipped; every completed
+case is appended to results.csv immediately, so an interrupted run can simply be restarted
+(failed/empty rows are retried). Writes ``results/oneclick_<split>/results.csv``,
+``results/oneclick_<split>/masks/<case>.nii.gz`` (uint8, original affine) and
+``results/oneclick_<split>/summary.md``.
 
-Run:  uv run --project harness/server eval/v2/oneclick_baseline.py [split]
+Run:  uv run --project harness/server eval/v2/oneclick_baseline.py [design|test]
 """
 from __future__ import annotations
 
@@ -50,7 +53,9 @@ FIELDS = ["case", "histotype", "sequence", "seed_i", "seed_j", "seed_k", "snap_r
           "gt_components", "gt_largest_frac", "t_set_image_s", "t_prompt_s", "status", "error"]
 
 split = sys.argv[1] if len(sys.argv) > 1 else "design"
-OUT = PROJECT_ROOT / "results" / "oneclick_design"
+if split not in ("design", "test"):
+    raise SystemExit(f"unknown split {split!r} (use design or test)")
+OUT = PROJECT_ROOT / "results" / f"oneclick_{split}"
 MASKS = OUT / "masks"
 
 stop = threading.Event()  # set once the server looks unreachable; no new cases start
@@ -153,9 +158,20 @@ def worker(row) -> dict:
     return rec
 
 
+def load_done() -> dict[str, dict]:
+    """Completed cases (status=ok) from a previous run; latest row wins per case."""
+    done: dict[str, dict] = {}
+    if (OUT / "results.csv").exists():
+        with open(OUT / "results.csv", newline="") as f:
+            for rec in csv.DictReader(f):
+                if rec.get("status") == "ok":
+                    done[rec["case"]] = rec
+    return done
+
+
 def write_summary(recs: list[dict]) -> None:
     ok = [r for r in recs if r["status"] == "ok"]
-    lines = ["# One-click nnInteractive baseline — MSTT design cases", "",
+    lines = [f"# One-click nnInteractive baseline — MSTT {split} cases", "",
              f"Cases: {len(recs)}  |  succeeded: {len(ok)}  |  "
              f"failed/skipped: {len(recs) - len(ok)}", "",
              "One positive point at the GT largest-component centroid (snapped inside the "
@@ -215,27 +231,45 @@ def main() -> int:
         print(f"ERROR: server not reachable at {URL}/healthz — stopping.", flush=True)
         return 1
     rows = read_cases(split)
+    if not rows:
+        print(f"no cases for split {split!r}", flush=True)
+        return 1
     MASKS.mkdir(parents=True, exist_ok=True)
-    print(f"{len(rows)} {split} cases; {MAX_WORKERS} workers; server {URL}", flush=True)
+    done = load_done()
+    pending = [r for r in rows if r.case not in done]
+    print(f"{len(rows)} {split} cases; {len(done)} already done, {len(pending)} to go; "
+          f"{MAX_WORKERS} workers; server {URL}", flush=True)
 
-    results: dict[str, dict] = {}
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-        futures = {ex.submit(worker, row): row for row in rows}
-        for fut in futures:
-            row = futures[fut]
-            rec = fut.result()
-            results[row.case] = rec
-            print(f"  [{len(results):2d}/{len(rows)}] {row.case} {row.histotype} "
-                  f"{rec['status']} dice_all={rec['dice_all']} "
-                  f"pred_ml={rec['pred_ml']} err={rec['error']}", flush=True)
+    results: dict[str, dict] = dict(done)
+    csv_path = OUT / "results.csv"
+    new_file = not csv_path.exists() or csv_path.stat().st_size == 0
+    fh = open(csv_path, "a" if not new_file else "w", newline="")
+    w = csv.DictWriter(fh, fieldnames=FIELDS)
+    if new_file:
+        w.writeheader()
+    try:
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
+            futures = {ex.submit(worker, row): row for row in pending}
+            for fut in futures:
+                row = futures[fut]
+                rec = fut.result()
+                results[row.case] = rec
+                w.writerow(rec)
+                fh.flush()
+                print(f"  [{len(done) + sum(1 for r in pending if r.case in results):2d}/{len(rows)}] "
+                      f"{row.case} {row.histotype} {rec['status']} dice_all={rec['dice_all']} "
+                      f"pred_ml={rec['pred_ml']} err={rec['error']}", flush=True)
+    finally:
+        fh.close()
 
+    # Rewrite the full csv in case order (dedupes failed rows retried on resume).
     recs = [results[row.case] for row in rows]
-    with open(OUT / "results.csv", "w", newline="") as f:
+    with open(csv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
         w.writeheader()
         w.writerows(recs)
     write_summary(recs)
-    print(f"wrote {OUT / 'results.csv'} and {OUT / 'summary.md'}", flush=True)
+    print(f"wrote {csv_path} and {OUT / 'summary.md'}", flush=True)
     return 0
 
 

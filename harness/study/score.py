@@ -21,8 +21,10 @@ Gate (harness_design_v2.md §3, thresholds fixed before data):
   coverage >= 0.90 -> run S-desc / S-ex and adopt whichever passes.
 
 Run:  uv run --project harness/server python harness/study/score.py --run <name>
-Reads results/phase2_dev/<run>/responses.jsonl (+ the prepare manifest), writes
-scored.jsonl, score.json and report.md into the same run directory.
+          [--results-root results/phase2_dev] [--prepare-dir results/phase2_dev/prepare]
+Reads <results-root>/<run>/responses.jsonl (+ the prepare manifest from the run's
+meta.json or --prepare-dir), writes scored.jsonl, score.json and report.md into the
+same run directory.
 """
 from __future__ import annotations
 
@@ -37,7 +39,8 @@ import numpy as np
 from scipy import ndimage as ndi
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PREPARE_DIR = PROJECT_ROOT / "results" / "phase2_dev" / "prepare"
+DEFAULT_RESULTS_ROOT = "results/phase2_dev"
+PREPARE_DIR = PROJECT_ROOT / DEFAULT_RESULTS_ROOT / "prepare"
 
 S_FAMILY = ("S", "S-gen", "S-desc", "S-ex")
 HISTOTYPES = ("F", "L", "M", "N", "V")
@@ -310,15 +313,31 @@ def write_report(run_dir: Path, rows: dict[str, dict], calls: list[dict],
 # ------------------------------------------------------------------ main
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--run", required=True, help="run name under results/phase2_dev/")
-    ap.add_argument("--prepare-dir", default=str(PREPARE_DIR))
+    ap.add_argument("--run", required=True, help="run name under --results-root")
+    ap.add_argument("--results-root", default=str(DEFAULT_RESULTS_ROOT),
+                    help="run root under the project (default results/phase2_dev; "
+                         "use results/phase2_test for test-split runs)")
+    ap.add_argument("--prepare-dir", default=None,
+                    help="prepare manifest dir (default: the run's meta.json "
+                         "prepare_manifest, else results/phase2_dev/prepare)")
     args = ap.parse_args()
-    run_dir = PROJECT_ROOT / "results" / "phase2_dev" / args.run
+    run_dir = PROJECT_ROOT / args.results_root / args.run
     resp_path = run_dir / "responses.jsonl"
     if not resp_path.exists():
         raise SystemExit(f"no responses.jsonl in {run_dir}")
 
-    rows = {r["case"]: r for r in (json.loads(l) for l in open(Path(args.prepare_dir) / "manifest.jsonl"))}
+    if args.prepare_dir:
+        prepare_dir = Path(args.prepare_dir)
+    else:
+        prepare_dir = PREPARE_DIR
+        meta_path = run_dir / "meta.json"
+        if meta_path.exists():
+            meta = json.loads(meta_path.read_text())
+            if meta.get("prepare_manifest"):
+                p = PROJECT_ROOT / meta["prepare_manifest"]
+                # accept either the manifest file or its directory
+                prepare_dir = p.parent if p.name == "manifest.jsonl" else p
+    rows = {r["case"]: r for r in (json.loads(l) for l in open(prepare_dir / "manifest.jsonl"))}
     resp_lines = [json.loads(l) for l in open(resp_path)]
     unknown = sorted({r["case"] for r in resp_lines} - set(rows))
     if unknown:

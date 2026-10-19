@@ -11,13 +11,15 @@
  * one reply, recorded raw.
  *
  * Prompts live in prompts/*.md (sha256 recorded in the run meta.json). Images come
- * from the prepare stage manifest (results/phase2_dev/prepare/manifest.jsonl).
+ * from the prepare stage manifest (--prepare-dir, default results/phase2_dev/prepare).
  *
- * Output: results/phase2_dev/<run>/responses.jsonl (one line per case×condition×rep,
- * resumable: completed keys are skipped), meta.json, sessions/<case>_<cond>_r<rep>.jsonl.
+ * Output: <results-root>/<run>/responses.jsonl (one line per case×condition×rep;
+ * resumable: completed (ok) keys are skipped, error rows are dropped and retried),
+ * meta.json, sessions/<case>_<cond>_r<rep>.jsonl.
  *
- * Run:  npx tsx ask.ts --run phase2-dev-01 [--conditions R,S,S-gen] [--reps 3]
- *                       [--cases F14,M07] [--concurrency 4]
+ * Run:  npx tsx ask.ts --run phase2-dev-01 [--results-root results/phase2_dev]
+ *                       [--conditions R,S,S-gen] [--reps 3] [--cases F14,M07]
+ *                       [--concurrency 4]
  */
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -49,7 +51,8 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(HERE, "..", "..");
-const PREPARE_DIR = join(PROJECT_ROOT, "results", "phase2_dev", "prepare");
+const DEFAULT_RESULTS_ROOT = "results/phase2_dev";
+const PREPARE_DIR = join(PROJECT_ROOT, DEFAULT_RESULTS_ROOT, "prepare");
 const PROMPTS_DIR = join(HERE, "prompts");
 const DEFAULT_AUTH_SHIM = join(
 	homedir(),
@@ -108,6 +111,7 @@ interface Options {
 	thinking: string;
 	wallMin: number;
 	authShim: string;
+	resultsRoot: string;
 	prepareDir: string;
 }
 
@@ -122,6 +126,7 @@ function parseArgs(argv: string[]): Options {
 		thinking: "medium",
 		wallMin: 5,
 		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
+		resultsRoot: DEFAULT_RESULTS_ROOT,
 		prepareDir: PREPARE_DIR,
 	};
 	for (let i = 0; i < argv.length; i++) {
@@ -159,6 +164,9 @@ function parseArgs(argv: string[]): Options {
 			case "--auth-shim":
 				opts.authShim = resolve(next());
 				break;
+			case "--results-root":
+				opts.resultsRoot = next();
+				break;
 			case "--prepare-dir":
 				opts.prepareDir = resolve(next());
 				break;
@@ -182,15 +190,17 @@ function parseArgs(argv: string[]): Options {
 function printHelp(): void {
 	console.log(`Usage: npx tsx ask.ts --run <name> [options]
 
-  --run <name>              run directory under results/phase2_dev/ (required)
+  --run <name>              run directory under --results-root (required)
   --conditions R,S,S-gen    comma list from ${ALL_CONDITIONS.join(", ")} (default R,S,S-gen)
   --reps <n>                repeats per case x condition (default 3)
-  --cases F14,M07           subset of design cases (default: all in the prepare manifest)
+  --cases F14,M07           subset of cases (default: all in the prepare manifest)
   --concurrency <n>         calls in flight in this process (default 4)
   --model <provider/id>     (default anthropic/claude-sonnet-5-5)
   --thinking <level>        (default medium)
   --wall-min <n>            per-call wall-time abort (default 5)
   --auth-shim <path>        default ~/.pi/agent/npm/node_modules/@gotgenes/pi-anthropic-auth
+  --results-root <dir>      run root under the project (default results/phase2_dev; use
+                            results/phase2_test for test-split runs)
   --prepare-dir <path>      default results/phase2_dev/prepare`);
 }
 
@@ -290,7 +300,7 @@ async function runCall(
 	const promptText = renderTemplate(template, vars);
 	const images = spec.images(row).map(imageContent);
 
-	const runDir = join(PROJECT_ROOT, "results", "phase2_dev", opts.run);
+	const runDir = join(PROJECT_ROOT, opts.resultsRoot, opts.run);
 	const callDir = join(runDir, "sessions");
 	mkdirSync(callDir, { recursive: true });
 	const sessionName = `${caseId}_${condition}_r${rep}`;
@@ -468,10 +478,26 @@ async function runCall(
 				`in=${usageSum.input} out=${usageSum.output} ${latencyMs}ms`,
 		);
 	} catch (err) {
-		// Transport-level failure after SDK retries: no response line, so a resume
-		// retries this call. Never retried within this process (no re-call here).
-		console.error(`[${caseId}/${condition}/r${rep}] failed: ${(err as Error).message}`);
-		appendFileSync(join(runDir, "failures.log"), `${new Date().toISOString()} ${caseId}/${condition}/r${rep}: ${(err as Error).message}\n`);
+		// Transport-level failure after SDK retries: record an error row (ok=false,
+		// stopReason 'error') so a rerun with the same --run retries this call — the
+		// resume logic drops non-ok rows. Never retried within this process.
+		const message = (err as Error).message;
+		console.error(`[${caseId}/${condition}/r${rep}] failed: ${message}`);
+		appendFileSync(join(runDir, "failures.log"), `${new Date().toISOString()} ${caseId}/${condition}/r${rep}: ${message}\n`);
+		appendFileSync(join(runDir, "responses.jsonl"), JSON.stringify({
+			run: opts.run,
+			case: caseId,
+			histotype: row.histotype,
+			sequence: row.sequence,
+			condition,
+			rep,
+			model: opts.model,
+			thinking: opts.thinking,
+			raw_text: "",
+			stop_reason: "error",
+			ok: false,
+			error: message,
+		}) + "\n");
 		try {
 			session?.dispose();
 		} catch {
@@ -495,7 +521,7 @@ interface Shared {
 
 async function main(): Promise<void> {
 	const opts = parseArgs(process.argv.slice(2));
-	const runDir = join(PROJECT_ROOT, "results", "phase2_dev", opts.run);
+	const runDir = join(PROJECT_ROOT, opts.resultsRoot, opts.run);
 	mkdirSync(runDir, { recursive: true });
 
 	const manifestPath = join(opts.prepareDir, "manifest.jsonl");
@@ -537,20 +563,34 @@ async function main(): Promise<void> {
 	}
 	const systemPrompt = readFileSync(join(PROMPTS_DIR, "system.md"), "utf8");
 
-	// Resumability: keys already recorded are skipped.
+	// Resumability: keys already recorded WITH A VALID RESPONSE are skipped; error rows
+	// (ok=false, e.g. provider stopReason 'error' or a thrown transport failure) are
+	// dropped so a rerun with the same --run retries them.
 	const respPath = join(runDir, "responses.jsonl");
 	const done = new Set<string>();
+	const keptLines: string[] = [];
 	let priorLines = 0;
+	let priorErrorLines = 0;
 	if (existsSync(respPath)) {
 		for (const line of readFileSync(respPath, "utf8").split("\n")) {
 			if (!line.trim()) continue;
 			try {
 				const rec = JSON.parse(line);
-				done.add(`${rec.case}|${rec.condition}|${rec.rep}`);
-				priorLines += 1;
+				if (rec.ok === true) {
+					done.add(`${rec.case}|${rec.condition}|${rec.rep}`);
+					keptLines.push(line);
+					priorLines += 1;
+				} else {
+					priorErrorLines += 1;
+				}
 			} catch {
 				console.warn(`[resume] skipping malformed response line: ${line.slice(0, 80)}`);
 			}
+		}
+		if (priorErrorLines > 0) {
+			// rewrite without the error rows being retried
+			writeFileSync(respPath, keptLines.map((l) => `${l}\n`).join(""));
+			console.log(`[resume] dropping ${priorErrorLines} error row(s) for retry`);
 		}
 	}
 
@@ -590,6 +630,7 @@ async function main(): Promise<void> {
 		wall_min_per_call: opts.wallMin,
 		tools: "none (tools: [])",
 		compaction: "off",
+		results_root: opts.resultsRoot,
 		transport_retries: "SDK auto-retry, max 2; parse failures are never retried",
 		pi_sdk_version: VERSION,
 		pi_sdk_package_version: sdkPackageVersion,
@@ -666,6 +707,20 @@ async function main(): Promise<void> {
 	};
 	writeFileSync(join(runDir, "meta.json"), JSON.stringify(finalMeta, null, 2) + "\n");
 	console.log(`[ask] wrote ${respPath}`);
+
+	// Provider errors are recorded as ok=false rows (retriable on rerun); surface them
+	// and exit non-zero so the orchestrator notices.
+	const errorRows = readFileSync(respPath, "utf8").split("\n").filter((l) => l.trim())
+		.map((l) => {
+			try {
+				return JSON.parse(l) as { ok?: boolean };
+			} catch {
+				return undefined;
+			}
+		})
+		.filter((rec) => rec !== undefined && rec.ok !== true).length;
+	console.log(`[ask] error rows: ${errorRows}`);
+	if (errorRows > 0) process.exit(3);
 }
 
 main().catch((error) => {

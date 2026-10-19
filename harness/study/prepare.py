@@ -2,7 +2,12 @@
 """Phase 2 localization study, stage 1: prepare the 30 design cases (design §3 Phase 2,
 revision 2026-10-18: Phase 2 runs on the 30 DESIGN cases).
 
-For every design case (segd.data.read_cases('design')):
+Default split is 'design' (behaviour unchanged). `--split test` prepares the 169 test
+cases (segd.data.read_cases('test')) into results/phase2_test/prepare by default; the
+S-ex example donors are ALWAYS design cases (never test cases, which would leak), and
+example generation is skipped for the test split unless `--examples` is passed.
+
+For every case of the selected split:
 - k*        : the axial slice with the largest GT cross-section (ties -> lower k).
 - marks     : the same MarkSet the agent sees, from the CaseState cache
               (<project>/results/cache/marks/<case>.npz; see CaseState._load_or_compute_marks
@@ -13,18 +18,20 @@ For every design case (segd.data.read_cases('design')):
               (markset passed only so R and S share the identical intensity window).
 - image_ex  : per case, the S-ex example - three orthogonal panels (donor axial k*,
               coronal/sagittal through the donor GT centroid) with the GT outlined,
-              no marks. Donor = leave-one-out design case of the same histotype and
+              no marks. Donor = leave-one-out DESIGN case of the same histotype and
               sequence, chosen deterministically as the candidate whose GT area on its
               own k* is closest to that candidate group's median (ties -> lower case id).
               L33 (the only T2 lipomatous design case) draws its donor from the T1
               lipomatous design cases; that is logged in `example_note`.
+              Skipped with `--no-examples` (default for --split test).
 
 Outputs under results/phase2_dev/prepare/:
 - images/<case>_S.png, <case>_R.png, <case>_ex.png
 - manifest.jsonl  (one line per case; carries ground-truth-derived fields for OFFLINE
   scoring only - this file never reaches the model)
 
-Run:  uv run --project harness/server python harness/study/prepare.py [--cases F14,M07]
+Run:  uv run --project harness/server python harness/study/prepare.py [--split design|test]
+          [--cases F14,M07] [--jobs 6] [--no-examples|--examples]
 """
 from __future__ import annotations
 
@@ -32,6 +39,7 @@ import argparse
 import json
 import sys
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -49,7 +57,11 @@ from segd import render as segd_render  # noqa: E402
 # CaseState caches marks at <out_dir>.parent.parent / "cache" / "marks" / <case>.npz with
 # out_dir = results/<run_id>/<case>, i.e. exactly this path (case_state.py:174-177).
 MARKS_CACHE_DIR = PROJECT_ROOT / "results" / "cache" / "marks"
-DEFAULT_OUT_DIR = PROJECT_ROOT / "results" / "phase2_dev" / "prepare"
+DEFAULT_OUT_DIRS = {
+    "design": PROJECT_ROOT / "results" / "phase2_dev" / "prepare",
+    "test": PROJECT_ROOT / "results" / "phase2_test" / "prepare",
+}
+DEFAULT_JOBS = 6  # marks computation is the slow part; <=6 x ~600 MB peak RSS
 
 EXAMPLE_PANEL_LONG_PX = 512  # three panels + 2 gaps fit the ~1568 px image budget
 
@@ -59,7 +71,11 @@ def utcnow() -> str:
 
 
 def rel_path(path: str | Path) -> str:
-    return str(Path(path).relative_to(PROJECT_ROOT))
+    p = Path(path)
+    try:
+        return str(p.relative_to(PROJECT_ROOT))
+    except ValueError:  # out-of-tree --out-dir: keep an absolute, unambiguous path
+        return str(p)
 
 
 def to_jsonable(obj):
@@ -203,8 +219,8 @@ def combine_panels(panels):
 
 
 # ---------------------------------------------------------------- main
-def prepare_case(row, out_dir: Path, area_of: dict[str, float], rows_by_case: dict,
-                 loader) -> dict:
+def prepare_case(row, out_dir: Path, area_of: dict[str, float], donor_rows: dict,
+                 loader, with_examples: bool = True) -> dict:
     from segd.data import load_image, load_mask
 
     case = row.case
@@ -253,8 +269,11 @@ def prepare_case(row, out_dir: Path, area_of: dict[str, float], rows_by_case: di
             "inside_gt_on_k_star": inside,
         })
 
-    # S-ex example (leave-one-out donor)
-    donor, note = choose_donor(case, rows_by_case, area_of)
+    # S-ex example (leave-one-out DESIGN donor; never a test case, even for --split test)
+    if with_examples:
+        donor, note = choose_donor(case, donor_rows, area_of)
+    else:
+        donor, note = None, "example generation skipped (--no-examples / test default)"
     record = {
         "case": case,
         "histotype": row.histotype,
@@ -285,7 +304,7 @@ def prepare_case(row, out_dir: Path, area_of: dict[str, float], rows_by_case: di
 
     if donor is not None:
         d_img, d_aff, d_sp = loader(donor)
-        d_mask = load_mask(rows_by_case[donor], d_aff, d_img.shape)
+        d_mask = load_mask(donor_rows[donor], d_aff, d_img.shape)
         d_k = int(np.argmax(np.asarray(d_mask.sum(axis=(0, 1)), dtype=np.float64)))
         cj, ci = gt_centroid_slices(d_mask)
         p_ax, g_ax = outlined_panel(d_img, d_mask, "axial", d_k, d_sp)
@@ -299,89 +318,147 @@ def prepare_case(row, out_dir: Path, area_of: dict[str, float], rows_by_case: di
         record["example_geom"] = {"axial": to_jsonable(g_ax), "coronal": to_jsonable(g_co),
                                   "sagittal": to_jsonable(g_sa)}
         if not note:
-            note2 = f"donor {donor} ({rows_by_case[donor].sequence}): closest to group-median GT area"
+            note2 = f"donor {donor} ({donor_rows[donor].sequence}): closest to group-median GT area"
             record["example_note"] = note2
 
     del image, mask
     return record
 
 
+def _prepare_worker(task: tuple) -> dict:
+    """Process-pool entry point: prepare one case with a fresh donor loader (each pool
+    process loads the donor volume itself; no shared image cache across processes)."""
+    row, out_dir, area_of, donor_rows, with_examples = task
+
+    def loader(case_id: str):
+        from segd.data import load_image
+        return load_image(donor_rows[case_id])
+
+    return prepare_case(row, Path(out_dir), area_of, donor_rows, loader, with_examples)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--cases", default="", help="comma-separated case ids (default: all design)")
-    ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
+    ap.add_argument("--split", choices=("design", "test"), default="design",
+                    help="case split to prepare (default design -> results/phase2_dev/prepare; "
+                         "test -> results/phase2_test/prepare)")
+    ap.add_argument("--cases", default="", help="comma-separated case ids (default: all of the split)")
+    ap.add_argument("--out-dir", default=None,
+                    help="output dir (default: results/phase2_dev/prepare for design, "
+                         "results/phase2_test/prepare for test)")
+    ap.add_argument("--jobs", type=int, default=DEFAULT_JOBS,
+                    help=f"parallel worker processes (default {DEFAULT_JOBS}; 1 = serial in-process)")
+    ap.add_argument("--no-examples", action="store_true",
+                    help="skip S-ex example images (default for --split test)")
+    ap.add_argument("--examples", action="store_true",
+                    help="force S-ex example generation (default for --split design; donors "
+                         "are always design cases, also for test)")
     args = ap.parse_args()
-    out_dir = Path(args.out_dir)
+    if args.no_examples and args.examples:
+        raise SystemExit("--no-examples and --examples are mutually exclusive")
+    with_examples = args.examples or (args.split == "design" and not args.no_examples)
+    out_dir = Path(args.out_dir) if args.out_dir else DEFAULT_OUT_DIRS[args.split]
     out_dir.mkdir(parents=True, exist_ok=True)
 
     wanted = [c.strip() for c in args.cases.split(",") if c.strip()]
-    all_rows = segd_data.read_cases("design")
-    rows = all_rows if not wanted else [r for r in all_rows if r.case in wanted]
-    missing = set(wanted) - {r.case for r in all_rows}
-    if missing:
-        raise SystemExit(f"unknown design cases: {sorted(missing)}")
+    rows = segd_data.read_cases(args.split)
     rows_by_case = {r.case: r for r in rows}
-    all_design = {r.case: r for r in all_rows}
-    if len(all_design) != len(all_rows) or len(rows_by_case) != len(rows):
+    if len(rows_by_case) != len(rows):
+        raise SystemExit(f"duplicate case ids in {args.split} split")
+    # Example donors always come from the full DESIGN split (for both splits).
+    design_rows = segd_data.read_cases("design")
+    donor_rows = {r.case: r for r in design_rows}
+    if len(donor_rows) != len(design_rows):
         raise SystemExit("duplicate case ids in design split")
+    missing = set(wanted) - set(rows_by_case)
+    if missing:
+        raise SystemExit(f"unknown {args.split} cases: {sorted(missing)}")
+    selected = rows if not wanted else [r for r in rows if r.case in wanted]
 
-    # Pass 1 (headers + masks only): k* GT areas, needed before donor selection.
+    # Pass 1 (headers + masks only, DESIGN donor pool): k* GT areas, needed before
+    # donor selection. prepare_case recomputes k* for its own case.
     import nibabel as nib
     from segd.data import load_mask
     area_of: dict[str, float] = {}
-    spacing_of: dict[str, tuple] = {}
     t0 = time.time()
-    for r in all_rows:
+    for r in design_rows:
         hdr = nib.as_closest_canonical(nib.load(str(r.image_path))).header
-        spacing_of[r.case] = tuple(float(s) for s in hdr.get_zooms()[:3])
+        spacing = tuple(float(s) for s in hdr.get_zooms()[:3])
         mask = load_mask(r)
-        _, a = best_axial_slice(mask, spacing_of[r.case])
+        _, a = best_axial_slice(mask, spacing)
         area_of[r.case] = a
         del mask
-    print(f"[prepare] pass 1 done: {len(all_rows)} masks in {time.time() - t0:.1f}s", flush=True)
-
-    loader_cache: dict[str, tuple] = {}
-
-    def loader(case_id: str):
-        if case_id not in loader_cache:
-            from segd.data import load_image
-            d_row = all_design[case_id]
-            loader_cache[case_id] = load_image(d_row)
-            if len(loader_cache) > 6:  # ~6 volumes x <=0.4 GB keeps memory bounded
-                for k in list(loader_cache)[:-3]:
-                    if k != case_id:
-                        loader_cache.pop(k, None)
-        return loader_cache[case_id]
+    print(f"[prepare] pass 1 done: {len(design_rows)} design masks in {time.time() - t0:.1f}s",
+          flush=True)
 
     manifest_path = out_dir / "manifest.jsonl"
     t0 = time.time()
+    records: dict[str, dict] = {}
+    if args.jobs > 1 and selected:
+        tasks = [(r, out_dir, area_of, donor_rows, with_examples) for r in selected]
+        with ProcessPoolExecutor(max_workers=min(args.jobs, len(tasks))) as ex:
+            futs = {ex.submit(_prepare_worker, t): t[0].case for t in tasks}
+            try:
+                for fut in as_completed(futs):
+                    rec = fut.result()
+                    records[rec["case"]] = rec
+                    print(f"[prepare] {rec['case']} {rec['histotype']}/{rec['sequence']} "
+                          f"k*={rec['k_star']} area={rec['gt_area_mm2']:.0f}mm2 "
+                          f"marks={rec['n_drawn_marks']} (visible {rec['n_visible_marks']}) "
+                          f"inside_gt={rec['coverage_on_k_star']} donor={rec['example_donor']} "
+                          f"[{time.time() - t0:.0f}s]", flush=True)
+            except Exception:
+                for f in futs:
+                    f.cancel()
+                raise
+    else:
+        loader_cache: dict[str, tuple] = {}
+
+        def loader(case_id: str):
+            if case_id not in loader_cache:
+                from segd.data import load_image
+                loader_cache[case_id] = segd_data.load_image(donor_rows[case_id])
+                if len(loader_cache) > 6:  # ~6 volumes x <=0.4 GB keeps memory bounded
+                    for k in list(loader_cache)[:-3]:
+                        if k != case_id:
+                            loader_cache.pop(k, None)
+            return loader_cache[case_id]
+
+        for r in selected:
+            rec = prepare_case(r, out_dir, area_of, donor_rows, loader, with_examples)
+            records[rec["case"]] = rec
+            print(f"[prepare] {rec['case']} {rec['histotype']}/{rec['sequence']} "
+                  f"k*={rec['k_star']} area={rec['gt_area_mm2']:.0f}mm2 "
+                  f"marks={rec['n_drawn_marks']} (visible {rec['n_visible_marks']}) "
+                  f"inside_gt={rec['coverage_on_k_star']} donor={rec['example_donor']} "
+                  f"[{time.time() - t0:.0f}s]", flush=True)
+
     covered = 0
     with open(manifest_path, "w") as fh:
-        for r in rows:
-            rec = prepare_case(r, out_dir, area_of, all_design, loader)
-            fh.write(json.dumps(rec) + "\n")
-            fh.flush()
+        for r in selected:
+            rec = records[r.case]
             covered += int(rec["coverage_on_k_star"])
-            print(f"[prepare] {r.case} {r.histotype}/{r.sequence} k*={rec['k_star']} "
-                  f"area={rec['gt_area_mm2']:.0f}mm2 marks={rec['n_drawn_marks']} "
-                  f"(visible {rec['n_visible_marks']}) inside_gt={rec['coverage_on_k_star']} "
-                  f"donor={rec['example_donor']} [{time.time() - t0:.0f}s]", flush=True)
+            fh.write(json.dumps(rec) + "\n")
 
     summary = {
-        "n_cases": len(rows),
+        "split": args.split,
+        "n_cases": len(selected),
         "n_coverage": covered,
-        "coverage_rate": round(covered / max(len(rows), 1), 4),
-        "conditions_prepared": ["R", "S", "S-gen", "S-desc", "S-ex"],
+        "coverage_rate": round(covered / max(len(selected), 1), 4),
+        "conditions_prepared": ["R", "S", "S-gen", "S-desc"] + (["S-ex"] if with_examples else []),
+        "examples": with_examples,
         "marks_cache_dir": rel_path(MARKS_CACHE_DIR),
         "manifest": rel_path(manifest_path),
         "notes": [
             "coverage = cases with >=1 drawn coarse mark whose projection lies inside GT on k*",
-            "dev cases: marks are tuned on these same 30 cases (optimistic coverage)",
-        ],
+            "design cases: marks are tuned on these same 30 cases (optimistic coverage)",
+        ] + ([] if args.split == "design" else
+             ["test cases: S-ex example donors are design cases (never test cases); "
+              "examples generated only with --examples"]),
         "finished_at": utcnow(),
     }
     (out_dir / "prepare_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    print(f"[prepare] coverage {covered}/{len(rows)} -> {summary['coverage_rate']:.3f}")
+    print(f"[prepare] coverage {covered}/{len(selected)} -> {summary['coverage_rate']:.3f}")
     print(f"[prepare] wrote {manifest_path}")
 
 

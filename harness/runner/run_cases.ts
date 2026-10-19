@@ -909,8 +909,17 @@ async function main(): Promise<void> {
 				(meta.api_errors ?? []).length === 0 &&
 				existsSync(join(dir, "final_mask.nii.gz"));
 			if (complete) continue;
+			const parked = existsSync(join(runDir, "_incomplete"))
+				? readdirSync(join(runDir, "_incomplete")).filter((n) => n.startsWith(`${row.case}_`) && !n.startsWith(`${row.case}_api_`)).length
+				: 0;
+			if (parked >= 3 && existsSync(join(dir, "meta.json"))) {
+				// 4 non-provider attempts failed (3 parked + current): keep the last attempt as the result, stop retrying
+				console.log(`[runner] resume: giving up on ${row.case} after ${parked + 1} attempts (kept last attempt)`);
+				continue;
+			}
 			if (existsSync(dir)) {
-				const dest = join(runDir, "_incomplete", `${row.case}_${Date.now()}`);
+				const apiFail = (meta?.api_errors ?? []).length > 0;
+				const dest = join(runDir, "_incomplete", `${row.case}_${apiFail ? "api_" : ""}${Date.now()}`);
 				mkdirSync(join(runDir, "_incomplete"), { recursive: true });
 				renameSync(dir, dest);
 				console.log(`[runner] resume: moved incomplete ${row.case} -> ${dest}`);

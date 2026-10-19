@@ -88,3 +88,4 @@ come back when its window refreshes (interleave to maximise throughput).
 - 13:14 UTC: p3-opus55-medium done (unweighted 0.746, 5/5 > U-Net, 19 loc fails, $28), exported. Narrative E20 (whole sweep) to write at the end; use eval/v2/sweep_summary.py.
 - 14:40 UTC: p3-opus55-high done (0.745, 4/5), exported. Sameed: no more Anthropic runs until the reset 17:40 UTC (1:40 PM EDT) -> manual block in sched.json; scheduler now re-reads sched.json each loop. DeepSeek v4.1 flash xhigh running (40/169).
 - 15:17 UTC: harness v3 methodology drafted (research/harness_v3_methodology.md) + literature notes; awaiting Sameed's go on deployment/studies.
+- 20:11 UTC: Sameed: sweep STOPPED (scheduler + runner killed; segd/nni left up). Do not restart without his go. Restart = eval/v2/start_sweep.sh.

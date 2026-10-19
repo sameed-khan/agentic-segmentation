@@ -950,6 +950,8 @@ async function main(): Promise<void> {
 	const worker = async (): Promise<void> => {
 		for (;;) {
 			if (stopReason) return;
+			// graceful preemption: the sweep scheduler creates <run>/STOP; finish in-flight cases, start no new ones
+			if (existsSync(join(opts.resultsDir, opts.runId, "STOP"))) return;
 			const row = queue.shift();
 			if (!row) return;
 			const r = await runCase(row, opts, shared);

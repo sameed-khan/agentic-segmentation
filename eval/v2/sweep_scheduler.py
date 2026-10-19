@@ -144,15 +144,18 @@ def run_once(run: str, model: str, think: str, s: dict) -> tuple[int, bool]:
         hp = higher_priority_free(run, s)
         if hp and p.poll() is None:
             # preempt: a run earlier in Sameed's order is runnable again (its provider's window refreshed).
-            # In-flight cases are parked by --resume and rerun later.
-            log(f"preempt {run}: {hp} is runnable again")
-            os.killpg(p.pid, 15)
+            # Graceful: the runner finishes in-flight cases and exits (STOP file).
+            log(f"preempt {run}: {hp} is runnable again -> STOP file, waiting for in-flight cases")
+            stop = ROOT / "results" / run / "STOP"
+            stop.touch()
             try:
-                p.wait(60)
+                p.wait(900)          # wall limit per case is 10 min
             except subprocess.TimeoutExpired:
-                os.killpg(p.pid, 9)
+                os.killpg(p.pid, 15)
+                p.wait(60)
+            stop.unlink(missing_ok=True)
             t.join(10)
-            return -15, False
+            return -16, False
     t.join(10)
     if flag["infra"]:
         log(f"{flag['infra']} case(s) failed on segd/nnInteractive -> reset services")
@@ -200,16 +203,22 @@ def main() -> None:
                                cwd=ROOT, capture_output=True, text=True)
             if r.returncode == 0:
                 (ST / f"sweep_{run}.done").touch()
+                s.setdefault("limit_streak", {})[prov] = 0
                 log(f"done {run} (scored)")
             else:
                 log(f"score failed for {run}: {r.stderr[-500:]}")
                 time.sleep(300)
         elif code == 3:
-            s["blocked_until"][prov] = time.time() + BLOCK_S
+            n = s.setdefault("limit_streak", {}).get(prov, 0) + 1
+            s["limit_streak"][prov] = n
+            block = min(BLOCK_S * 2 ** (n - 1), 4 * 3600)   # 15, 30, 60, 120, 240 min while it stays limited
+            s["blocked_until"][prov] = time.time() + block
             save_state(s)
-            log(f"provider {prov} limited on {run} -> blocked {BLOCK_S}s, switching")
+            log(f"provider {prov} limited on {run} (streak {n}) -> blocked {block}s, switching")
         elif code == -15:
             reset_services()
+        elif code == -16:
+            pass   # graceful preemption: no sessions leaked
         elif code != 0:
             reset_services()
             s["fails"][run] = s["fails"].get(run, 0) + 1

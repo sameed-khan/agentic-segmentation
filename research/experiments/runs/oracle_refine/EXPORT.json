@@ -1,0 +1,5 @@
+{
+  "source": "results/oracle_refine",
+  "kind": "oracle_refine",
+  "note": "oracle corrective-click simulation, eval/v2/oracle_refine.py"
+}

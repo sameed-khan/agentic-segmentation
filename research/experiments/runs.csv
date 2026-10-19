@@ -2,6 +2,7 @@ run_id,kind,source,started_at,model,thinking,git,harness_sha256,n,mean_dice,medi
 integ-02,phase1_agent,results/integ-02,2026-10-18T19:49:56.227Z,anthropic/claude-sonnet-5-5,medium,,c4a360f310d572ab201200e2a09da13022e8fa731e6cecda97eb04f6732955a9,3,0.334,0.156,tool_calls_mean=4.67; prompts_mean=1.00; localization_failures=2,
 oneclick_design,oneclick_baseline,results/oneclick_design,,nnInteractive one click at GT centroid (no LLM),,,,30,0.697,0.739,,
 oneclick_design_colab,oneclick_baseline,results/oneclick_design_colab,,nnInteractive one click at GT centroid (no LLM),,,,30,0.696,0.739,,
+oracle_refine,oracle_refine,results/oracle_refine,,,,,,,,,,
 phase1-01,phase1_agent,results/phase1-01,2026-10-18T20:49:45.713Z,anthropic/claude-sonnet-5-5,medium,,5cc4409b96847386fb828d684e642c797660c4c93c67d8b5aadda38f8788abd1,30,0.639,0.750,tool_calls_mean=5.03; prompts_mean=1.03; localization_failures=6,
 phase1-02,phase1_agent,results/phase1-02,2026-10-18T21:00:26.244Z,anthropic/claude-sonnet-5-5,medium,,96903886bae040c2fd5559d42899aab6d5a28eb455eb38ce22e580744ad76a39,30,0.612,0.750,tool_calls_mean=6.30; prompts_mean=1.07; localization_failures=6,
 phase1-03,phase1_agent,results/phase1-03,2026-10-18T21:14:49.340Z,anthropic/claude-sonnet-5-5,medium,,d9cb6eae331b989296d808c215018578f840a4efeae8522f2fd20d276d171462,30,0.573,0.750,tool_calls_mean=5.73; prompts_mean=1.10; localization_failures=7,

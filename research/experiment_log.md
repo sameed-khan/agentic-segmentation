@@ -218,6 +218,39 @@ sequence, GT outline in axial/coronal/sagittal; L33 gets a T1 lipomatous donor),
   worse F14 0.67→0.49 (localization lost), L43 0.90→0.74, V57 0.70→0.60. Net effect ≈ 0, within run-to-run variance.
 - **Decision:** do not add example images to the agent (consistent with E10, where S-ex did not change pointing).
 
+### E13. Oracle iterative-refinement ceiling (no LLM) — run `oracle_refine` (`eval/v2/oracle_refine.py`)
+Click 1 = GT centroid (same as one-click); clicks 2..10 = interior point (EDT max) of the largest error region,
+positive for a false-negative region, negative for a false-positive region. Simulated "perfect user".
+
+| clicks | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 |
+|---|---|---|---|---|---|---|---|---|
+| mean Dice | 0.696 | 0.788 | 0.844 | 0.864 | 0.875 | 0.884 | 0.889 | 0.898 |
+| median Dice | 0.739 | 0.844 | 0.872 | 0.893 | 0.902 | 0.909 | 0.915 | 0.922 |
+
+- **Point prompts are sufficient to reach the GT convention:** three well-placed clicks give +0.15 mean Dice over one
+  click; five give +0.18. The agent at xhigh (0.706, ~1.7 prompts) captures almost none of this.
+- The under-segmented cases need **positive** clicks (missed tumor), not boundary polishing: M33 0.63→0.82 (5 clicks,
+  7 of the first 8 positive), N01 0.48→0.79, N34 0.49→0.78 (3), N40 0.27→0.74, L43 0.36→0.87 (3), V65 0.61→0.85 (3).
+  F32 needs negative clicks (over-segmentation 0.40→0.80). Small lesions saturate lower (F15 0.75, V57 0.79 at 10 clicks).
+- **Interpretation:** the delineation gap is a *decision* problem (the agent does not see or believe that tumor is
+  missing), not a precision/tool problem: precise pointing at boundaries is not what the oracle needed.
+
+### Failure analysis of never-found / persistently low cases (all 8 passes; script `/tmp/fail.py`, numbers below)
+Contrast = (mean GT intensity − mean of a 5-voxel ring around GT) / ring SD.
+
+| case | GT mL | max axial area mm² | contrast | what the agent does | failure type |
+|---|---|---|---|---|---|
+| F15 | 2.2 | 137 | 0.27 | clicks a brighter structure 7–10 mm away in every pass | tiny **and** iso-intense |
+| N40 | 13.6 | 180 (thin, 150 mm long along the nerve) | 3.08 | always picks a round mass at z≈230 outside the GT z-range (34–182); xhigh reasoning sees the bright posterior structure at z 67–167 and dismisses it as vessels/nerve | elongated fusiform lesion mistaken for normal neurovascular bundle (knowledge/expectation of a round "mass") |
+| L33 | 155 | 2044 | 0.17 | picks other structures 21–41 mm away | fat-suppressed lipomatous tumor ≈ suppressed fat (no contrast) |
+| F14 | 64 | 2012 | 0.73 | picks the large dark anterior pelvic mass (correct in 2/8 passes) | conspicuous distractor |
+| F32 | 220 (2 components, 124 + 96 mL) | 4188 | 0.62 | clicks within 3 mm of / inside GT, then over-segments (≈ 820 mL) | delineation (over-seg), not localization |
+
+- Not primarily a size/downsampling problem: slices are rendered *up*-sampled (≥ 768 px per panel), marks cover every
+  lesion (30/30), and in the single-slice study (E4/E10) the model misses F14, F15 and L33 even on the correct slice at
+  768 px. Contact sheets are mildly downscaled by the API (1.0–1.6 MP → ~1.15 MP), so a 13 mm lesion is ~15–20 px per
+  sheet cell; this could matter for F15 during search but F15 is also missed when shown directly.
+
 ## 6. Next experiments (planned)
 
 | ID | Question | Runs |

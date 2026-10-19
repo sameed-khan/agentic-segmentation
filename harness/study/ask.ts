@@ -300,7 +300,7 @@ async function runCall(
 	const promptText = renderTemplate(template, vars);
 	const images = spec.images(row).map(imageContent);
 
-	const runDir = join(PROJECT_ROOT, opts.resultsRoot, opts.run);
+	const runDir = resolve(PROJECT_ROOT, opts.resultsRoot, opts.run);
 	const callDir = join(runDir, "sessions");
 	mkdirSync(callDir, { recursive: true });
 	const sessionName = `${caseId}_${condition}_r${rep}`;
@@ -521,7 +521,7 @@ interface Shared {
 
 async function main(): Promise<void> {
 	const opts = parseArgs(process.argv.slice(2));
-	const runDir = join(PROJECT_ROOT, opts.resultsRoot, opts.run);
+	const runDir = resolve(PROJECT_ROOT, opts.resultsRoot, opts.run);
 	mkdirSync(runDir, { recursive: true });
 
 	const manifestPath = join(opts.prepareDir, "manifest.jsonl");

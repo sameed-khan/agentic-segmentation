@@ -380,6 +380,22 @@ development; only test-split numbers are reported as results.
   useful variability ceiling); agent vs majority 0.693, vs individual raters 0.692 (`eval/v2/interrater.py`).
 - One-click oracle on test: 0.715 mean (design 0.697), `results/oneclick_test/`.
 
+### E18. Phase 2 localization study on the test split — `phase2_test/p2-test-high` (thinking high, 3 reps, 1521 calls)
+Single-turn pointing on the GT's largest axial slice (k*). (The report header's caveat lines are the design-split
+template; the data are the 169 test cases.)
+
+| condition | F | L | M | N | V | all (hit rate) |
+|---|---|---|---|---|---|---|
+| R (raw pixel coordinates) | 0.686 | 0.902 | 0.706 | 0.667 | 0.556 | 0.704 |
+| S (set-of-marks) | 0.706 | 0.853 | 0.912 | 0.912 | 0.748 | 0.826 |
+| S-gen (marks, "soft-tissue mass") | 0.686 | 0.892 | 0.902 | 0.902 | 0.707 | 0.819 |
+
+- Original Phase 2 gate passes on test: S 0.826 ≥ 0.80 and S − R = 0.122 ≥ 0.10. S ≈ S-gen: the histotype name adds
+  nothing to pointing. Drawn-mark coverage on k* 0.941 (10 cases have no mark inside GT on k*: F12, F35, F53, M34,
+  M35, M37, N41, V07, V18, V25).
+- F and V are again the weak histotypes, matching the agent's localization failures (E17).
+- Infra note: `ask.ts --results-root` joined an absolute path under the project root; fixed (`resolve`), output moved.
+
 ## 7. Next experiments (planned)
 
 | ID | Question | Runs |

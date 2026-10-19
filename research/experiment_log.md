@@ -323,7 +323,31 @@ prompt (base) or with the line (lesion); 3 reps; `harness/study/replay_candidate
 - **Interpretation:** the remaining delineation gap is an annotation-convention disagreement that the model actively
   resists on visual grounds; instruction alone does not move it. Kept the line (harmless, slightly positive).
 
-## 6. Next experiments (planned)
+## 6. Phase 3: test split (169 cases) — preregistered 2026-10-19, before any test data was downloaded or viewed
+Agreed with Sameed: skip the design-set confirmation pass of harness v2; run everything on the test split at thinking
+**high** (primary), then a second full pass at **xhigh** for comparison.
+
+**Frozen configuration:** git tag `harness-v2` (agent-facing prompts/tools identical to commit `f3dfede`: harness v1 +
+`seg_candidates`/`seg_accept` + candidate round in the finish review + lesion line; the tag adds runner `--resume`
+infrastructure only). Model `anthropic/claude-sonnet-5-5`, budgets 40 tool calls / 15 model prompts / 10 min wall,
+3 nudges then forced finish, concurrency 4, target text = histotype text, sequence = the annotated one, no seed.
+Nothing in `harness/` changes between the high and xhigh passes. Cases that end through a provider error
+(rate/session limit) are rerun from scratch (`run_until_done.sh`); this is logged per case (`_incomplete/`).
+
+**Reference masks:** single-rater cases: the one mask; 15 three-rater cases: voxel-wise majority vote
+(`segd.data.load_mask`); pairwise inter-rater Dice reported alongside.
+
+**Primary endpoint:** per-histotype **mean** Dice of the high pass vs the published U-Net (F 0.507, L 0.744, M 0.823,
+N 0.748, V 0.584; mean 0.681). **Gate:** overall mean (unweighted over the five histotypes) ≥ 0.681 **and** higher than
+the U-Net on ≥ 3 of 5 histotypes. Unpaired comparison against group means (no per-case U-Net predictions).
+**Secondary:** case-weighted mean, medians, HD95, NSD (scorer defaults), localization failures (first positive click
+outside GT and Dice < 0.5), tool calls, prompts, candidate use, cost; xhigh vs high (paired per case, Wilcoxon);
+one-click nnInteractive at the GT centroid (no LLM) on the same cases; Phase 2 localization study on test
+(conditions R, S, S-gen, 3 reps, thinking high) for hit rate and mark coverage.
+**Not changed after seeing test results:** prompts, tools, budgets, scorer, endpoint. Design-set results (E1–E16) are
+development; only test-split numbers are reported as results.
+
+## 7. Next experiments (planned)
 
 | ID | Question | Runs |
 |---|---|---|

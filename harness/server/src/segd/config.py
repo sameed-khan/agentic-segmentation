@@ -3,6 +3,7 @@
 No behavioral logic lives here. Values are read through the module at call time
 (``segd.config.X``) so tests can monkeypatch them.
 """
+from pathlib import Path
 
 UPLOAD_MAX_PACKED_BYTES = 60 * 1024 * 1024   # upload the full float16 volume up to this packed size...
 CROP_MARGIN_VOX = 5                          # ...else crop to the body bbox plus this margin (CONTRACTS §4)
@@ -38,3 +39,18 @@ MODEL_PROMPT_OPS = frozenset({"point", "lasso", "scribble", "box", "refine"})
 CANDIDATE_METHOD = "intensity"
 CANDIDATE_MAX_N = 5
 CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS = 3   # after this many seg_accept calls a review stops offering candidates
+
+# Harness v3 (optional local-model components; research/harness_v3_methodology.md §3 Study C).
+# ALL OFF by default: when the case's v3 flags are absent, every code path behind them is
+# skipped and behaviour is byte-identical to v2.
+V3_CHECKPOINTS = ("localize", "review", "candidates")
+V3_POINTER_DEFAULT_URLS = {"gui_actor": "http://127.0.0.1:8092", "molmo2": "http://127.0.0.1:8093"}
+V3_MEDGEMMA_DEFAULT_URLS = {"q4": "http://127.0.0.1:8091", "bf16": "http://127.0.0.1:8094"}
+V3_LOCATE_K = 5                          # points requested from the pointer service
+V3_POINTER_TIMEOUT_S = 60.0
+V3_MEDGEMMA_TIMEOUT_S = 180.0            # fixed checkpoints must never hang an op for long
+V3_MEDGEMMA_MAX_TOKENS = 256
+# Single-sourced helpers that live outside the segd package (Phase 5 local models):
+_V3_REPO_ROOT = Path(__file__).resolve().parents[3]
+V3_MEDGEMMA_CLIENT_FILE = _V3_REPO_ROOT / "local_models" / "medgemma" / "medgemma_client.py"
+V3_PROMPT_DIR = (_V3_REPO_ROOT / "prompts" / "medgemma")

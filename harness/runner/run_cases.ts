@@ -44,6 +44,7 @@ const PROJECT_ROOT = resolve(HERE, "..", "..");
 const HARNESS_DIR = join(PROJECT_ROOT, "harness");
 const DEFAULT_EXTENSION_DIR = join(HARNESS_DIR, "extension");
 const DEFAULT_SYSTEM_FILE = join(HARNESS_DIR, "prompts", "system.md");
+const DEFAULT_SYSTEM_V3_FILE = join(HARNESS_DIR, "prompts", "system_v3.md");
 const DEFAULT_TASK_FILE = join(HARNESS_DIR, "prompts", "task.md");
 const CASES_CSV = join(PROJECT_ROOT, "eval", "v2", "mstt_cases.csv");
 const DESIGN_SHAPES = join(PROJECT_ROOT, "eval", "v2", "data_check", "design.jsonl");
@@ -69,6 +70,28 @@ const HISTOTYPE_TEXT: Record<string, string> = {
 const NUDGE_MESSAGE =
 	"You have not called seg_finish yet. Continue segmenting; call seg_finish when you are satisfied.";
 
+// Harness v3 service options (local models; all off unless a --v3-* flag is given).
+const V3_POINTER_MODES = ["gui_actor", "molmo2"];
+const V3_MEDGEMMA_MODES = ["q4", "bf16"];
+const V3_CHECKPOINTS = ["localize", "review", "candidates"];
+const DEFAULT_V3_POINTER_URLS: Record<string, string> = {
+	gui_actor: "http://127.0.0.1:8092",
+	molmo2: "http://127.0.0.1:8093",
+};
+const DEFAULT_V3_MEDGEMMA_URLS: Record<string, string> = {
+	q4: "http://127.0.0.1:8091",
+	bf16: "http://127.0.0.1:8094",
+};
+
+/** The `v3` object sent in the POST /cases body and recorded in run meta (null = off). */
+interface V3Spec {
+	pointer: string | null;
+	pointer_url: string | null;
+	medgemma: string | null;
+	medgemma_url: string | null;
+	checkpoints: string[];
+}
+
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
@@ -86,6 +109,12 @@ interface Options {
 	maxModelPrompts: number;
 	segdUrl: string;
 	nniUrl: string;
+	v3Pointer: string | null;
+	v3PointerUrl: string | null;
+	v3Medgemma: string | null;
+	v3MedgemmaUrl: string | null;
+	v3Checkpoints: string[];
+	v3: V3Spec | null;
 	extension: string;
 	dryStub: boolean;
 	authShim: string;
@@ -111,6 +140,12 @@ function parseArgs(argv: string[]): Options {
 		maxModelPrompts: 15,
 		segdUrl: "http://127.0.0.1:8765",
 		nniUrl: "http://127.0.0.1:1527",
+		v3Pointer: null,
+		v3PointerUrl: null,
+		v3Medgemma: null,
+		v3MedgemmaUrl: null,
+		v3Checkpoints: [],
+		v3: null,
 		extension: DEFAULT_EXTENSION_DIR,
 		dryStub: false,
 		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
@@ -166,6 +201,24 @@ function parseArgs(argv: string[]): Options {
 			case "--nni-url":
 				opts.nniUrl = next();
 				break;
+			case "--v3-pointer":
+				opts.v3Pointer = next();
+				break;
+			case "--v3-pointer-url":
+				opts.v3PointerUrl = next();
+				break;
+			case "--v3-medgemma":
+				opts.v3Medgemma = next();
+				break;
+			case "--v3-medgemma-url":
+				opts.v3MedgemmaUrl = next();
+				break;
+			case "--v3-checkpoints":
+				opts.v3Checkpoints = next()
+					.split(",")
+					.map((c) => c.trim())
+					.filter(Boolean);
+				break;
 			case "--extension":
 				opts.extension = resolve(next());
 				break;
@@ -220,6 +273,12 @@ function printHelp(): void {
   --max-model-prompts <n>   budget sent to segd (default 15)
   --segd-url <url>          (default http://127.0.0.1:8765)
   --nni-url <url>           (default http://127.0.0.1:1527)
+  --v3-pointer <mode>       harness v3 pointer for seg_locate: gui_actor|molmo2 (off unless set)
+  --v3-pointer-url <url>    (default http://127.0.0.1:8092 gui_actor / :8093 molmo2)
+  --v3-medgemma <mode>      harness v3 MedGemma second reader: q4|bf16 (off unless set)
+  --v3-medgemma-url <url>   (default http://127.0.0.1:8091 q4 / :8094 bf16)
+  --v3-checkpoints <list>   comma list of localize,review,candidates (default: all three;
+                            the MedGemma checkpoints injected into tool observations)
   --extension <path>        default harness/extension (dir); checks/ping_ext.ts for smoke
   --dry-stub                spawn the bundled stub segd and use it as --segd-url
   --examples <manifest>     Phase 2 prepare manifest.jsonl: attach each case's leave-one-out example image
@@ -371,6 +430,40 @@ function authShimVersion(shimPath: string): string | undefined {
 	return pkg?.version;
 }
 
+/**
+ * Build the harness v3 flags from the --v3-* CLI options (null = v2 behaviour, byte
+ * identical). URLs default to the standard loopback ports per mode.
+ */
+function buildV3(opts: Options): V3Spec | null {
+	if (!opts.v3Pointer && !opts.v3Medgemma) {
+		if (opts.v3PointerUrl || opts.v3MedgemmaUrl) {
+			throw new Error("--v3-pointer-url/--v3-medgemma-url need --v3-pointer/--v3-medgemma");
+		}
+		return null;
+	}
+	if (opts.v3Pointer && !V3_POINTER_MODES.includes(opts.v3Pointer)) {
+		throw new Error(`--v3-pointer must be one of ${V3_POINTER_MODES.join("|")}`);
+	}
+	if (opts.v3Medgemma && !V3_MEDGEMMA_MODES.includes(opts.v3Medgemma)) {
+		throw new Error(`--v3-medgemma must be one of ${V3_MEDGEMMA_MODES.join("|")}`);
+	}
+	const checkpoints = opts.v3Checkpoints.length ? opts.v3Checkpoints : [...V3_CHECKPOINTS];
+	for (const c of checkpoints) {
+		if (!V3_CHECKPOINTS.includes(c)) {
+			throw new Error(`--v3-checkpoints entries must be one of ${V3_CHECKPOINTS.join(",")}`);
+		}
+	}
+	return {
+		pointer: opts.v3Pointer,
+		pointer_url:
+			opts.v3PointerUrl ?? (opts.v3Pointer ? DEFAULT_V3_POINTER_URLS[opts.v3Pointer] : null),
+		medgemma: opts.v3Medgemma,
+		medgemma_url:
+			opts.v3MedgemmaUrl ?? (opts.v3Medgemma ? DEFAULT_V3_MEDGEMMA_URLS[opts.v3Medgemma] : null),
+		checkpoints,
+	};
+}
+
 function extractSystemText(payload: unknown): string | undefined {
 	if (!payload || typeof payload !== "object") return undefined;
 	const system = (payload as { system?: unknown }).system;
@@ -463,6 +556,7 @@ interface Shared {
 	harnessHash: string;
 	git: { commit: string | null; describe: string | null; dirty: string[] };
 	systemPrompt: string;
+	systemFileUsed: string;
 	systemPromptSha: string;
 	shimVersion?: string;
 }
@@ -505,6 +599,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 				max_tool_calls: opts.maxToolCalls,
 				max_model_prompts: opts.maxModelPrompts,
 			},
+			// harness v3 flags (omitted entirely when off: identical v2 request)
+			...(opts.v3 ? { v3: opts.v3 } : {}),
 		});
 		if (opened?.ok === false) throw new Error(`POST /cases failed: ${opened.error ?? "unknown"}`);
 
@@ -556,7 +652,12 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		const additionalExtensionPaths: string[] = [resolve(opts.authShim)];
 		if (isDefaultExtension) {
 			extensionFactories.unshift(
-				createSegExtension({ segdUrl: opts.segdUrl, caseHandle: handle }),
+				createSegExtension({
+					segdUrl: opts.segdUrl,
+					caseHandle: handle,
+					// v3: seg_locate declared only when the case has a v3 pointer
+					v3: opts.v3 ? { pointer: opts.v3.pointer } : null,
+				}),
 			);
 		} else {
 			additionalExtensionPaths.push(resolve(opts.extension));
@@ -778,7 +879,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			git_dirty_files: shared.git.dirty,
 			harness_hash_method:
 				"sha256 over sorted relative paths + bytes of every file under harness/ excluding node_modules/, __pycache__/, logs/, results/, .git/",
-			system_prompt_path: opts.systemFile,
+			system_prompt_path: shared.systemFileUsed,
 			system_prompt_sha256: shared.systemPromptSha,
 			system_prompt_sent_to_provider_captured: capture.seen,
 			system_prompt_sent_to_provider: providerSystemPrompt,
@@ -796,6 +897,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			tool_names_seen_by_model: declaredToolNames,
 			tool_calls_by_name: toolCallsByName,
 			session_file: sessionFileCopied ? "session.jsonl" : undefined,
+			v3: opts.v3,
 			wall_time_s: wallTimeS,
 			turns: result.turns,
 			nudges_used: result.nudges,
@@ -847,6 +949,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 
 async function main(): Promise<void> {
 	const opts = parseArgs(process.argv.slice(2));
+	opts.v3 = buildV3(opts);   // also validates the --v3-* combination
 
 	let stub: { proc: ChildProcess; url: string } | undefined;
 	if (opts.dryStub) {
@@ -868,7 +971,15 @@ async function main(): Promise<void> {
 	}
 	if (rows.length === 0) throw new Error("no cases selected");
 
-	const systemTemplate = readFileSync(opts.systemFile, "utf8");
+	// System prompt: harness v3 adds a short seg_locate / second-reader paragraph; the
+	// v3 variant is used only when v3 is on (an explicit --system-file always wins).
+	const systemFileUsed =
+		opts.systemFile !== DEFAULT_SYSTEM_FILE
+			? opts.systemFile
+			: opts.v3
+				? DEFAULT_SYSTEM_V3_FILE
+				: DEFAULT_SYSTEM_FILE;
+	const systemTemplate = readFileSync(systemFileUsed, "utf8");
 	const systemPrompt = renderTemplate(systemTemplate, {
 		max_tool_calls: String(opts.maxToolCalls),
 		max_model_prompts: String(opts.maxModelPrompts),
@@ -888,13 +999,15 @@ async function main(): Promise<void> {
 		harnessHash: hashHarnessTree(),
 		git: gitInfo(),
 		systemPrompt,
+		systemFileUsed,
 		systemPromptSha: sha256(systemPrompt),
 		shimVersion: authShimVersion(opts.authShim),
 	};
 
 	console.log(
 		`[runner] run=${opts.runId} cases=${rows.map((r) => r.case).join(",")} concurrency=${opts.concurrency} ` +
-			`model=${opts.model} thinking=${opts.thinking} extension=${opts.extension} segd=${opts.segdUrl}`,
+			`model=${opts.model} thinking=${opts.thinking} extension=${opts.extension} segd=${opts.segdUrl}` +
+			(opts.v3 ? ` v3=${JSON.stringify(opts.v3)}` : " v3=off"),
 	);
 	console.log(`[runner] harness_sha256=${shared.harnessHash} git=${shared.git.describe} dirty_files=${shared.git.dirty.length}`);
 	console.log(`[runner] system_prompt_sha256=${shared.systemPromptSha} auth_shim=${shared.shimVersion}`);
@@ -979,6 +1092,7 @@ async function main(): Promise<void> {
 		git_dirty_files: shared.git.dirty,
 		note: opts.note,
 		examples: opts.examples || null,
+		v3: opts.v3,
 		system_prompt_sha256: shared.systemPromptSha,
 		auth_shim_version: shared.shimVersion,
 		pi_version: VERSION,

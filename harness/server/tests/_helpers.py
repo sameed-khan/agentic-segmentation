@@ -154,6 +154,12 @@ class StubRenderInfo:
     view_geom: dict
     marks: list                  # [(id, (x, y))] panel positions of drawn global marks
     edge_marks: list             # [("E1", (row, col))] in-plane coords of drawn edge marks
+    views: list | None = None    # per-panel geoms (added for v3); default [view_geom]
+    panel_rects: list | None = None   # per-panel/row paste rects in the combined image (v3)
+
+    def __post_init__(self):
+        if self.views is None:
+            self.views = [self.view_geom]
 
 
 def _stub_geom(image, axis, slice_idx, crop_box2d=None):
@@ -219,10 +225,14 @@ def stub_render_overview(image, spacing, mask=None, marks=None):
     w = sum(p.width for p in panels) + 4
     canvas = Image.new("RGB", (w, h), (0, 0, 0))
     x = 0
+    rects = []
     for p in panels:
         canvas.paste(p, (x, 0))
+        rects.append((x, 0, x + p.width, p.height))
         x += p.width + 4
-    return canvas, StubRenderInfo("overview", shape[2] // 2, _stub_geom(image, "axial", shape[2] // 2), [], [])
+    ri = StubRenderInfo("overview", shape[2] // 2, _stub_geom(image, "axial", shape[2] // 2),
+                        [], [], views=[r.view_geom for r in recs], panel_rects=rects)
+    return canvas, ri
 
 
 def stub_render_sheet(image, axis, start, stop, n, mask=None, markset=None,
@@ -235,10 +245,16 @@ def stub_render_sheet(image, axis, start, stop, n, mask=None, markset=None,
     w = sum(p.width for p in panels) + 2 * len(panels)
     canvas = Image.new("RGB", (w, h), (0, 0, 0))
     x = 0
-    for p in panels:
+    rects = []
+    views = []
+    for p, s in zip(panels, slices):
         canvas.paste(p, (x, 0))
+        rects.append((x, 0, x + p.width, p.height))
+        views.append(_stub_geom(image, axis, s))
         x += p.width + 2
-    return canvas, StubRenderInfo(axis, start, _stub_geom(image, axis, start), [], [])
+    ri = StubRenderInfo(axis, start, _stub_geom(image, axis, start), [], [],
+                        views=views, panel_rects=rects)
+    return canvas, ri
 
 
 def stub_render_view(image, axis, slice_idx, crop, overlay, marks_level, markset,
@@ -261,7 +277,8 @@ def stub_render_view(image, axis, slice_idx, crop, overlay, marks_level, markset
         for n_i, (r, c) in enumerate(stub_edge_marks_2d(disp, b2d, None)):
             edges.append((f"E{n_i + 1}", (r, c)))
     img = _panel_image(disp, marks=drawn)
-    ri = StubRenderInfo(axis, int(slice_idx), _stub_geom(image, axis, slice_idx, None), drawn, edges)
+    ri = StubRenderInfo(axis, int(slice_idx), _stub_geom(image, axis, slice_idx, None), drawn, edges,
+                        panel_rects=[(0, 0, img.width, img.height)])
     return img, ri
 
 
@@ -438,13 +455,14 @@ def stub_render_change_3plane(image, prev_mask, new_mask, markset=None, spacing=
 
 def stub_render_candidates(image, mask, candidates, spacing=(1.0, 1.0, 1.0), markset=None):
     """Stub candidate sheet: one small panel row per candidate (contract signature of
-    segd.render.render_candidates; ops uses only the image)."""
+    segd.render.render_candidates; ops uses the image and v3 uses the row rects)."""
     from PIL import Image
     n_rows = max(1, len(list(candidates)))
     canvas = Image.new("RGB", (48, 16 * n_rows), (24, 24, 24))
+    rows = [(0, 16 * i, 48, 16 * (i + 1)) for i in range(n_rows)]
     return canvas, StubRenderInfo("candidates", image.shape[config.FIXED_AXIS["axial"]] // 2,
                                   _stub_geom(image, "axial", image.shape[config.FIXED_AXIS["axial"]] // 2),
-                                  [], [])
+                                  [], [], panel_rects=rows)
 
 
 # ------------------------------------------------------- stub installation

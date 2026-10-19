@@ -47,6 +47,12 @@ export const SEG_TOOL_NAMES = [
 	"seg_finish",
 ] as const;
 
+/** Optional harness v3 flags (only the pointer adds a tool to the declaration). */
+export interface SegV3Flags {
+	/** Pointer service backing `seg_locate` (`gui_actor` | `molmo2`); null/absent = off. */
+	pointer?: string | null;
+}
+
 export interface SegExtensionOptions {
 	/** segd base URL. Defaults to `SEGD_DEFAULT_URL`. */
 	segdUrl?: string;
@@ -58,6 +64,12 @@ export interface SegExtensionOptions {
 	 * the agent loop.
 	 */
 	onProviderRequest?: (payload: unknown) => void;
+	/**
+	 * Harness v3 flags (POST /cases body `v3`): `seg_locate` is declared only when
+	 * `v3.pointer` is set (the MedGemma second reader needs no extra tool: it is
+	 * injected into tool observations by the daemon).
+	 */
+	v3?: SegV3Flags | null;
 }
 
 /** One inline image block understood by pi tool results. */
@@ -256,6 +268,33 @@ export function createSegExtension(options: SegExtensionOptions): ExtensionFacto
 				return runOp("view", asArgs(params));
 			},
 		}),
+	];
+	if (options.v3?.pointer) {
+		// Harness v3: the pointer tool is declared only when the case's v3 flags enable it.
+		// Inserted right after seg_view: navigation-adjacent.
+		tools.splice(
+			3,
+			0,
+			defineTool({
+				name: "seg_locate",
+				label: "Locate lesion (pointer)",
+				description:
+					"Ask a local pointing model to propose candidate marks for the target on the current view. Returns the ranked nearest marks (id, score, snap distance in px) plus the view image with the proposed points drawn P1..P5. These are hints: verify each mark on the image before using it in seg_point/seg_lasso/seg_box. Counts as a tool call, not a model prompt.",
+				parameters: Type.Object({
+					query: Type.Optional(
+						Type.String({
+							description:
+								"What to locate (defaults to the case target text from seg_open).",
+						}),
+					),
+				}),
+				async execute(_id, params) {
+					return runOp("locate", asArgs(params));
+				},
+			}),
+		);
+	}
+	tools.push(
 		defineTool({
 			name: "seg_point",
 			label: "Point prompt",
@@ -420,7 +459,7 @@ export function createSegExtension(options: SegExtensionOptions): ExtensionFacto
 				return runOp("finish", asArgs(params));
 			},
 		}),
-	];
+	);
 
 	return (pi: ExtensionAPI) => {
 		for (const tool of tools) {

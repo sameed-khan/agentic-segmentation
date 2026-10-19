@@ -66,6 +66,12 @@ Failure tag (heuristic precedence harness > localization > delineation > budget 
   none          none of the above.
   wrong_structure is a separate boolean flag (not a tag): the final mask is non-empty but
   < 10% of its volume lies inside GT.
+
+Harness v3 columns (empty on v2 runs; research/harness_v3_methodology.md §3 Study C):
+  n_locate_calls            = successful seg_locate (pointer) calls in the trajectory.
+  medgemma_checkpoints_seen = ';'-joined MedGemma second-reader checkpoints that produced a
+          v3 record in the trajectory (localize/review/candidates, trajectory order).
+  Follow/override analysis (RQ3): eval/v2/v3_adherence.py.
 """
 from __future__ import annotations
 
@@ -104,7 +110,8 @@ NSD_TOL_MM = 2.0
 FIELDS = ["case", "histotype", "sequence", "status", "dice", "hd95_mm", "nsd_2mm", "flags",
           "best_version", "best_dice", "final_version", "final_is_best", "dice_landed_frac",
           "wrong_structure", "first_click_inside", "first_click_dist_mm", "first_click_op",
-          "first_click_version", "n_tool_calls", "n_model_prompts", "n_errors_traj",
+          "first_click_version", "n_tool_calls", "n_model_prompts", "n_locate_calls",
+          "medgemma_checkpoints_seen", "n_errors_traj",
           "n_errors_internal", "n_errors_meta", "wall_time_s", "confidence", "finish_reason", "forced_finish",
           "nudges", "tokens_in", "tokens_out", "tokens_total", "cost_usd", "oneclick_dice",
           "delta_dice", "tag", "error"]
@@ -439,6 +446,17 @@ def score_case(case_dir_str: str) -> dict:
     rec["n_model_prompts"] = case_meta.get(
         "model_prompts", len([r for r in ok_records if r.get("op") in MODEL_PROMPT_OPS
                               and r.get("child")]))
+    # harness v3 (empty on v2 runs): successful seg_locate calls; MedGemma checkpoints
+    # actually seen (any record, in trajectory order) from the `v3` extra records
+    rec["n_locate_calls"] = len([r for r in ok_records if r.get("op") == "locate"])
+    seen: list[str] = []
+    for r in traj:
+        entries = r.get("v3") if isinstance(r.get("v3"), list) else None
+        for e in entries or []:
+            if (isinstance(e, dict) and e.get("call") == "checkpoint"
+                    and e.get("checkpoint") not in seen):
+                seen.append(str(e["checkpoint"]))
+    rec["medgemma_checkpoints_seen"] = ";".join(seen)
     rec["n_errors_traj"] = len([r for r in traj if r.get("error")])
     rec["n_errors_internal"] = len([r for r in traj if r.get("error_kind") == "internal"])
     meta_errors = list(meta.get("errors") or [])

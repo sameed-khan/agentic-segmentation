@@ -33,6 +33,7 @@ __all__ = [
     "render_review_grid",
     "render_candidates",
     "render_raw_pointing",
+    "draw_proposed_points",
     "voxel_to_panel",
     "panel_to_voxel",
 ]
@@ -104,6 +105,12 @@ class RenderInfo:
     ``(mark_id, panel_idx, x_px, y_px)`` with the glyph-centre position;
     ``edge_marks`` entries are ``("E1", panel_idx, row, col)`` with in-plane
     display coordinates of the 2D slice array.
+
+    ``panel_rects`` (optional, added for harness v3): the paste rectangle
+    ``(x0, y0, x1, y1)`` of every recorded panel in the combined image — per panel
+    for overview/sheet/view, per candidate ROW for render_candidates — so offline
+    components (seg_locate clean-panel crop, MedGemma second-reader checkpoints) can
+    map combined-image pixels back to a panel/voxel. None when not recorded.
     """
     kind: str
     views: list[ViewGeom]
@@ -111,6 +118,7 @@ class RenderInfo:
     edge_marks: list[tuple[str, int, int, int]] = field(default_factory=list)
     window: tuple[float, float] | None = None
     note: str = ""                # render_change_3plane: what the slices pass through
+    panel_rects: list[tuple[int, int, int, int]] | None = None
 
     def geom(self, panel_idx: int = 0) -> ViewGeom:
         return self.views[panel_idx]
@@ -577,12 +585,15 @@ def render_view(image: np.ndarray, axis: str, slice_idx: int, crop="full",
     if single_panel:
         out = marked
         views: list[ViewGeom] = [geom]
+        rects: list[tuple[int, int, int, int]] = [(0, 0, panel_w, panel_h)]
     else:
         clean = _panel_from_slice(slice2d, window, crop_box, scale, panel_w, panel_h)
         _draw_frame(clean, geom, spacing, f"{axis} {slice_idx}")
         out = _combine([clean, marked])
         views = [geom, geom]
-    info = RenderInfo("view", views, info_marks, edge_list, window)
+        rects = [(0, 0, panel_w, panel_h),
+                 (panel_w + PANEL_GAP_PX, 0, 2 * panel_w + PANEL_GAP_PX, panel_h)]
+    info = RenderInfo("view", views, info_marks, edge_list, window, panel_rects=rects)
     return out, info
 
 
@@ -634,7 +645,13 @@ def render_overview(image: np.ndarray, spacing, mask: np.ndarray | None = None,
                            for mid, x, y in _draw_marks(panel, vis, geom, occupied)]
         views.append(geom)
         panels.append(panel)
-    return _combine(panels), RenderInfo("overview", views, info_marks, [], window)
+    combined = _combine(panels)
+    rects: list[tuple[int, int, int, int]] = []
+    x = 0
+    for p in panels:
+        rects.append((x, 0, x + p.width, p.height))
+        x += p.width + PANEL_GAP_PX
+    return combined, RenderInfo("overview", views, info_marks, [], window, panel_rects=rects)
 
 
 def _body_crop_box(image: np.ndarray, axis: str, body: np.ndarray | None,
@@ -685,6 +702,7 @@ def render_sheet(image: np.ndarray, axis: str, start: int, stop: int, n: int,
     out = Image.new("RGB", (ncols * cw + (ncols - 1) * pad, nrows * ch + (nrows - 1) * pad),
                     (24, 24, 24))
     views: list[ViewGeom] = []
+    rects: list[tuple[int, int, int, int]] = []
     for n_i, si in enumerate(idxs):
         geom = ViewGeom(axis, int(si), rows, cols, crop_box, scale, cw, ch)
         panel = _panel_from_slice(M.extract_slice(image, axis, int(si)), window,
@@ -695,9 +713,11 @@ def render_sheet(image: np.ndarray, axis: str, start: int, stop: int, n: int,
         _draw_frame(panel, geom, spacing, f"{axis} {si}", letters=False,
                     scale_bar=(n_i == len(idxs) - 1), chip_pos="tl")
         r_i, c_i = divmod(n_i, ncols)
-        out.paste(panel, (c_i * (cw + pad), r_i * (ch + pad)))
+        px0, py0 = c_i * (cw + pad), r_i * (ch + pad)
+        out.paste(panel, (px0, py0))
+        rects.append((px0, py0, px0 + cw, py0 + ch))
         views.append(geom)
-    return out, RenderInfo("sheet", views, [], [], window)
+    return out, RenderInfo("sheet", views, [], [], window, panel_rects=rects)
 
 
 def render_outline_change(image: np.ndarray, prev_mask: np.ndarray | None,
@@ -1047,6 +1067,8 @@ def render_candidates(image: np.ndarray, mask: np.ndarray, candidates,
     mhi = [int(a.max()) + 1 for a in midx] if midx[0].size else None
     views: list[ViewGeom] = []
     row_imgs: list[Image.Image] = []
+    row_rects: list[tuple[int, int, int, int]] = []
+    y = 0
     for cand in cands:
         region = np.zeros(shape, dtype=bool)
         region[cand.bbox] = cand.crop
@@ -1091,13 +1113,15 @@ def render_candidates(image: np.ndarray, mask: np.ndarray, candidates,
         for i, p in enumerate(panels):
             row.paste(p, (i * (cell + gap) + (cell - p.width) // 2, (row_h - p.height) // 2))
         row_imgs.append(row)
+        row_rects.append((0, y, 3 * cell + 2 * gap, y + row_h))
+        y += row_h + gap
     h = sum(r.height for r in row_imgs) + gap * (n - 1)
     out = Image.new("RGB", (3 * cell + 2 * gap, h), (24, 24, 24))
     y = 0
     for r in row_imgs:
         out.paste(r, (0, y))
         y += r.height + gap
-    return out, RenderInfo("candidates", views, [], [], window)
+    return out, RenderInfo("candidates", views, [], [], window, panel_rects=row_rects)
 
 
 RAW_MARGIN_TOP_PX = 22       # raw-pointing rulers/title live in margins around the image
@@ -1160,3 +1184,33 @@ def render_raw_pointing(image: np.ndarray, axis: str, slice_idx: int, crop="full
     draw.text((max(L + pw - tw - 4, L + 8 + bar_px + 50), yb), title, font=f, fill=_WHITE,
               anchor="lm")
     return canvas, RenderInfo("raw", [geom], [], [], window)
+
+
+PROPOSED_COLOR = (56, 189, 248)    # bright sky blue; distinct from marks/mask/candidates
+
+
+def draw_proposed_points(view_img, panel_rects, points) -> Image.Image:
+    """seg_locate feedback: draw proposed points (panel-0 pixel coordinates) with
+    numbered P labels on every panel of the view image (clean + marked share one
+    geometry, so the same panel-relative position is valid on both).
+
+    ``panel_rects`` are the RenderInfo paste rects (panel 0 first); a single-panel
+    image passes ``[(0, 0, w, h)]``. ``points``: [(x, y, label)]. Returns a COPY; the
+    input image is never modified.
+    """
+    out = view_img.copy()
+    draw = ImageDraw.Draw(out)
+    for x, y, label in points:
+        for x0, y0, _x1, _y1 in panel_rects:
+            px, py = x0 + x, y0 + y
+            draw.ellipse((px - 7, py - 7, px + 7, py + 7), outline=_BLACK, width=4)
+            draw.ellipse((px - 7, py - 7, px + 7, py + 7), outline=PROPOSED_COLOR, width=2)
+            placed = False
+            for ax, ay in ((px + 9, py - 24), (px + 9, py + 8), (px - 30, py - 24)):
+                if 2 <= ax and ax + 24 < out.width - 2 and 2 <= ay and ay + 16 < out.height - 2:
+                    _chip(draw, (ax, ay), label)
+                    placed = True
+                    break
+            if not placed:
+                _chip(draw, (max(2, px - 30), max(2, py - 24)), label)
+    return out

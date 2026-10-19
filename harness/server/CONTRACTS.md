@@ -235,3 +235,74 @@ the tool schema accepts `ids: array of (integer|string)`.
   frame's occupied rectangles (no overlap with orientation letters, bottom-row fallback on narrow
   panels). `candidates._components` materializes only the largest `limit` qualifying components
   (2 x `CANDIDATE_MAX_N` at the generator call sites) instead of one crop-sized array per component.
+
+## Deviations/v3 — harness v3 components (2026-10-20)
+
+Optional local-model components (research/harness_v3_methodology.md §3 Study C), all OFF by
+default: a case without the `v3` flags runs byte-identical v2 behaviour (same tools,
+prompts, observations, trajectory fields). Enabled per case by the runner through the
+case-open body; recorded in `case_meta.json` (both writes) and runner meta/batch summary
+as the `v3` object. Implementation: `segd/v3.py`; constants in `config.py` (`V3_*`).
+
+- **Case flags (§5 `POST /cases`).** Optional body key `v3`:
+  `{pointer: null|"gui_actor"|"molmo2", pointer_url?, medgemma: null|"q4"|"bf16",
+  medgemma_url?, checkpoints: ["localize","review","candidates"]}`. Unknown keys/values are
+  a programmer error -> HTTP 400 (programmer-endpoint rule). URLs default to the standard
+  loopback service ports (8092 gui_actor, 8093 molmo2, 8091 q4, 8094 bf16). `checkpoints`
+  defaults to all three when the key is absent; an explicit subset/dedup is canonicalized
+  to that order.
+- **Tool `seg_locate` → op `locate` (§6).** Declared by the extension only when
+  `v3.pointer` is set; the op itself also rejects (`seg_locate is disabled for this case`)
+  when no pointer is configured, so the server honours the flag independently of the tool
+  declaration. Args: `{query?: string}` (default: the case target text). Uses the CURRENT
+  VIEW image exactly as rendered for the agent — `ActiveView` now stores the rendered PIL
+  image (additive field `image`), and `seg_locate` crops the clean panel via
+  `RenderInfo.panel_rects[0]` (below). POST `<pointer_url>/point {image_png_b64, query, k=5,
+  verify: false}` → the ranked list of nearest DRAWN marks (global integer ids and per-
+  render `E<n>` edges as one target set; dedup keeps the best-ranked point per mark; ties
+  -> earlier point), each with the pointer score and snap distance in px; the image shows
+  the proposed points numbered P1..P5 on both panels. Counts as a tool call, never a model
+  prompt (not in `MODEL_PROMPT_OPS`); rejected by the tool-call budget like every call.
+  Service down/timeout -> OpError (counts as a call; logged with error_kind "op" plus the
+  v3 diagnostic record). The view shows no marks -> agent-facing error. No raw coordinates
+  in the text (§0): only mark ids, scores, px snap distances.
+- **RenderInfo.panel_rects (§3, additive).** Optional last dataclass field
+  `panel_rects: list[(x0,y0,x1,y1)] | None = None`: the paste rectangle of every recorded
+  panel in the combined image (per panel for overview/sheet/view; per candidate ROW for
+  render_candidates). Default None keeps all previous call sites byte-identical; only
+  v3 consumers read it.
+- **Medical second reader (MedGemma 1.5 4B; §4 checkpoints).** Enabled by `v3.medgemma`;
+  injected into tool observations at fixed checkpoints, once per checkpoint per version
+  (fired-set `CaseState.v3_fired`, restored by the run_op transaction on rollback so a
+  failed op's retry still delivers the note):
+  (a) `localize` — the FIRST seg_sheet observation (or, when the agent never calls a
+  sheet, the first successful post-open op, using the seg_open overview rendered then):
+  lesion box `[y0,x0,y1,x1]` in [0,1] on the shown image + confidence (temperature 0);
+  the box centre is mapped to the nearest global marks (mm distance, top 3 echoed);
+  (b) `review` — every first-stage `seg_finish` review (which is once per version by
+  construction): strict JSON `{complete: yes|no|uncertain, problems: [{panel, issue:
+  missed_lesion|leak|ok}], confidence}`; non-ok problems echoed;
+  (c) `candidates` — one call per candidate of the finish review, with the candidate's
+  sheet ROW (cropped via panel_rects): `{candidate_id, verdict: lesion|normal|uncertain,
+  confidence}`; per-candidate verdicts appended.
+  Prompt templates: `harness/prompts/medgemma/{localize,review,candidates}.md` (initial
+  versions, tuned on the design split only). Client: the Phase 5
+  `harness/local_models/medgemma/medgemma_client.py` (loaded by path, single source);
+  deterministic temperature 0, timeouts `config.V3_MEDGEMMA_TIMEOUT_S`. ANY failure
+  (transport, timeout, unparseable reply) appends the short note "Medical second reader
+  (MedGemma): unavailable this checkpoint (service or parse error); continuing without
+  it." (or the matching "cannot locate / no usable box" text for off-contract replies)
+  and NEVER fails the op. The appended note is plain text; review codes, candidate
+  authorization and the sync rule are untouched.
+- **Trajectory (§4).** Every v3 request/response is appended to the current op's
+  trajectory record under the extra field `v3` (list of records): locate calls
+  (`{call: "locate", service, url, query, k, image_sha256, raw, latency_ms, ok, error,
+  snapped: [{point, mark, score, dist_px}]}`) and second-reader checkpoints (`{call:
+  "checkpoint", checkpoint, service, url, prompt_sha256, image_sha256, raw, latency_ms,
+  ok, error, parsed, model}`). These diagnostics are logged even when the op itself
+  failed (error records carry only `v3`, never the op's success fields).
+- **Scorer (offline).** `eval/v2/score.py` gains the columns `n_locate_calls` and
+  `medgemma_checkpoints_seen` (empty on v2 runs); `eval/v2/v3_adherence.py` computes the
+  RQ3 follow/override analysis (pointer proposals vs the first positive click; candidate
+  accepts vs MedGemma verdicts; Dice-delta correctness proxy) from trajectories,
+  versions.npz and offline GT.

@@ -67,3 +67,4 @@ subagents only when necessary. Use `rg`, never `grep`. Explain codes in plain wo
   exported; committed. Pipeline continues: phase2 (test localization study) then agent_xhigh.
 - ~07:35: phase2 test done (E18; path bug fixed, marker set by hand). Pipeline restarted -> agent_xhigh running.
 - ~09:10: xhigh pass complete; E19 written (xhigh 0.737, 5/5 above U-Net; high 0.688, 2/5). TABLES §6 added. Phase 3 DONE; reported to Sameed. Phase 4 not authorised.
+- 2026-10-19T12:22:42+00:00: model sweep started (tmux p3b, eval/v2/model_sweep.sh, /tmp/model_sweep.log). Dry-stub smokes OK for haiku max, gpt-6.1-sol, gpt-6-luna max, deepseek-v4.1-flash max; muse-spark-1.3 BLOCKED (opencode-go: model trains on request data; needs workspace opt-in from Sameed) -> restart sweep with SKIP='p3-muse13-high p3-muse13-xhigh' if not resolved. Researcher (gpt-6-luna) writing research/literature/local_visuospatial_vlms.md.

@@ -417,9 +417,15 @@ def test_per_case_hit1_counts_error_and_parse_reps_as_misses(row, gt_edt):
                              row, gt2d, edt)
     assert S.per_case_hit1(hit + err)["T99"] is False
     assert S.per_case_hit1(hit + err + parse)["T99"] is False  # 1 hit / 2 misses
-    hit2 = S.score_response(_resp("gui_actor", "raw", points=[{"x": 79.0, "y": 51.0}], rep=2),
+    # distinct rep for the added hit (it must NOT share the parse rep) so the fixture is
+    # 2 hits / 2 misses over 4 DISTINCT reps -> tie -> miss by the majority convention
+    hit2 = S.score_response(_resp("gui_actor", "raw", points=[{"x": 79.0, "y": 51.0}], rep=3),
                             row, gt2d, edt)
-    assert S.per_case_hit1(hit + err + parse + hit2)["T99"] is True  # 2 hits / 2 misses -> majority
+    assert S.per_case_hit1(hit + err + parse + hit2)["T99"] is False  # 2 hits / 2 misses -> tie
+    # a third hit rep gives 3 hits / 2 misses -> majority
+    hit3 = S.score_response(_resp("gui_actor", "raw", points=[{"x": 79.0, "y": 51.0}], rep=4),
+                            row, gt2d, edt)
+    assert S.per_case_hit1(hit + err + parse + hit2 + hit3)["T99"] is True
 
 
 def test_rep_hit_majority_frontier_convention():

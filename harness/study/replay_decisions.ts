@@ -677,11 +677,17 @@ async function main(): Promise<void> {
 		planned_calls: calls.length + done.size,
 		resumed_from_lines: done.size,
 	};
+	// Prior meta (only meaningful on resume): used for the immutable-config check and,
+	// on a NO-OP resume, to keep the previously captured system-prompt provenance.
+	const priorMetaPath = join(runDir, "meta.json");
+	const priorMeta: Record<string, unknown> | null =
+		done.size > 0 && existsSync(priorMetaPath)
+			? (JSON.parse(readFileSync(priorMetaPath, "utf8")) as Record<string, unknown>)
+			: null;
 	// Immutable-config check (review P2-4): resuming must not mix configuration variants.
-	if (done.size > 0 && existsSync(join(runDir, "meta.json"))) {
-		const prior = JSON.parse(readFileSync(join(runDir, "meta.json"), "utf8"));
+	if (priorMeta) {
 		const immutableKeys = ["set", "model", "thinking", "reps", "manifest", "manifest_sha256", "selected_keys", "images_root", "prompt_sha256"] as const;
-		const drifted = immutableKeys.filter((k) => JSON.stringify(prior[k]) !== JSON.stringify(meta[k]));
+		const drifted = immutableKeys.filter((k) => JSON.stringify(priorMeta[k]) !== JSON.stringify(meta[k]));
 		if (drifted.length > 0) {
 			throw new Error(
 				`run config drifted from prior meta.json (${drifted.join(", ")}); use a new --run name`,
@@ -715,8 +721,19 @@ async function main(): Promise<void> {
 	const recordedLines = existsSync(respPath)
 		? readFileSync(respPath, "utf8").split("\n").filter((l) => l.trim()).length
 		: 0;
-	const providerSystem = shared.providerSystem ?? null;
-	const providerSystemShaped = shared.providerSystemShaped ?? null;
+	// No-op resume (every call already complete): no request runs, so no capture happens
+	// and shared.providerSystem stays unset — fall back to the PRIOR captured values
+	// instead of overwriting the provenance with null (review fix round).
+	const priorProviderSystem =
+		typeof priorMeta?.system_prompt_sent_to_provider === "string"
+			? (priorMeta.system_prompt_sent_to_provider as string)
+			: null;
+	const priorProviderSystemShaped =
+		typeof priorMeta?.system_prompt_shaped_by_auth_shim === "string"
+			? (priorMeta.system_prompt_shaped_by_auth_shim as string)
+			: null;
+	const providerSystem = shared.providerSystem ?? priorProviderSystem;
+	const providerSystemShaped = shared.providerSystemShaped ?? priorProviderSystemShaped;
 	const finalMeta = {
 		...meta,
 		finished_at: new Date().toISOString(),

@@ -170,18 +170,16 @@ def test_verify_true_fails_explicitly_without_verifier(gui_actor_server_mod):
         backend.predict(buf.getvalue(), "q", k=1, verify=True)
 
 
-def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
-    """The verify path follows verifier/verifier_model.py: red hollow circle (radius 7,
-    width 3) + 500 px half-size crop on a copy at (x*W, y*H), the exact prompt via the
-    chat template + process_vision_info image protocol, score = p_true/(p_true+p_false),
-    candidates reranked by score."""
+def _verifier_backend(gui_server, monkeypatch, rows):
+    """Real backend with a STUBBED official verifier (no torch/weights): call i scores
+    point i with the logits row (z_true, z_false) = rows[i] placed at the fake
+    tokenizer ids 7/9 ("True"/"False"). Returns (backend, captured)."""
     import sys
     import types
     from types import SimpleNamespace
 
     import numpy as np
 
-    gui_server = gui_actor_server_mod
     captured = {}
 
     def fake_process_vision_info(messages):
@@ -192,9 +190,9 @@ def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
     fake_qvu.process_vision_info = fake_process_vision_info
     monkeypatch.setitem(sys.modules, "qwen_vl_utils", fake_qvu)
 
-    class FakeTok:
-        def encode(self, s, add_special_tokens=False):
-            return {"True": [7], "False": [9]}[s]
+    # fake token ids: "True" -> 7, "False" -> 9 (the tests put their logits there)
+    tok = types.SimpleNamespace(encode=lambda s, add_special_tokens=False:
+                                {"True": [7], "False": [9]}[s])
 
     class FakeInputs(dict):
         """A mapping so the fake model can be called with **inputs."""
@@ -204,7 +202,7 @@ def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
             return self
 
     class FakeProc:
-        tokenizer = FakeTok()
+        tokenizer = tok
 
         def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=True):
             return "TEMPLATE"
@@ -220,11 +218,11 @@ def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
             self.calls = 0
 
         def __call__(self, **inputs):
+            z_true, z_false = rows[self.calls]
             self.calls += 1
-            row = np.zeros(16, dtype=float)
-            row[7] = 0.0 if self.calls == 1 else 2.0   # candidate 1 first: p_true 0 / (0+1)
-            row[9] = 1.0 if self.calls == 1 else 1.0   # candidate 2: p_true 2/(2+1)
-            return SimpleNamespace(logits=row.reshape(1, 1, 16))
+            arr = np.zeros(16, dtype=float)
+            arr[7], arr[9] = z_true, z_false
+            return SimpleNamespace(logits=arr.reshape(1, 1, 16))
 
     class FakeTorch:
         class inference_mode:
@@ -238,11 +236,34 @@ def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
     backend._torch = FakeTorch()
     backend._verifier = FakeModel()
     backend._verifier_processor = FakeProc()
+    return backend, captured
 
+
+def _verify_all(backend, rows):
+    """One _verify() call over len(rows) points; returns (order, out)."""
     img = Image.new("RGB", (100, 80), (5, 5, 5))
-    order, out = backend._verify(img, "the OK button", [(0.5, 0.5), (0.1, 0.1)], 100, 80)
-    # candidate 0 p_true = 0/(0+1) = 0.0; candidate 1 = 2/(2+1) = 0.6667 -> reranked
-    assert out["p_true"] == [0.0, round(2.0 / 3.0, 4)]
+    pts = [(0.1 + 0.4 * i, 0.5) for i in range(len(rows))]
+    return backend._verify(img, "the OK button", pts, 100, 80)
+
+
+def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
+    """The verify path follows verifier/verifier_model.py: red hollow circle (radius 7,
+    width 3) + 500 px half-size crop on a copy at (x*W, y*H), the exact prompt via the
+    chat template + process_vision_info image protocol, score = the softmax True/False
+    ratio = sigmoid(z_true - z_false), candidates reranked by score."""
+    import numpy as np
+
+    gui_server = gui_actor_server_mod
+    rows = [(0.0, 1.0), (2.0, 1.0)]
+    backend, captured = _verifier_backend(gui_server, monkeypatch, rows)
+
+    order, out = _verify_all(backend, rows)
+    # OFFICIAL scoring: full-vocab softmax then p_true/(p_true+p_false). Because
+    # softmax is shift invariant that equals sigmoid(z_true - z_false):
+    #   sigmoid(-1) = 0.2689, sigmoid(1) = 0.7311.
+    # (The old expectation 0.0 = logit 0/(0+1) and 0.6667 = logit 2/(2+1) encoded the
+    # logit-ratio regression; see verifier_model.py:153-156.)
+    assert out["p_true"] == [0.2689, 0.7311]
     assert order == [1, 0]
     # official prompt text in the user message
     content = captured["messages"][0]["content"]
@@ -253,7 +274,41 @@ def test_real_verifier_official_protocol(gui_actor_server_mod, monkeypatch):
     # official min(w-1, x+500) convention: a 100x80 image crops to 99x79
     marked = captured["images"][0]
     assert marked.size == (99, 79)
-    assert np.asarray(marked).sum() != np.asarray(img).sum()
+    assert np.asarray(marked).sum() != np.asarray(Image.new("RGB", (100, 80), (5, 5, 5))).sum()
+
+
+def test_verifier_score_negative_logits(gui_actor_server_mod, monkeypatch):
+    """Negative True/False logits must be scored by the official softmax ratio, i.e.
+    sigmoid(z_true - z_false). z_true=-2, z_false=-1 -> sigmoid(-1) = 0.2689; the old
+    logit-ratio bug returned -2/-3 = 0.6667 here."""
+    gui_server = gui_actor_server_mod
+    backend, _ = _verifier_backend(gui_server, monkeypatch, [(-2.0, -1.0)])
+    order, out = _verify_all(backend, [(-2.0, -1.0)])
+    assert out["p_true"] == [0.2689]
+    assert order == [0]
+
+
+def test_verifier_score_opposite_signed_logits_sum_zero(gui_actor_server_mod, monkeypatch):
+    """Opposite-signed logits summing to zero (z_true=1, z_false=-1): the raw logit
+    ratio divides by zero; the official full-vocab-softmax ratio is sigmoid(2) = 0.8808
+    and must not raise."""
+    gui_server = gui_actor_server_mod
+    backend, _ = _verifier_backend(gui_server, monkeypatch, [(1.0, -1.0)])
+    order, out = _verify_all(backend, [(1.0, -1.0)])
+    assert out["p_true"] == [0.8808]
+    assert order == [0]
+
+
+def test_verifier_score_invariant_to_constant_logit_shift(gui_actor_server_mod, monkeypatch):
+    """A constant shift of both logits cannot change the softmax ratio: (0,1) and (2,3)
+    have the same z_true - z_false = -1 and must score identically (0.2689). The old
+    logit-ratio bug gave 0.0 vs 0.4 — a spurious reranking."""
+    gui_server = gui_actor_server_mod
+    rows = [(0.0, 1.0), (2.0, 3.0)]
+    backend, _ = _verifier_backend(gui_server, monkeypatch, rows)
+    order, out = _verify_all(backend, rows)
+    assert out["p_true"] == [0.2689, 0.2689]
+    assert order == [0, 1]
 
 
 def test_predict_verify_reranks_points(gui_actor_server_mod, monkeypatch):

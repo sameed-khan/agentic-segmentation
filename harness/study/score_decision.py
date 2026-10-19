@@ -229,19 +229,26 @@ def metrics_for(calls: list[dict], n_boot: int, seed: int) -> dict:
         [c for c in calls if c["counted"] and c["is_positive"]], lambda c: c["tp"], n_boot, seed)
     conf["spec_ci95"] = cluster_bootstrap_ci(
         [c for c in calls if c["counted"] and not c["is_positive"]], lambda c: c["tn"], n_boot, seed)
-    # secondary completeness metrics: uncertain counted as a negative prediction
-    u_pos = [c for c in calls if c["is_positive"] and c["status"] in ("ok", "uncertain")]
-    u_neg = [c for c in calls if not c["is_positive"] and c["status"] in ("ok", "uncertain")]
+    # secondary completeness metrics: uncertain counted as a negative prediction. The
+    # secondary policy only ADDITIONALLY maps the abstentions — it keeps every primary
+    # counted row with its assignment, so parse/transport/missing failures stay wrong
+    # (FN/FP) and, with zero uncertain answers, the secondary metrics equal the primary
+    # ones exactly (review fix round: the old filter dropped failures from the
+    # denominators again and could report secondary sensitivity 1.0 with primary 0.1).
+    u_pos = [c for c in calls if c["is_positive"]]
+    u_neg = [c for c in calls if not c["is_positive"]]
 
     def predicted_pos(c: dict) -> bool:
-        return c["tp"] == 1 or c["fp"] == 1  # ok rows only: positive answer iff tp/fp set
+        """Negative prediction iff the primary assignment says so: an uncertain abstain
+        row has tp/fp/tn/fn all zero, a stated positive answer sets tp or fp, a stated
+        negative answer or a failure sets tn or fn."""
+        return c["tp"] == 1 or c["fp"] == 1
 
     conf["sensitivity_uncertain_as_negative"] = (
-        round(sum(1 for c in u_pos if c["status"] == "ok" and predicted_pos(c)) / len(u_pos), 4)
+        round(sum(1 for c in u_pos if predicted_pos(c)) / len(u_pos), 4)
         if u_pos else None)
     conf["specificity_uncertain_as_negative"] = (
-        round(sum(1 for c in u_neg if c["status"] == "uncertain"
-                  or (c["status"] == "ok" and not predicted_pos(c))) / len(u_neg), 4)
+        round(sum(1 for c in u_neg if not predicted_pos(c)) / len(u_neg), 4)
         if u_neg else None)
     thr = threshold_at_specificity(neg_scores, SPECIFICITY_TARGET)
     # EXACT operational threshold (review P2-3: a rounded value cannot reproduce the
@@ -299,6 +306,39 @@ def paired_compare(calls_a: list[dict], calls_b: list[dict], positive: str) -> d
             "outcome": "per-decision correctness (tp+tn, both classes), majority over reps"}
 
 
+def synthesize_missing_calls(resp_lines: list[dict], meta_path, run_name: str,
+                             rows: dict) -> tuple[list[dict], list[tuple[str, int]], int]:
+    """Coverage normalization (review P1-4): every planned key x rep without a recorded
+    response becomes an explicit missing-call error row — fn on a positive row, fp on a
+    negative row — instead of silently vanishing from the denominators. The SAME policy
+    is applied to the main run and to any comparison run BEFORE scoring/pairing, so
+    paired counts and p-values cannot depend on the order the runs are passed in (and a
+    partially recorded key still pairs through its remaining reps).
+
+    Returns (new_rows, missing, planned) — the synthesized error rows (missing=True),
+    the (key, rep) list never recorded, and the planned call count."""
+    meta = json.loads(meta_path.read_text()) if Path(meta_path).exists() else {}
+    reps_planned = meta.get("reps")
+    if reps_planned is None:
+        reps_planned = max((r.get("rep") for r in resp_lines), default=-1) + 1
+    planned_keys = [k for k in (meta.get("selected_keys") or []) if k in rows]
+    if not planned_keys:
+        planned_keys = sorted(rows)
+    recorded = {(r["key"], r.get("rep")) for r in resp_lines}
+    missing = [(key, rep) for key in planned_keys for rep in range(reps_planned)
+               if (key, rep) not in recorded]
+    new_rows = []
+    for m_key, m_rep in missing:
+        m_row = rows[m_key]
+        m_call = score_call({"run": run_name, "key": m_key, "case": m_row["case"],
+                             "rep": m_rep, "model": None, "raw_text": "",
+                             "error": "missing response: planned call never recorded",
+                             "latency_ms": None, "usage": None}, m_row)
+        m_call["missing"] = True
+        new_rows.append(m_call)
+    return new_rows, missing, len(planned_keys) * reps_planned
+
+
 # ------------------------------------------------------------------ report
 def fmt(x, nd=3) -> str:
     return "–" if x is None else f"{x:.{nd}f}"
@@ -330,28 +370,12 @@ def main() -> None:
 
     calls = [score_call(resp, rows[resp["key"]]) for resp in resp_lines]
 
-    # ---- coverage validation (review P1-4): every planned manifest key × rep must have
-    # a response row; missing calls become explicit error rows instead of vanishing.
-    meta_path = set_dir / args.run / "meta.json"
-    run_meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
-    reps_planned = run_meta.get("reps")
-    if reps_planned is None:
-        reps_planned = max((r.get("rep") for r in resp_lines), default=-1) + 1
-    # planned keys: the run's recorded --keys subset when present, else the whole manifest
-    planned_keys = [k for k in (run_meta.get("selected_keys") or []) if k in rows]
-    if not planned_keys:
-        planned_keys = sorted(rows)
+    # ---- coverage normalization (review P1-4): every planned manifest key × rep must
+    # have a response row; missing calls become explicit error rows instead of vanishing.
+    missing_calls, missing, planned_calls = synthesize_missing_calls(
+        resp_lines, set_dir / args.run / "meta.json", args.run, rows)
+    calls.extend(missing_calls)
     recorded = {(r["key"], r.get("rep")) for r in resp_lines}
-    missing = [(key, rep) for key in planned_keys for rep in range(reps_planned)
-               if (key, rep) not in recorded]
-    for m_key, m_rep in missing:
-        m_row = rows[m_key]
-        m_call = score_call({"run": args.run, "key": m_key, "case": m_row["case"],
-                             "rep": m_rep, "model": None, "raw_text": "",
-                             "error": "missing response: planned call never recorded",
-                             "latency_ms": None, "usage": None}, m_row)
-        m_call["missing"] = True
-        calls.append(m_call)
 
     (set_dir / args.run / "scored.jsonl").write_text(
         "".join(json.dumps(c) + "\n" for c in calls))
@@ -372,26 +396,20 @@ def main() -> None:
             raise SystemExit(f"no responses for --compare-run: {compare_path}")
         compare_resp = [json.loads(l) for l in compare_path.read_text().splitlines() if l.strip()]
         compare_calls = [score_call(resp, rows[resp["key"]]) for resp in compare_resp]
-        # report the compare run's coverage (its missing calls simply do not pair;
-        # disclosed rather than silently shrinking the paired set)
-        compare_meta_path = set_dir / args.compare_run / "meta.json"
-        compare_meta = json.loads(compare_meta_path.read_text()) if compare_meta_path.exists() else {}
-        c_reps = compare_meta.get("reps")
-        if c_reps is None:
-            c_reps = max((r.get("rep") for r in compare_resp), default=-1) + 1
-        c_planned = [k for k in (compare_meta.get("selected_keys") or []) if k in rows]
-        if not c_planned:
-            c_planned = sorted(rows)
-        c_recorded = {(r["key"], r.get("rep")) for r in compare_resp}
-        compare_missing = [(k, rep) for k in c_planned for rep in range(c_reps)
-                           if (k, rep) not in c_recorded]
+        # the SAME coverage normalization for the comparison run: its missing calls
+        # become explicit error rows BEFORE scoring/pairing, so paired counts and
+        # p-values cannot depend on the --run/--compare-run argument order (review
+        # fix round). Partially recorded keys still pair through their remaining reps.
+        compare_missing_calls, compare_missing, _ = synthesize_missing_calls(
+            compare_resp, set_dir / args.compare_run / "meta.json", args.compare_run, rows)
+        compare_calls.extend(compare_missing_calls)
         comparison = paired_compare(calls, compare_calls, spec["positive"])
         (set_dir / args.compare_run / "scored.jsonl").write_text(
             "".join(json.dumps(c) + "\n" for c in compare_calls))
 
     out = {"set": args.set_name, "run": args.run, "positive_class": spec["positive"],
            "metrics": metrics, "per_histotype": per_hist, "n_boot": args.n_boot, "seed": args.seed,
-           "coverage": {"planned": len(planned_keys) * reps_planned, "recorded": len(recorded),
+           "coverage": {"planned": planned_calls, "recorded": len(recorded),
                         "missing": len(missing),
                         "missing_keys": [f"{k}/r{rep}" for k, rep in missing]}}
     if comparison:
@@ -442,7 +460,9 @@ def main() -> None:
         if compare_missing:
             lines.append(f"  note: {len(compare_missing)} response(s) of `{args.compare_run}` "
                          f"were never recorded ({', '.join(f'{k}/r{rep}' for k, rep in compare_missing[:5])}"
-                         f"{'…' if len(compare_missing) > 5 else ''}) — those keys do not pair.")
+                         f"{'…' if len(compare_missing) > 5 else ''}) — those calls are scored "
+                         "as errors under the same missing-as-error policy as the main run; "
+                         "keys with remaining recorded reps still pair.")
     lines.append("")
     lines.append("## Per histotype")
     lines.append("")

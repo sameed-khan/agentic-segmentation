@@ -356,24 +356,52 @@ def test_response_error_counts_as_error():
 
 
 def test_uncertain_as_negative_secondary_metrics():
+    """The uncertain-as-negative policy only ADDITIONALLY maps the abstentions: every
+    primary counted row keeps its assignment, so parse/transport/missing failures stay
+    FN/FP in the secondary denominators, and with zero uncertain answers the secondary
+    metrics equal the primary ones (review fix round: the old filter dropped failures
+    and could report secondary sens 1.0 while the primary said 0.1)."""
     pos = _row("candidate_judgement", "A:v1:C1", "lesion")
     neg = _row("candidate_judgement", "B:v1:C1", "normal")
 
-    def call(row, raw):
-        return D.score_call({"run": "r", "key": row["key"], "case": row["case"], "rep": 0,
-                             "model": "m", "raw_text": raw, "error": None,
-                             "latency_ms": 1.0, "usage": None}, row)
+    def call(row, raw=None, error=None, rep=0):
+        return D.score_call({"run": "r", "key": row["key"], "case": row["case"], "rep": rep,
+                             "model": "m", "raw_text": raw or "", "error": error,
+                             "latency_ms": None if error is not None else 1.0,
+                             "usage": None}, row)
+
+    def missing(row, rep):
+        c = call(row, error="missing response: planned call never recorded", rep=rep)
+        c["missing"] = True
+        return c
 
     calls = [call(pos, '{"answer": "uncertain"}'),                       # abstain on positive
              call(neg, '{"answer": "uncertain"}'),                       # abstain on negative
              call(pos, '{"answer": "lesion", "confidence": 0.9}'),       # tp
-             call(neg, '{"answer": "not_lesion", "confidence": 0.9}')]   # tn
+             call(neg, '{"answer": "not_lesion", "confidence": 0.9}'),   # tn
+             call(pos, "prose only"),                                    # parse fail -> fn
+             call(pos, error="timeout"),                                 # transport -> fn
+             missing(pos, 6),                                            # missing -> fn
+             missing(neg, 7)]                                            # missing -> fp
     m = D.metrics_for(calls, n_boot=20, seed=1)
-    assert m["sensitivity"] == 1.0 and m["specificity"] == 1.0  # abstains excluded
     assert m["n_uncertain"] == 2
-    # secondary completeness: uncertain = negative prediction
-    assert m["sensitivity_uncertain_as_negative"] == 0.5
-    assert m["specificity_uncertain_as_negative"] == 1.0
+    assert (m["tp"], m["fn"], m["tn"], m["fp"]) == (1, 3, 1, 1)
+    # primary omits the abstains: sens = 1/(1+3) = 0.25, spec = 1/(1+1) = 0.5
+    assert m["sensitivity"] == 0.25 and m["specificity"] == 0.5
+    # secondary additionally maps uncertain positive -> FN, uncertain negative -> TN:
+    # sens = 1/5, spec = 2/3 — the failures stay wrong in the denominators
+    assert m["sensitivity_uncertain_as_negative"] == pytest.approx(1 / 5, abs=1e-3)
+    assert m["specificity_uncertain_as_negative"] == pytest.approx(2 / 3, abs=1e-3)
+
+    # zero uncertain answers, failures included: the secondary policy must change NOTHING
+    calls_zu = [call(pos, '{"answer": "lesion", "confidence": 0.9}'),    # tp
+                call(pos, "prose only"),                                 # parse fail -> fn
+                call(neg, '{"answer": "not_lesion", "confidence": 0.9}'),  # tn
+                missing(neg, 3)]                                         # missing -> fp
+    mz = D.metrics_for(calls_zu, n_boot=20, seed=1)
+    assert mz["n_uncertain"] == 0
+    assert mz["sensitivity"] == mz["sensitivity_uncertain_as_negative"] == 0.5
+    assert mz["specificity"] == mz["specificity_uncertain_as_negative"] == 0.5
 
 
 def test_auroc_perfect_and_with_ties():
@@ -676,6 +704,51 @@ def test_score_coverage_missing_calls_counted_as_errors(tmp_path, monkeypatch):
     D.main()
     score = json.loads((run_dir / "score.json").read_text())
     assert score["coverage"] == {"planned": 1, "recorded": 1, "missing": 0, "missing_keys": []}
+
+
+def test_score_compare_run_coverage_mirror_is_invariant(tmp_path, monkeypatch):
+    """The comparison run must be coverage-normalized under the SAME missing-as-error
+    policy before pairing: the paired count and McNemar p are invariant to the
+    --run/--compare-run order (review finding: with runA perfect and runB missing 9 of
+    10 calls, the old code paired 1 key with p=1.0 in one order and 10 keys with
+    p~0.00391 in the other)."""
+    set_dir = tmp_path / "candidate_judgement"
+    set_dir.mkdir(parents=True)
+    rows = [_row("candidate_judgement", f"K{i}:v1:C0", "lesion") for i in range(10)]
+    (set_dir / "manifest.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    for run, keys in (("runA", range(10)), ("runB", [0])):
+        run_dir = set_dir / run
+        run_dir.mkdir(parents=True)
+        (run_dir / "meta.json").write_text(json.dumps({"reps": 1}))
+        (run_dir / "responses.jsonl").write_text("".join(
+            json.dumps({"run": run, "key": f"K{i}:v1:C0", "case": f"K{i}", "rep": 0,
+                        "model": "m", "error": None, "usage": None, "latency_ms": 1.0,
+                        "raw_text": '{"answer": "lesion", "confidence": 0.9}'}) + "\n"
+            for i in keys))
+
+    def paired_vs(main, compare):
+        monkeypatch.setattr(sys, "argv", ["score_decision.py", "--set", "candidate_judgement",
+                                          "--run", main, "--compare-run", compare,
+                                          "--results-root", str(tmp_path), "--n-boot", "10"])
+        D.main()
+        return json.loads((set_dir / main / "score.json").read_text())["paired_vs"]
+
+    ab = paired_vs("runA", "runB")
+    ba = paired_vs("runB", "runA")
+    for comp in (ab, ba):
+        assert comp["n_paired_keys"] == 10
+        assert [comp["n_b_hit_a_miss"], comp["n_a_hit_b_miss"]] in ([0, 9], [9, 0])
+        assert comp["mcnemar_p"] == pytest.approx(0.00391)
+    # runB's scored rows contain the 9 synthesized missing-call error rows (same policy
+    # as the main run's coverage normalization)
+    b_scored = [json.loads(l) for l in
+                (set_dir / "runB" / "scored.jsonl").read_text().splitlines() if l.strip()]
+    assert sum(1 for c in b_scored if c["missing"]) == 9
+    assert all(c["status"] == "response_error" and c["fn"] == 1  # positive rows -> fn
+               for c in b_scored if c["missing"])
+    # the old 'those keys do not pair' note is gone; missing compare calls are scored
+    assert "same missing-as-error policy" in (set_dir / "runA" / "report.md").read_text()
+    assert "do not pair" not in (set_dir / "runA" / "report.md").read_text()
 
 
 def test_replay_template_rendering(tmp_path):

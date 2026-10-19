@@ -36,6 +36,7 @@ import binascii
 import hashlib
 import io
 import logging
+import math
 import os
 import sys
 import time
@@ -248,7 +249,9 @@ class GuiActorRealBackend:
     def _verifier_score(self, instruction: str, image) -> float:  # noqa: ANN001
         """One official verifier score (verifier_model.py GroundingVerifier.verify):
         user message with the marked image, chat template, process_vision_info image
-        protocol, P(True)/(P(True)+P(False)) from the full-vocab softmax ratio."""
+        protocol, P(True)/(P(True)+P(False)) from the full-vocab softmax — equal to the
+        stable sigmoid of the True/False logit difference (never a ratio of raw
+        logits; review fix round)."""
         from qwen_vl_utils import process_vision_info  # noqa: PLC0415  (official image protocol)
 
         full_prompt = ("Please observe the screenshot and exame whether the hollow red circle "
@@ -269,9 +272,15 @@ class GuiActorRealBackend:
         true_id = self._verifier_processor.tokenizer.encode("True", add_special_tokens=False)[0]
         false_id = self._verifier_processor.tokenizer.encode("False", add_special_tokens=False)[0]
         row = logits[0]
-        p_true = float(row[true_id])
-        p_false = float(row[false_id])
-        return p_true / (p_true + p_false)
+        # Official verifier_model.py verify(): softmax over the FULL vocab first, then
+        # score = p_true / (p_true + p_false). Softmax is shift invariant, so that ratio
+        # equals the two-token probability of True:
+        #   1 / (1 + exp(-(z_true - z_false)))
+        # implemented with tanh to stay stable for any logit magnitude and exact 0.5
+        # when the logits are equal (no division by zero). Dividing the RAW logits —
+        # the regression this replaces — is not equivalent and reverses rankings.
+        diff = float(row[true_id]) - float(row[false_id])
+        return 0.5 + 0.5 * math.tanh(0.5 * diff)
 
 
 # --------------------------------------------------------------------------- app

@@ -68,3 +68,20 @@ subagents only when necessary. Use `rg`, never `grep`. Explain codes in plain wo
 - ~07:35: phase2 test done (E18; path bug fixed, marker set by hand). Pipeline restarted -> agent_xhigh running.
 - ~09:10: xhigh pass complete; E19 written (xhigh 0.737, 5/5 above U-Net; high 0.688, 2/5). TABLES §6 added. Phase 3 DONE; reported to Sameed. Phase 4 not authorised.
 - 2026-10-19T12:22:42+00:00: model sweep started (tmux p3b, eval/v2/model_sweep.sh, /tmp/model_sweep.log). Dry-stub smokes OK for haiku max, gpt-6.1-sol, gpt-6-luna max, deepseek-v4.1-flash max; muse-spark-1.3 BLOCKED (opencode-go: model trains on request data; needs workspace opt-in from Sameed) -> restart sweep with SKIP='p3-muse13-high p3-muse13-xhigh' if not resolved. Researcher (gpt-6-luna) writing research/literature/local_visuospatial_vlms.md.
+
+## Phase 3b: model sweep (Sameed 2026-10-19 ~12:30 UTC; full autonomy while he is away)
+Runs (order): Opus 5.5 medium/high/xhigh, Haiku 5.5 xhigh/max, DeepSeek v4.1 flash xhigh/max, Muse Spark 1.3
+contributor high/xhigh (opencode-go opt-in enabled by Sameed), GPT-6.1-sol high/xhigh, GPT-6-luna xhigh/max,
+Gemini 4 Argon contributor high (opencode-go; ~440 requests / 5 h, so last of opencode-go), Opus 5 at the best
+Opus 5.5 thinking level. One configuration at a time, concurrency 8 (nnInteractive `--max-sessions 8`, ~/nni/start.sh).
+Directive: follow the order; ONLY when a provider hits its quota, switch to the next run of another provider and
+come back when its window refreshes (interleave to maximise throughput).
+- Scheduler: `eval/v2/sweep_scheduler.py` in tmux **p3a**, log `/tmp/sweep_sched.log`, (re)start:
+  `eval/v2/start_sweep.sh`. State: `results/phase3_state/sweep_<run>.done`, `sched.json` (provider blocks, 15 min).
+  Provider limit (runner exit 3) -> block provider, run next; every 60 s it preempts a lower-priority run when an
+  earlier run's provider is free again. Every kill/preempt/infra failure -> restart segd + nnInteractive (killed
+  runners leak nnInteractive sessions -> "server at capacity (8 sessions)" -> segd HTTP 500; happened 12:42).
+- Runner resume: complete = done, no errors, no provider errors, final mask. Give up on a case only after 3 parked
+  genuine agent failures (killed/infra attempts never count; fixed 12:45 after kills were counted).
+- After each run is done: analyse vs phase3-high/xhigh (per histotype, gate, loc. fails, tools, tokens/cost), write
+  E-entry, export_run.py, build_log_tables.py, dvc add/push, commit. Report to Sameed when he is back.

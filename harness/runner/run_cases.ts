@@ -908,12 +908,19 @@ async function main(): Promise<void> {
 			const complete =
 				meta?.done === true &&
 				(meta.api_errors ?? []).length === 0 &&
+				(meta.errors ?? []).length === 0 &&
 				existsSync(join(dir, "final_mask.nii.gz"));
 			if (complete) continue;
+			// count only genuine agent-run failures (the agent ran to the end but the case recorded errors);
+			// interrupted/killed attempts and infrastructure failures (no `done` in meta) never count
+			const isAgentFailure = (m: any) =>
+				m?.done !== undefined && m?.turns !== undefined && (m.api_errors ?? []).length === 0 && (m.errors ?? []).length > 0;
 			const parked = existsSync(join(runDir, "_incomplete"))
-				? readdirSync(join(runDir, "_incomplete")).filter((n) => n.startsWith(`${row.case}_`) && !n.startsWith(`${row.case}_api_`)).length
+				? readdirSync(join(runDir, "_incomplete"))
+						.filter((n) => n.startsWith(`${row.case}_`) && !n.startsWith(`${row.case}_api_`))
+						.filter((n) => isAgentFailure(readJsonIfExists(join(runDir, "_incomplete", n, "meta.json")))).length
 				: 0;
-			if (parked >= 3 && existsSync(join(dir, "meta.json"))) {
+			if (parked >= 3 && isAgentFailure(meta)) {
 				// 4 non-provider attempts failed (3 parked + current): keep the last attempt as the result, stop retrying
 				console.log(`[runner] resume: giving up on ${row.case} after ${parked + 1} attempts (kept last attempt)`);
 				continue;

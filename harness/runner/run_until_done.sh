@@ -17,14 +17,14 @@ while :; do
     tmux new-session -d -s segd "cd $ROOT/harness/server && uv run segd 2>&1 | tee -a /tmp/segd.log"
     sleep 30
   fi
-  if ! curl -sf -m 10 localhost:1527/healthz >/dev/null; then
-    echo "[until_done] $(date -Is) nnInteractive (1527) down -> waiting ${WAIT_S}s (restart manually: tmux nni, ~/nni/start.sh)"
+  if ! curl -sf -m 10 localhost:${NNI_PORT:-1527}/healthz >/dev/null; then
+    echo "[until_done] $(date -Is) nnInteractive (${NNI_PORT:-1527}) down -> waiting ${WAIT_S}s (restart manually: tmux nni, ~/nni/start.sh)"
     sleep "$WAIT_S"; continue
   fi
   echo "[until_done] $(date -Is) attempt $attempt run=$RUN thinking=$THINK split=$SPLIT"
   out=$(mktemp)
-  npx tsx run_cases.ts --split "$SPLIT" --run-id "$RUN" --thinking "$THINK" --concurrency 4 --resume \
-    --note "$NOTE" "$@" 2>&1 | tee "$out"
+  npx tsx run_cases.ts --split "$SPLIT" --run-id "$RUN" --thinking "$THINK" --concurrency "${CONC:-4}" --resume \
+    --note "$NOTE" --nni-url "http://127.0.0.1:${NNI_PORT:-1527}" "$@" 2>&1 | tee "$out"
   code=${PIPESTATUS[0]}
   if rg -q "resume: nothing to do" "$out"; then rm -f "$out"; echo "[until_done] $(date -Is) ALL CASES COMPLETE"; touch "$ROOT/results/$RUN/ALL_DONE"; exit 0; fi
   rm -f "$out"

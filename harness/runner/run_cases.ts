@@ -94,6 +94,7 @@ interface Options {
 	examples: string;
 	systemFile: string;
 	taskFile: string;
+	resume: boolean;
 }
 
 function parseArgs(argv: string[]): Options {
@@ -115,6 +116,7 @@ function parseArgs(argv: string[]): Options {
 		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
 		resultsDir: join(PROJECT_ROOT, "results"),
 		note: "",
+		resume: false,
 		examples: "",
 		systemFile: DEFAULT_SYSTEM_FILE,
 		taskFile: DEFAULT_TASK_FILE,
@@ -179,6 +181,9 @@ function parseArgs(argv: string[]): Options {
 			case "--note":
 				opts.note = next();
 				break;
+			case "--resume":
+				opts.resume = true;
+				break;
 			case "--results-dir":
 				opts.resultsDir = resolve(next());
 				break;
@@ -220,6 +225,9 @@ function printHelp(): void {
   --examples <manifest>     Phase 2 prepare manifest.jsonl: attach each case's leave-one-out example image
                             (another case's GT outline, 3 planes) to the task message (E12)
   --note <text>             free-text note stored in batch_summary.json (experiment log)
+  --resume                  skip cases already complete in this run (meta.json done, no API errors);
+                            move incomplete case dirs to <run>/_incomplete/. The runner stops pulling new
+                            cases after a case hits a provider/API error and exits with code 3.
   --auth-shim <path>        auth shim package dir (default @gotgenes/pi-anthropic-auth)
   --results-dir <path>      (default <project>/results)
   --system-file <path>      (default harness/prompts/system.md)
@@ -345,7 +353,9 @@ function loadCases(): CaseRow[] {
 function shapeForCase(caseId: string): string {
 	let shapes: any[] | undefined;
 	try {
-		shapes = readFileSync(DESIGN_SHAPES, "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+		shapes = [DESIGN_SHAPES, DESIGN_SHAPES.replace(/design\.jsonl$/, "test.jsonl")]
+			.filter((p) => existsSync(p))
+			.flatMap((p) => readFileSync(p, "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l)));
 	} catch {
 		shapes = undefined;
 	}
@@ -445,6 +455,7 @@ interface CaseResult {
 	turns: number;
 	nudges: number;
 	errors: string[];
+	api_errors?: string[];
 }
 
 interface Shared {
@@ -624,9 +635,12 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		let cacheWrite = 0;
 		let costUsd = 0;
 		const toolCallsByName: Record<string, number> = {};
+		const apiErrors: string[] = [];
 		session.subscribe((event) => {
 			if (event.type === "message_end" && event.message.role === "assistant") {
 				result.turns += 1;
+				const m = event.message as any;
+				if (m.stopReason === "error") apiErrors.push(String(m.errorMessage ?? "assistant stopReason=error"));
 				const usage = event.message.usage;
 				if (usage) {
 					inputTokens += usage.input ?? 0;
@@ -742,6 +756,11 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 
 		const wallTimeS = (Date.now() - startedAt) / 1000;
 		result.wall_time_s = wallTimeS;
+		// provider errors only invalidate the case when the agent did not finish on its own
+		// (pi auto-retries transient errors; a recovered case is a valid result)
+		const fatalApiErrors = result.forced_finish ? apiErrors : [];
+		if (fatalApiErrors.length) errors.push(...fatalApiErrors.map((e) => `api: ${e}`));
+		result.api_errors = fatalApiErrors;
 		result.ok = errors.length === 0;
 
 		const meta = {
@@ -791,6 +810,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			},
 			cost_usd: costUsd,
 			errors,
+			api_errors: fatalApiErrors,
+			api_errors_all: apiErrors,
 			started_at: new Date(startedAt).toISOString(),
 			finished_at: new Date().toISOString(),
 		};
@@ -877,15 +898,49 @@ async function main(): Promise<void> {
 	console.log(`[runner] harness_sha256=${shared.harnessHash} git=${shared.git.describe} dirty_files=${shared.git.dirty.length}`);
 	console.log(`[runner] system_prompt_sha256=${shared.systemPromptSha} auth_shim=${shared.shimVersion}`);
 
+	if (opts.resume) {
+		const runDir = join(opts.resultsDir, opts.runId);
+		const todo: CaseRow[] = [];
+		for (const row of rows) {
+			const dir = join(runDir, row.case);
+			const meta = readJsonIfExists(join(dir, "meta.json"));
+			const complete =
+				meta?.done === true &&
+				(meta.api_errors ?? []).length === 0 &&
+				existsSync(join(dir, "final_mask.nii.gz"));
+			if (complete) continue;
+			if (existsSync(dir)) {
+				const dest = join(runDir, "_incomplete", `${row.case}_${Date.now()}`);
+				mkdirSync(join(runDir, "_incomplete"), { recursive: true });
+				renameSync(dir, dest);
+				console.log(`[runner] resume: moved incomplete ${row.case} -> ${dest}`);
+			}
+			todo.push(row);
+		}
+		console.log(`[runner] resume: ${rows.length - todo.length} complete, ${todo.length} to run`);
+		rows = todo;
+		if (rows.length === 0) {
+			console.log("[runner] resume: nothing to do");
+			return;
+		}
+	}
+
 	const queue = [...rows];
 	const results: CaseResult[] = [];
 	const batchStarted = Date.now();
+	let stopReason: string | undefined;
 
 	const worker = async (): Promise<void> => {
 		for (;;) {
+			if (stopReason) return;
 			const row = queue.shift();
 			if (!row) return;
-			results.push(await runCase(row, opts, shared));
+			const r = await runCase(row, opts, shared);
+			results.push(r);
+			if (r.api_errors && r.api_errors.length) {
+				stopReason = `${row.case}: ${r.api_errors[0]}`;
+				console.log(`[runner] provider/API error -> stop pulling new cases (${stopReason})`);
+			}
 		}
 	};
 	const workerCount = Math.max(1, Math.min(opts.concurrency, queue.length));
@@ -915,10 +970,19 @@ async function main(): Promise<void> {
 	};
 	const summaryDir = join(opts.resultsDir, opts.runId);
 	mkdirSync(summaryDir, { recursive: true });
-	writeFileSync(join(summaryDir, "batch_summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
-	console.log(`[runner] wrote ${join(summaryDir, "batch_summary.json")}`);
+	(summary as any).stopped_on_api_error = stopReason ?? null;
+	const summaryPath = join(summaryDir, "batch_summary.json");
+	if (existsSync(summaryPath)) {
+		// resumed run: keep earlier batch summaries, carry the earliest start time forward
+		const prev = readJsonIfExists(summaryPath);
+		renameSync(summaryPath, join(summaryDir, `batch_summary.${Date.now()}.json`));
+		if (prev?.started_at) (summary as any).first_started_at = prev.first_started_at ?? prev.started_at;
+	}
+	writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
+	console.log(`[runner] wrote ${summaryPath}`);
 
 	if (stub) stub.proc.kill();
+	if (stopReason) process.exit(3);
 }
 
 main().catch((error) => {

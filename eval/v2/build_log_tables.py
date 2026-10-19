@@ -135,7 +135,7 @@ def main() -> None:
         prov = bs.get("git_describe") or ("sha " + (bs.get("harness_sha256") or "")[:12])
         L.append(f"| {run} | {bs.get('started_at', '')[:16]} | {bs.get('model')} | {bs.get('thinking_level')} | {prov} | "
                  f"{st.mean(dice):.3f} | {st.median(dice):.3f} | {st.mean(dl) if dl else float('nan'):.3f} | {len(loc)} | "
-                 f"{30 - len(loc)} | {st.mean(tc):.2f} | {st.mean(mp):.2f} | {herr} | {forced} | {cost:.2f} |")
+                 f"{len(sc) - len(loc)} | {st.mean(tc):.2f} | {st.mean(mp):.2f} | {herr} | {forced} | {cost:.2f} |")
     L.append("")
     if runs:
         L += ["### Per-histotype mean Dice", "", "| run | " + " | ".join(HTYPES) + " |", "|---|" + "---|" * 5]

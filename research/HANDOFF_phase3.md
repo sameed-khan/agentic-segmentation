@@ -60,3 +60,6 @@ subagents only when necessary. Use `rg`, never `grep`. Explain codes in plain wo
   (tmux `dl`, `/tmp/dl_test.log`); worker generalising prepare/ask/score/oneclick to the test split.
 - 2026-10-19: worker finished test-split infra; committed; `harness-v2` re-tagged on that commit (agent-facing files
   unchanged from f3dfede). Killed tmux `dl`; pipeline started in tmux `p3` (download step resumes the download).
+- 2026-10-19 06:40: V25 blocked segd 11 min (scipy opening r=14 mm). Fixed with bit-identical EDT morphology
+  (`segd.ops.ball_morphology`, test `tests/test_ball_morphology.py`), tag `harness-v2.0.1`, see experiment_log §6
+  deviation log. segd restarted. V25 parked in `results/phase3-high/_incomplete/V25_api_*` and rerun. Pipeline restarted.

@@ -474,6 +474,52 @@ def op_refine(cs: CaseState) -> OpOutput:
     return out
 
 
+def ball_morphology(m: np.ndarray, op: str, r_vox) -> np.ndarray:
+    """Binary dilate/erode/open/close with the ellipsoid ball sum((d_i/r_i)^2) <= 1 (voxel offsets d),
+    identical to scipy.ndimage binary_* with that structure and border_value=0, but computed with exact
+    Euclidean distance transforms on a padded crop around the mask (scipy's cost grows with the ball volume:
+    a 14 mm opening of a 500 mL mask took 11 min and blocked segd; Phase 3, V25)."""
+    r = np.asarray(r_vox, dtype=float)
+    pad = int(np.ceil(r.max())) + 2
+    if not m.any():
+        return np.zeros_like(m, dtype=bool)
+    idx = np.nonzero(m)
+    lo = [max(0, int(i.min()) - 2 * pad) for i in idx]
+    hi = [min(n, int(i.max()) + 1 + 2 * pad) for i, n in zip(idx, m.shape)]
+    crop = m[tuple(slice(a, b) for a, b in zip(lo, hi))]
+    # zero padding beyond the real array emulates border_value=0; `inside` re-imposes the array bounds
+    # after each step (scipy never sets voxels outside the array)
+    pw = [(pad, pad)] * 3
+    x = np.pad(crop, pw)
+    inside = np.pad(np.ones(crop.shape, bool), pw)
+    for a, (l, h, n) in enumerate(zip(lo, hi, m.shape)):
+        sl = [slice(None)] * 3
+        if l > 0:
+            sl[a] = slice(0, pad); inside[tuple(sl)] = True
+        if h < n:
+            sl[a] = slice(x.shape[a] - pad, None); inside[tuple(sl)] = True
+    samp = tuple(1.0 / r)
+    tol = float(np.sqrt(1.0 + 1e-9))   # same tolerance as the scipy structure in op_edit
+
+    def dil(b):
+        if not b.any():
+            return np.zeros_like(b)
+        return (ndimage.distance_transform_edt(~b, sampling=samp) <= tol) & inside
+
+    def ero(b):
+        # out-of-array cells are 0 in b (zero padding), so they act as background (border_value=0)
+        if not b.any():
+            return np.zeros_like(b)
+        return (ndimage.distance_transform_edt(b, sampling=samp) > tol) & inside
+
+    seq = {"dilate": [dil], "erode": [ero], "open": [ero, dil], "close": [dil, ero]}[op]
+    for f in seq:
+        x = f(x)
+    out = np.zeros(m.shape, bool)
+    out[tuple(slice(a, b) for a, b in zip(lo, hi))] = x[pad:-pad, pad:-pad, pad:-pad]
+    return out
+
+
 def op_edit(cs: CaseState, op: str, mark=None, radius_mm=None) -> OpOutput:
     if op not in ("keep_component", "remove_component", "fill_holes", "close", "open", "dilate", "erode"):
         raise OpError("edit op must be keep_component|remove_component|fill_holes|close|open|dilate|erode "
@@ -509,14 +555,8 @@ def op_edit(cs: CaseState, op: str, mark=None, radius_mm=None) -> OpOutput:
         mask = ((mask > 0) & (comp if op == "keep_component" else ~comp)).astype(np.uint8)
     elif op == "fill_holes":
         mask = ndimage.binary_fill_holes(mask > 0).astype(np.uint8)
-    elif op == "close":
-        mask = ndimage.binary_closing(mask > 0, structure=struct).astype(np.uint8)
-    elif op == "open":
-        mask = ndimage.binary_opening(mask > 0, structure=struct).astype(np.uint8)
-    elif op == "dilate":
-        mask = ndimage.binary_dilation(mask > 0, structure=struct).astype(np.uint8)
-    elif op == "erode":
-        mask = ndimage.binary_erosion(mask > 0, structure=struct).astype(np.uint8)
+    elif op in ("close", "open", "dilate", "erode"):
+        mask = ball_morphology(mask > 0, op, r_vox).astype(np.uint8)
     img, render_s, suffix = _change_image(cs, cs.current_mask(), mask)   # render before commit
     with cs.rollback_on_error(parent_vid):
         vid = cs.commit_mask(mask)

@@ -347,6 +347,15 @@ one-click nnInteractive at the GT centroid (no LLM) on the same cases; Phase 2 l
 **Not changed after seeing test results:** prompts, tools, budgets, scorer, endpoint. Design-set results (E1–E16) are
 development; only test-split numbers are reported as results.
 
+**Deviation log (Phase 3):**
+- 2026-10-19 06:40, high pass, after 168/169 cases: V25's `seg_edit open radius_mm=14` on a 503 mL mask took 659 s in
+  `scipy.ndimage.binary_opening` (cost ∝ ball volume) and blocked segd; the case hit the wall-time limit and the forced
+  finish timed out (harness failure). Fix (tag `harness-v2.0.1`): `segd.ops.ball_morphology`, exact-EDT implementation
+  of the same operations, **bit-identical** to scipy (randomised test incl. border cases; the V25 opening reproduces
+  the logged 377.2 mL exactly), 2.9 s instead of 659 s. No other case logged an error or used a large radius.
+  V25 is rerun from scratch on the fixed code; all other high-pass cases ran on `harness-v2`. Runner: wall-time
+  aborts are no longer classified as provider errors. The xhigh pass runs entirely on `harness-v2.0.1`.
+
 ## 7. Next experiments (planned)
 
 | ID | Question | Runs |

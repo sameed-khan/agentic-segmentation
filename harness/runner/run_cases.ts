@@ -758,7 +758,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		result.wall_time_s = wallTimeS;
 		// provider errors only invalidate the case when the agent did not finish on its own
 		// (pi auto-retries transient errors; a recovered case is a valid result)
-		const fatalApiErrors = result.forced_finish ? apiErrors : [];
+		// (the wall-time abort surfaces as "This operation was aborted": that is a budget outcome, not a provider error)
+		const fatalApiErrors = result.forced_finish && !aborted ? apiErrors : [];
 		if (fatalApiErrors.length) errors.push(...fatalApiErrors.map((e) => `api: ${e}`));
 		result.api_errors = fatalApiErrors;
 		result.ok = errors.length === 0;

@@ -32,3 +32,9 @@ COL_AXIS = {"axial": 0, "coronal": 0, "sagittal": 1}
 # Every seg_* call counts against the tool-call budget (see ops.run_op); when that budget
 # is exhausted only `finish` is accepted.
 MODEL_PROMPT_OPS = frozenset({"point", "lasso", "scribble", "box", "refine"})
+
+# Candidate corrections (segd.candidates; benchmark results/candidate_bench/summary.md
+# chose 'intensity' as the best precision/recall-per-second source, max 5 per state).
+CANDIDATE_METHOD = "intensity"
+CANDIDATE_MAX_N = 5
+CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS = 3   # after this many seg_accept calls a review stops offering candidates

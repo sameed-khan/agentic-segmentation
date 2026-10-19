@@ -436,6 +436,17 @@ def stub_render_change_3plane(image, prev_mask, new_mask, markset=None, spacing=
     return canvas, StubChange3Info("change3", views, note)
 
 
+def stub_render_candidates(image, mask, candidates, spacing=(1.0, 1.0, 1.0), markset=None):
+    """Stub candidate sheet: one small panel row per candidate (contract signature of
+    segd.render.render_candidates; ops uses only the image)."""
+    from PIL import Image
+    n_rows = max(1, len(list(candidates)))
+    canvas = Image.new("RGB", (48, 16 * n_rows), (24, 24, 24))
+    return canvas, StubRenderInfo("candidates", image.shape[config.FIXED_AXIS["axial"]] // 2,
+                                  _stub_geom(image, "axial", image.shape[config.FIXED_AXIS["axial"]] // 2),
+                                  [], [])
+
+
 # ------------------------------------------------------- stub installation
 def _module(name: str) -> types.ModuleType:
     mod = sys.modules.get(name)
@@ -472,3 +483,4 @@ def install_stubs(monkeypatch, force: bool = False) -> None:
         monkeypatch.setattr(mod, "render_view", stub_render_view, raising=False)
         monkeypatch.setattr(mod, "render_outline_change", stub_render_outline_change, raising=False)
         monkeypatch.setattr(mod, "render_change_3plane", stub_render_change_3plane, raising=False)
+        monkeypatch.setattr(mod, "render_candidates", stub_render_candidates, raising=False)

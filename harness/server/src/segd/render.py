@@ -31,6 +31,7 @@ __all__ = [
     "render_outline_change",
     "render_change_3plane",
     "render_review_grid",
+    "render_candidates",
     "render_raw_pointing",
     "voxel_to_panel",
     "panel_to_voxel",
@@ -973,6 +974,130 @@ def render_review_grid(image: np.ndarray, mask: np.ndarray, spacing=(1.0, 1.0, 1
         out.paste(r, ((w - r.width) // 2, y))
         y += r.height + REVIEW_GAP_PX
     return out, RenderInfo("review", views, [], [], window)
+
+
+CANDIDATE_COLOR = (255, 64, 255)     # magenta outline/tint of a candidate (green = mask, red = removed)
+CANDIDATE_TINT = 0.2                 # <= 20% fill so the tissue inside the outline stays visible
+CANDIDATE_MARGIN_MM = 20.0           # cell crop: bbox(mask U candidate) + this margin per side
+CANDIDATE_GAP_PX = 8
+CANDIDATE_MAX_SCALE = 8.0            # px per voxel cap (tiny candidates stay cell-sized)
+CANDIDATE_MAX_MP = 1.1               # pixel budget of the whole image (<= ~1.2 MP with gaps)
+CANDIDATE_LABEL_PX = 17
+
+
+def _draw_candidate_label(panel: Image.Image, label: str, occupied: list[tuple]) -> tuple:
+    """Candidate id chip ('C1'): magenta text on a black plate, placed in the top margin
+    WITHOUT covering the frame furniture (slice chip, orientation letters) passed in
+    ``occupied``: the first left-to-right x whose plate clears every occupied rectangle
+    wins; on a panel too narrow for the top row, the free spot of the bottom row is tried;
+    as a last resort the chip is clamped into the top row (right-aligned) so it is always
+    drawn.  Returns the chip's plate rectangle."""
+    d = ImageDraw.Draw(panel)
+    f = _font(CANDIDATE_LABEL_PX)
+    l0, t0, r0, b0 = d.textbbox((0, 0), label, font=f)   # text extent relative to the anchor
+
+    def plate(x, y):
+        return (x + l0 - 4, y + t0 - 3, x + r0 + 4, y + b0 + 3)
+
+    w, h = panel.width, panel.height
+    y_top = 4
+    y_bot = h - 4 - b0                    # plate flush with the bottom margin
+    best = None
+    for y in (y_top, y_bot):
+        x = 4
+        while x + (r0 - l0) + 8 <= w and any(_boxes_overlap(plate(x, y), ob) for ob in occupied):
+            x += 4
+        if x + (r0 - l0) + 8 <= w and not any(_boxes_overlap(plate(x, y), ob) for ob in occupied):
+            best = (x, y)
+            break
+    if best is None:                      # nothing fits without a collision: clamp top-right
+        best = (max(4, w - (r0 - l0) - 8), y_top)
+    x, y = best
+    l, t, r, b = plate(x, y)
+    d.rectangle((l, t, r, b), fill=_BLACK, outline=CANDIDATE_COLOR, width=2)
+    d.text((x, y), label, font=f, fill=CANDIDATE_COLOR)
+    return (l, t, r, b)
+
+
+def render_candidates(image: np.ndarray, mask: np.ndarray, candidates,
+                      spacing=(1.0, 1.0, 1.0), markset: M.MarkSet | None = None
+                      ) -> tuple[Image.Image, RenderInfo]:
+    """Candidate-correction sheet: one row per candidate (max 5), columns axial / coronal /
+    sagittal through the candidate's centre of mass (moved to the nearest slice that still
+    contains candidate voxels).  Every cell is cropped to the bbox of (mask U candidate) on
+    that plane + ``CANDIDATE_MARGIN_MM``; the current mask is a green outline, the candidate
+    a magenta outline with a ``CANDIDATE_TINT`` fill and its id chip next to the slice chip.
+    Cells shrink with the number of rows so the image stays <= ``TOTAL_WIDTH_PX`` per side
+    and <= ~1.2 MP.  ``candidates`` need ``id``/``bbox``/``crop`` (segd.candidates.Candidate)."""
+    image = np.asarray(image)
+    mask = np.asarray(mask) > 0
+    spacing = tuple(float(v) for v in spacing)
+    cands = list(candidates)[:5]
+    if not cands:
+        raise ValueError("render_candidates needs at least one candidate")
+    n = len(cands)
+    gap = CANDIDATE_GAP_PX
+    cell = int(min((TOTAL_WIDTH_PX - 2 * gap) // 3,                       # 3 columns per row
+                   (TOTAL_WIDTH_PX - (n - 1) * gap) // n,                 # n rows high
+                   np.sqrt(CANDIDATE_MAX_MP * 1e6 / (3 * n))))            # total pixel budget
+    shape = image.shape
+    window = _window_for(image, markset)
+    midx = np.nonzero(mask)
+    mlo = [int(a.min()) for a in midx] if midx[0].size else None
+    mhi = [int(a.max()) + 1 for a in midx] if midx[0].size else None
+    views: list[ViewGeom] = []
+    row_imgs: list[Image.Image] = []
+    for cand in cands:
+        region = np.zeros(shape, dtype=bool)
+        region[cand.bbox] = cand.crop
+        cidx = np.nonzero(cand.crop)
+        com = [float(a.mean()) + s.start for a, s in zip(cidx, cand.bbox)]   # candidate centre of mass
+        lo = [s.start for s in cand.bbox]
+        hi = [s.stop for s in cand.bbox]
+        if mlo is not None:                    # crop = bbox(mask U candidate)
+            lo = [min(a, b) for a, b in zip(lo, mlo)]
+            hi = [max(a, b) for a, b in zip(hi, mhi)]
+        panels: list[Image.Image] = []
+        for axis in ("axial", "coronal", "sagittal"):
+            ra, rflip, ca, cflip = M._INPLANE[axis]
+            fixed = M.AXIS_INDEX[axis]
+            rows, cols = M.slice_shape(shape, axis)
+            sl = int(np.clip(round(com[fixed]), 0, shape[fixed] - 1))
+            has = np.nonzero(cand.crop.any(axis=tuple(i for i in range(3) if i != fixed)))[0] \
+                + cand.bbox[fixed].start
+            if sl not in has:                  # the COM of a non-convex candidate can miss it
+                sl = int(has[np.argmin(np.abs(has - sl))])
+            box_vox = {}
+            for a in (ra, ca):
+                m_vox = int(np.ceil(CANDIDATE_MARGIN_MM / spacing[a]))
+                box_vox[a] = (max(0, lo[a] - m_vox), min(shape[a], hi[a] + m_vox))
+            r_lo, r_hi = _display_interval(*box_vox[ra], shape[ra], rflip)
+            c_lo, c_hi = _display_interval(*box_vox[ca], shape[ca], cflip)
+            box = (r_lo, c_lo, r_hi, c_hi)
+            scale = min(cell / (c_hi - c_lo), cell / (r_hi - r_lo), CANDIDATE_MAX_SCALE)
+            pw = max(1, int(np.floor((c_hi - c_lo) * scale)))
+            ph = max(1, int(np.floor((r_hi - r_lo) * scale)))
+            geom = ViewGeom(axis, sl, rows, cols, box, scale, pw, ph)
+            panel = _panel_from_slice(M.extract_slice(image, axis, sl), window, box, scale, pw, ph)
+            panel = _overlay_outline_px(panel, M.extract_slice(region, axis, sl), box,
+                                        CANDIDATE_COLOR, tint=CANDIDATE_TINT)
+            panel = _overlay_outline_px(panel, M.extract_slice(mask, axis, sl), box, OUTLINE_COLOR)
+            occupied = _draw_frame(panel, geom, spacing, f"{axis[:3]} {sl}", scale_bar=False)
+            _draw_candidate_label(panel, cand.id, occupied)   # collision-aware: clears chip + letters
+            views.append(geom)
+            panels.append(panel)
+        row_h = max(p.height for p in panels)
+        row = Image.new("RGB", (3 * cell + 2 * gap, row_h), (24, 24, 24))
+        for i, p in enumerate(panels):
+            row.paste(p, (i * (cell + gap) + (cell - p.width) // 2, (row_h - p.height) // 2))
+        row_imgs.append(row)
+    h = sum(r.height for r in row_imgs) + gap * (n - 1)
+    out = Image.new("RGB", (3 * cell + 2 * gap, h), (24, 24, 24))
+    y = 0
+    for r in row_imgs:
+        out.paste(r, (0, y))
+        y += r.height + gap
+    return out, RenderInfo("candidates", views, [], [], window)
 
 
 RAW_MARGIN_TOP_PX = 22       # raw-pointing rulers/title live in margins around the image

@@ -136,7 +136,9 @@ def test_probe_with_stub_session():
     assert recall(cands, tumour & ~mask) > 0.9
     c = cands[0]
     assert c.how["method"] == "probe" and c.how["include"] is True and len(c.how["seed_ijk"]) == 3
-    assert stub.tumour[tuple(c.how["seed_ijk"])] or True
+    # the stub only grows the mask for clicks inside the tumour, so every surviving add
+    # candidate's probe seed must really be tumour tissue (was a trivially-true `or True`)
+    assert stub.tumour[tuple(c.how["seed_ijk"])]
 
 
 @pytest.mark.skipif(not os.environ.get("NNI_URL"), reason="NNI_URL not set")
@@ -155,3 +157,46 @@ def test_no_gt_access():
     src = (Path(segd.__file__).parent / "candidates.py").read_text()
     for bad in ("load_mask", "mask_paths", "segd.data", "from segd import data", "nib.load"):
         assert bad not in src, bad
+
+
+def test_components_materialize_only_top_limit():
+    """Fix round #7: _components ranks by size first; with a limit only the largest
+    components are materialized (each is a region-sized allocation), and the size-ordered
+    scan stops at the first component below min_vox."""
+    region = np.zeros((40, 40, 40), bool)
+    for n in range(27):                              # 27 separate blobs, sizes descending with n
+        side = 12 - (n // 3)                         # never wider than the 13-voxel slot pitch
+        x, y, z = (n % 3) * 13 + 1, ((n // 3) % 3) * 13 + 1, (n // 9) * 13 + 1
+        region[x:x + side, y:y + side, z:z + side] = True
+    comps_all = C._components(region, min_vox=1)
+    assert len(comps_all) == 27
+    sizes = sorted((int(c.sum()) for c in comps_all), reverse=True)
+    top = C._components(region, min_vox=1, limit=10)
+    assert len(top) == 10
+    top_sizes = sorted((int(c.sum()) for c in top), reverse=True)
+    assert top_sizes == sizes[:10]                   # exactly the largest ones are kept
+    kept = C._components(region, min_vox=sizes[10] + 1)
+    assert all(int(c.sum()) > sizes[10] for c in kept)   # scan stops below min_vox
+    assert len(kept) == sum(1 for s in sizes if s > sizes[10])
+
+
+def test_propose_with_many_components_stays_bounded():
+    """Fix round #7, end to end: a ring of separate equally-bright blobs next to the mask
+    (plus the missed lesion half) produces many qualifying components; proposing stays
+    bounded, returns at most max_n candidates and ranks them largest-first."""
+    img, tumour, kk = phantom()
+    mask = partial_mask(tumour, kk)
+    centre = np.array(CENTER, float)
+    g = np.ogrid[-3:4, -3:4, -3:4]
+    ball = (g[0] ** 2 + g[1] ** 2 + g[2] ** 2) <= 3 ** 2
+    for angle in np.linspace(0, 2 * np.pi, 12, endpoint=False):
+        p = np.rint(centre + np.array([np.cos(angle), np.sin(angle), 0.0]) * 21).astype(int)
+        sl = tuple(slice(p[a] - 3, p[a] + 4) for a in range(3))
+        img[sl][ball] = 500.0                        # same intensity as the lesion
+    cands = C.propose(img, mask, (1, 1, 1), method="intensity", min_piece_ml=0.05, min_ml=0.0,
+                      max_n=5)
+    assert 0 < len(cands) <= 5
+    assert all(c.kind == "add" for c in cands)
+    vols = [c.volume_ml for c in cands]
+    assert vols == sorted(vols, reverse=True)        # ranked by volume (score) descending
+    assert cands[0].volume_ml > 1.0                  # the missed lesion half outranks the blobs

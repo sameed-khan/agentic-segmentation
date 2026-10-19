@@ -42,6 +42,8 @@ export const SEG_TOOL_NAMES = [
 	"seg_edit",
 	"seg_undo",
 	"seg_checkout",
+	"seg_candidates",
+	"seg_accept",
 	"seg_finish",
 ] as const;
 
@@ -378,10 +380,35 @@ export function createSegExtension(options: SegExtensionOptions): ExtensionFacto
 			},
 		}),
 		defineTool({
+			name: "seg_candidates",
+			label: "Candidate corrections",
+			description:
+				"List automatic proposals (C1, C2, ...) of lesion tissue the current mask may have missed, computed from image intensity only; they are often wrong. Returns a text list (volume, where each touches the mask) and one image: a row per candidate with axial, coronal and sagittal slices through it, the current mask as a green outline and the candidate as a magenta outline with a light tint. Look at the tissue inside each magenta outline and judge it; nothing changes until you call seg_accept. Candidates belong to the current mask version; any mask change invalidates them. Counts as a tool call.",
+			parameters: Type.Object({}),
+			async execute(_id, _params) {
+				return runOp("candidates", {});
+			},
+		}),
+		defineTool({
+			name: "seg_accept",
+			label: "Accept candidates",
+			description:
+				"Add the chosen candidates from the latest seg_candidates (or final review) to the mask as one new version. A direct edit without the model (seg_refine can smooth it afterwards). Only accept candidates whose tissue is part of the lesion. Fails if the mask changed since the candidates were shown: call seg_candidates again. Counts as a tool call, not a model prompt.",
+			parameters: Type.Object({
+				ids: Type.Array(Type.String(), {
+					description: 'Candidate ids to accept, e.g. ["C1", "C3"].',
+					minItems: 1,
+				}),
+			}),
+			async execute(_id, params) {
+				return runOp("accept", asArgs(params));
+			},
+		}),
+		defineTool({
 			name: "seg_finish",
 			label: "Finish case",
 			description:
-				"Save the final mask and end the case. The first call (without review_code) shows a final review of the current mask (slices across each plane and just past the mask ends) and a review code. Check it, fix problems, then call seg_finish again with that review_code to save. Editing after the review requires a new review.",
+				"Save the final mask and end the case. The first call (without review_code) shows a final review of the current mask (five slices per plane: three inside the mask extent and one just past each end), a second image with candidate corrections (possibly missed lesion tissue next to the mask: accept those that belong with seg_accept, then review again) and a review code. Check it, fix problems, then call seg_finish again with that review_code to save. Editing after the review requires a new review.",
 			parameters: Type.Object({
 				confidence: CONFIDENCE,
 				reason: Type.String({ description: "Short reason for the confidence." }),

@@ -28,6 +28,7 @@ import numpy as np
 from scipy import ndimage as ndi
 from skimage.segmentation import slic
 
+from segd import config
 from segd import marks as M
 
 PROBE_UPLOAD_MAX_PACKED_BYTES = 60 * 1024 * 1024   # same rule as config.UPLOAD_MAX_PACKED_BYTES
@@ -164,16 +165,22 @@ def _interior_point(region: np.ndarray, spacing) -> tuple[int, int, int]:
     return tuple(int(p[a] - 1 + bb[a].start) for a in range(3))
 
 
-def _components(region: np.ndarray, min_vox: int) -> list[np.ndarray]:
+def _components(region: np.ndarray, min_vox: int, limit: int | None = None) -> list[np.ndarray]:
+    """Connected components of ``region`` above ``min_vox``, LARGEST FIRST.  Only the top
+    ``limit`` are materialized: every materialization is a region-sized allocation, so with
+    many qualifying components the small ones (which can never make the final max_n cut)
+    must not be built at all (fix-round performance bound)."""
     lab, n = ndi.label(region)
     if n == 0:
         return []
     sizes = np.bincount(lab.ravel())
     objs = ndi.find_objects(lab)
     out = []
-    for i in np.argsort(-sizes[1:], kind="stable"):
+    for i in np.argsort(-sizes[1:], kind="stable"):     # component labels by size, descending
         if sizes[i + 1] < min_vox:
-            continue
+            break                                       # sorted: everything after is smaller
+        if limit is not None and len(out) >= limit:
+            break
         sl = objs[i]
         comp = np.zeros(region.shape, dtype=bool)
         comp[sl] = lab[sl] == i + 1
@@ -199,6 +206,12 @@ def _split_shells(comp: np.ndarray, dist_mm: np.ndarray, shell_mm: float, min_vo
 # ----------------------------------------------------------------------------------------------
 # (a) intensity growth
 # ----------------------------------------------------------------------------------------------
+# Bound for many-component regions (fix round #7): rank by size first and materialize only
+# the top few — 2 x the ops-layer candidate cap (config.CANDIDATE_MAX_N) is generous, since
+# _finalize never returns more than max_n.
+_MATERIALIZE_TOP = 2 * config.CANDIDATE_MAX_N
+
+
 def _gen_intensity(ctx: _Ctx, *, D_mm: float = 30.0, lo: float = 2.0, hi: float = 98.0, pad: float = 0.3,
                    shell_mm: float = 10.0, open_mm: float = 0.0, min_piece_ml: float = 0.2, **_) -> list[Candidate]:
     box = ctx.crop_box(D_mm + 5.0)
@@ -216,7 +229,7 @@ def _gen_intensity(ctx: _Ctx, *, D_mm: float = 30.0, lo: float = 2.0, hi: float 
     min_vox = max(int(min_piece_ml * 1000.0 / np.prod(ctx.spacing)), 1)
     touch = ndi.binary_dilation(mask_c)
     out = []
-    for comp in _components(cand, min_vox):
+    for comp in _components(cand, min_vox, limit=_MATERIALIZE_TOP):
         if not (comp & touch).any():
             continue
         for piece, shell in _split_shells(comp, dist, shell_mm, min_vox):
@@ -316,7 +329,7 @@ def _gen_supervoxel(ctx: _Ctx, *, sv_mm: float = 14.0, ds_mm: float = 3.0, compa
     dist = ndi.distance_transform_edt(~mask_c, sampling=ctx.spacing)
     min_vox = max(int(min_piece_ml * 1000.0 / np.prod(ctx.spacing)), 1)
     out = []
-    for comp in _components(add_region, min_vox):
+    for comp in _components(add_region, min_vox, limit=_MATERIALIZE_TOP):
         for piece, shell in _split_shells(comp, dist, shell_mm, min_vox):
             seed = _interior_point(piece, ctx.spacing)
             c = _make("add", piece, off, ctx.shape, ctx.spacing,
@@ -326,7 +339,7 @@ def _gen_supervoxel(ctx: _Ctx, *, sv_mm: float = 14.0, ds_mm: float = 3.0, compa
                 out.append(c)
     weak = (cov < cov_lo) & (tot > 0)
     rem_region = mask_c & weak[labels]
-    for comp in _components(rem_region, min_vox):
+    for comp in _components(rem_region, min_vox, limit=_MATERIALIZE_TOP):
         seed = _interior_point(comp, ctx.spacing)
         c = _make("remove", comp, off, ctx.shape, ctx.spacing,
                   {"method": "supervoxel", "seed_ijk": tuple(int(a + o) for a, o in zip(seed, off))})
@@ -394,7 +407,7 @@ def _gen_ends(ctx: _Ctx, *, max_ext_mm: float = 40.0, lo: float = 2.0, hi: float
                 idx[ax] = s
                 vol[tuple(idx)] = reg
             min_vox = max(int(min_piece_ml * 1000.0 / np.prod(ctx.spacing)), 1)
-            comps = _components(vol, min_vox)
+            comps = _components(vol, min_vox, limit=1)   # only the largest piece is used
             if not comps:
                 continue
             comp = comps[0]                       # connected through the slices; keep the largest piece
@@ -496,12 +509,13 @@ def _remove_seeds(ctx: _Ctx, max_n: int = 4, min_ml: float = 1.0) -> list[tuple[
         sizes = np.bincount(lab.ravel())
         sizes[0] = 0
         main = int(np.argmax(sizes))
-        for comp in _components(m & (lab != main), min_vox):
+        for comp in _components(m & (lab != main), min_vox, limit=_MATERIALIZE_TOP):
             parts.append((comp, "component"))
     dt = ndi.distance_transform_edt(m, sampling=ctx.spacing)
     r = max(3.0, 0.35 * float(dt.max()))
     core = ndi.binary_opening(m, structure=_ball(tuple(r / sp for sp in ctx.spacing)))
-    for comp in _components(m & ~core & (lab == (int(np.argmax(np.bincount(lab.ravel())[1:])) + 1)), min_vox):
+    for comp in _components(m & ~core & (lab == (int(np.argmax(np.bincount(lab.ravel())[1:])) + 1)), min_vox,
+                            limit=_MATERIALIZE_TOP):
         parts.append((comp, "protrusion"))
     parts.sort(key=lambda p: -int(p[0].sum()))
     out = []

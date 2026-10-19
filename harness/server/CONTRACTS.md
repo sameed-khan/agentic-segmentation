@@ -197,3 +197,41 @@ the tool schema accepts `ids: array of (integer|string)`.
   - *Robustness*: a prompt with `nni is None` (earlier failed reconnect) reconnects first; mutating ops are
     all-or-nothing (`CaseState.rollback_on_error`) so a render failure never leaves a committed version;
     unknown ops / non-object args count as a tool call and are logged; budget display is capped at max.
+- **2026-10-19 (candidate corrections, E14 integration).** New ops `candidates` (`seg_candidates`, no args)
+  and `accept` (`seg_accept(ids)`) (§4/§6). `candidates` runs the GT-free 'intensity' generator
+  (`segd.candidates.propose`, method/max_n from `config.CANDIDATE_METHOD`/`CANDIDATE_MAX_N`; the case's body
+  mask is reused via the `propose` `cache`) on the CURRENT mask and caches the result per version id in
+  `CaseState.candidate_cache`; the text lists C1..Cn (volume, mask contact, direction) and returns ONE
+  `render.render_candidates(image, mask, candidates, spacing)` image (§3 addition): rows = candidates (max 5),
+  columns axial/coronal/sagittal through the candidate's centre of mass, every cell cropped to
+  bbox(mask ∪ candidate) + 20 mm; current mask = green outline, candidate = magenta outline + ≤20% tint with
+  its id chip; orientation letters and slice chips; image ≤1568 px per side and ≤~1.2 MP. Proposing changes
+  nothing and counts as a tool call (no candidates -> text only). `accept(ids)` unions the chosen
+  add-candidates into ONE new version — a non-model edit, so `nni_dirty=True` per the sync rule — and returns
+  the usual observation + 3-plane change image. Candidates belong to the version they were computed for: any
+  mask change invalidates them (`CaseState.candidates_shown`, also cleared on rollback); accepting a stale id
+  errors "candidates are out of date; call seg_candidates again", an unknown id "unknown candidate id(s)".
+  Required review (§4 `finish`): the first review of a version ALSO computes candidates and returns the
+  candidate sheet as a second image after the 3×5 review grid, plus the list and the judge text in the
+  observation; the review_code mechanism is unchanged (a confirmation still needs the code printed in the
+  latest review). Cap: after `config.CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS` (3) successful `seg_accept` calls in
+  a case, reviews no longer show candidates and say so; `seg_candidates` keeps working. Empty mask -> no
+  candidate round. Logging (§4): trajectory records gain the op-specific fields `candidates` (version,
+  method, items with id/kind/volume_ml/how) and `accepted` (ids, from/to version, volume_ml, how),
+  `timings.candidates` (proposal seconds); the sheet is saved to `renders/` like every agent image.
+  Extension (§6): `seg_candidates`/`seg_accept` registered and added to `SEG_TOOL_NAMES`; `seg_finish`'s
+  description mentions the candidate round.
+- **2026-10-20 (candidate fix round).** Authorization no longer survives version round trips: every change
+  of the current version (`CaseState.commit_mask`/`checkout`/`undo` and `rollback_on_error`, one
+  `_clear_authorization` helper) revokes `candidates_shown` and the review authorization
+  (`reviewed_version`/`review_code`); the per-version computation cache (`candidate_cache`) is kept, so
+  re-calling `seg_candidates` on a cached version is cheap. Candidate visibility is set only after the
+  candidate sheet rendered (a failed `render_candidates` authorizes nothing, in `candidates` and in the
+  `finish` review alike). Mutating ops (`ops.TRANSACTIONAL_OPS`) are transactional through render saving
+  and trajectory logging: a failure after the op body (save_render, record, observation) restores
+  versions/current version, counters (`accept_rounds`) and authorization, logs an `error_kind:"internal"`
+  record and lets app.py send the generic error. Review sheets show five slices per plane (three inside
+  the mask extent + one just past each end); candidate id chips are placed collision-aware against the
+  frame's occupied rectangles (no overlap with orientation letters, bottom-row fallback on narrow
+  panels). `candidates._components` materializes only the largest `limit` qualifying components
+  (2 x `CANDIDATE_MAX_N` at the generator call sites) instead of one crop-sized array per component.

@@ -16,6 +16,15 @@ def _now_iso() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + f".{int(time.time() * 1000) % 1000:03d}Z"
 
 
+def _json_default(o):
+    """JSON encoder for numpy scalars/arrays (e.g. candidate 'how' metadata)."""
+    if isinstance(o, np.generic):
+        return o.item()
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    return str(o)
+
+
 class TrajectoryLogger:
     """One logger per open case. All writes are small appends; nothing is buffered."""
 
@@ -47,6 +56,7 @@ class TrajectoryLogger:
         renders: list[str] | None = None,
         error: str | None = None,
         error_kind: str | None = None,
+        extra: dict | None = None,
     ) -> None:
         rec = {
             "ts": _now_iso(),
@@ -64,8 +74,10 @@ class TrajectoryLogger:
             # scoring can tag `harness` (reviewer finding #2).
             "error_kind": error_kind,
         }
+        if extra:
+            rec.update(extra)             # op-specific fields (e.g. candidates, accepted ids)
         with open(self.trajectory_path, "a") as f:
-            f.write(json.dumps(rec, separators=(",", ":")) + "\n")
+            f.write(json.dumps(rec, separators=(",", ":"), default=_json_default) + "\n")
 
     # -------------------------------------------------------------- versions
     def flush_versions(self, records: list[dict], shape) -> None:

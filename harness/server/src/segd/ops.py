@@ -1,5 +1,5 @@
 """The segd op set (CONTRACTS §4/§6): open/sheet/view/point/lasso/scribble/box/paint/
-refine/edit/undo/checkout/finish. Each op returns OpOutput(text, images); run_op()
+refine/edit/undo/checkout/candidates/accept/finish. Each op returns OpOutput(text, images); run_op()
 wraps budget checks, trajectory logging, render saving and timing.
 
 Mark resolution always goes through the active view (CaseState.resolve_ids); resolved
@@ -40,6 +40,15 @@ from segd.observe import (
 
 POLARITY_TRUE = {"add", "positive", "include", "pos", "true"}
 POLARITY_FALSE = {"erase", "remove", "negative", "exclude", "neg", "false"}
+
+
+def _candidates_module():
+    """Lazy contract import: segd.candidates (candidate corrections; E14 benchmark)."""
+    try:
+        from segd import candidates
+    except ImportError as e:
+        raise OpError("segd.candidates is not available (candidates module missing)") from e
+    return candidates
 
 
 def _with_budget(cs: CaseState, msg: str) -> str:
@@ -556,6 +565,111 @@ def op_checkout(cs: CaseState, version) -> OpOutput:
     return OpOutput(text, [img])
 
 
+# ------------------------------------------------------------- candidates
+CANDIDATE_JUDGE_TEXT = (
+    "For each candidate decide whether the tissue inside its outline is part of the same lesion "
+    "(accept) or normal tissue (reject). Accept with seg_accept and call seg_finish again for a "
+    "new review; if none belong, confirm with the review code.")
+CANDIDATE_IMAGE_TEXT = ("candidate image: one row per candidate, columns axial / coronal / sagittal through "
+                        "the candidate (green outline = current mask, magenta outline + light tint = candidate; "
+                        "judge the tissue inside the magenta outline)")
+
+
+def _candidates_for_current(cs: CaseState) -> list:
+    """Add-candidates for the CURRENT version (GT-free 'intensity' generator, cached per
+    version id in CaseState; the case's body mask is reused). Fills the trajectory's extra
+    fields. Visibility (``candidates_shown``) is NOT set here: the calling op authorizes
+    only after the candidate sheet rendered (and run_op's transaction makes the
+    authorization fall back if saving/logging fails) — a failed render authorizes nothing."""
+    cand_mod = _candidates_module()
+    vid = cs.current
+    if vid not in cs.candidate_cache:
+        t0 = time.time()
+        mask = cs.current_mask()
+        cache = {"body": cs.body} if cs.body is not None and cs.body.any() else None
+        found = cand_mod.propose(cs.image, mask, cs.spacing, method=config.CANDIDATE_METHOD,
+                                 max_n=config.CANDIDATE_MAX_N, cache=cache)
+        cs.candidate_cache[vid] = [c for c in found if c.kind == "add"]
+        cs._timings_candidates = round(time.time() - t0, 3)
+    cands = cs.candidate_cache[vid]
+    cs._log_extra["candidates"] = {
+        "version": vid_label(vid), "method": config.CANDIDATE_METHOD,
+        "items": [{"id": c.id, "kind": c.kind, "volume_ml": round(c.volume_ml, 3), "how": c.how}
+                  for c in cands],
+    }
+    return cands
+
+
+def _candidate_lines(cs: CaseState, cands: list) -> str:
+    return "\n".join(_candidates_module().describe_candidate(c, cs.current_mask(), cs.spacing)
+                     for c in cands)
+
+
+def _candidate_image(cs: CaseState, cands: list):
+    t0 = time.time()
+    img, _ri = _render().render_candidates(cs.image, cs.current_mask(), cands, cs.spacing)
+    cs._timings["render"] = round((cs._timings.get("render") or 0.0) + (time.time() - t0), 3)
+    return img
+
+
+def op_candidates(cs: CaseState) -> OpOutput:
+    """seg_candidates: propose (GT-free) corrections for the current mask; text list + one
+    image. Nothing changes until seg_accept."""
+    if not (cs.current_mask() > 0).any():
+        raise OpError("candidates: current mask is empty")
+    cands = _candidates_for_current(cs)
+    label = vid_label(cs.current)
+    if not cands:
+        return OpOutput(f"{label} | no candidates: nothing next to the mask looks like it could "
+                        f"belong to it | {budget_line(cs)}", [])
+    text = (f"{label} | {len(cands)} candidate(s): automatic proposals of possibly missed lesion tissue "
+            "next to the mask, computed from image intensity only (often wrong; judge each by the tissue "
+            "inside its outline).\n"
+            f"{_candidate_lines(cs, cands)}\n{CANDIDATE_IMAGE_TEXT}. "
+            f"Accept the ones that belong with seg_accept | {budget_line(cs)}")
+    img = _candidate_image(cs, cands)     # render BEFORE anything is authorized
+    cs.candidates_shown = cs.current      # visibility only after the sheet rendered; if saving
+    return OpOutput(text, [img])          # or logging fails, run_op's transaction revokes it again
+
+
+def op_accept(cs: CaseState, ids) -> OpOutput:
+    """seg_accept: union of the chosen add-candidates as ONE new version (a direct edit:
+    nni is marked dirty per the sync rule, no model prompt)."""
+    ids = _check_ids(ids)
+    wanted: list[str] = []
+    for raw in ids:
+        cid = str(raw).strip().upper()
+        if cid not in wanted:
+            wanted.append(cid)
+    if cs.candidates_shown != cs.current or cs.current not in cs.candidate_cache:
+        # candidates belong to the version they were computed for; any mask change invalidates them
+        raise OpError("candidates are out of date; call seg_candidates again")
+    shown = {c.id: c for c in cs.candidate_cache[cs.current]}
+    unknown = [c for c in wanted if c not in shown]
+    if unknown:
+        raise OpError(f"unknown candidate id(s) {unknown}; current candidates: {sorted(shown) or 'none'}")
+    parent_vid = cs.current
+    mask = cs.current_mask()
+    for cid in wanted:
+        c = shown[cid]
+        mask[c.bbox] |= c.crop.astype(mask.dtype)
+    img, render_s, suffix = _change_image(cs, cs.current_mask(), mask)   # render before commit
+    with cs.rollback_on_error(parent_vid):
+        vid = cs.commit_mask(mask)
+        cs._nni_dirty = True
+        text = (observation_after_mutation(cs, parent_vid, vid)
+                + f" | accept {', '.join(wanted)} (candidate edit, no model prompt) | {suffix}")
+    cs.accept_rounds += 1                # (authorization was revoked by commit_mask; the
+                                         # run_op transaction restores both on later failure)
+    cs._log_extra["accepted"] = {"ids": wanted, "from_version": vid_label(parent_vid),
+                                 "to_version": vid_label(vid),
+                                 "volume_ml": round(sum(shown[c].volume_ml for c in wanted), 3),
+                                 "how": [shown[c].how for c in wanted]}
+    cs._last_resolved = []
+    cs._timings = {"render": render_s, "nni": 0.0}
+    return OpOutput(text, [img])
+
+
 def _review_code(cs: CaseState) -> str:
     """Deterministic 4-digit code for one review (case, version, call count)."""
     import hashlib
@@ -589,6 +703,27 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
         t0 = time.time()
         img, _ri = _render().render_review_grid(cs.image, mask, cs.spacing)
         cs._timings = {"render": round(time.time() - t0, 3), "nni": 0.0}
+        images = [img]
+        cand_text = ""
+        if st["n_components"] > 0:
+            # required candidate round: every first review for a version also proposes
+            # candidates (capped after CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS accepted rounds)
+            if cs.accept_rounds >= config.CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS:
+                cand_text = (f"Candidates: none offered ({cs.accept_rounds} candidate rounds accepted; the "
+                             f"review stops offering them after {config.CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS}). ")
+            else:
+                cands = _candidates_for_current(cs)
+                if cands:
+                    img_c = _candidate_image(cs, cands)   # render BEFORE anything is authorized
+                    images.append(img_c)
+                    cs.candidates_shown = cs.current      # after the sheet rendered; a later
+                    # save_render/logging failure rolls the authorization back (run_op transaction)
+                    cand_text = ("Candidates (second image): automatic proposals of possibly missed lesion "
+                                 "tissue next to the mask, computed from image intensity only (often wrong).\n"
+                                 f"{_candidate_lines(cs, cands)}\n{CANDIDATE_IMAGE_TEXT}. "
+                                 f"{CANDIDATE_JUDGE_TEXT} ")
+                else:
+                    cand_text = "Candidates: none found. "
         cs.reviewed_version = cs.current
         cs.review_code = _review_code(cs)
         confirm = (f"If everything is right, call seg_finish again with review_code "
@@ -601,12 +736,14 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
         else:
             text = (f"Final review of {label}: volume {st['volume_ml']:.1f} mL | "
                     f"{components_text(st)} | {_fmt_extent(st['extent'])} | {budget_line(cs)}. "
+                    "The image shows five slices per plane (three inside the mask extent + one "
+                    "just past each end; past-the-mask panels are orange). "
                     "Check: (1) Is lesion tissue visible in the past-the-mask panels (orange)? "
                     "Then the mask stops too early: seg_view that slice and add positive points "
                     "on the lesion there. (2) Does the outline cut through lesion or include "
                     "normal tissue on any panel? (3) Stray components? If any answer shows a "
-                    "problem, fix it before finishing. " + confirm)
-        return OpOutput(text, [img])
+                    "problem, fix it before finishing. " + cand_text + confirm)
+        return OpOutput(text, images)
     st = mask_stats(cs.current_mask(), cs.spacing)
     text = cs.finish(confidence, reason)
     text += (f" | final volume {st['volume_ml']:.1f} mL, {components_text(st)} "
@@ -627,6 +764,8 @@ OPS = {
     "edit": op_edit,
     "undo": op_undo,
     "checkout": op_checkout,
+    "candidates": op_candidates,
+    "accept": op_accept,
     "finish": op_finish,
 }
 
@@ -643,8 +782,50 @@ ARG_SPECS = {
     "edit": {"op", "mark", "radius_mm"},
     "undo": set(),
     "checkout": {"version"},
+    "candidates": set(),
+    "accept": {"ids"},
     "finish": {"confidence", "reason", "skip_review", "review_code"},
 }
+
+
+# Ops that change durable state (versions, current version, candidate/review authorization,
+# accept counter, done flag): when rendering or trajectory logging fails after the op body
+# ran, the snapshot taken in run_op restores all of it, so the error reply is true ("nothing
+# happened"). Pure-read ops (open/sheet/view) need no transaction.
+TRANSACTIONAL_OPS = frozenset({
+    "point", "lasso", "scribble", "box", "paint", "refine", "edit",
+    "undo", "checkout", "candidates", "accept", "finish",
+})
+
+
+def _transaction_snapshot(cs: CaseState) -> dict:
+    """Durable-state snapshot of ``cs`` before a TRANSACTIONAL_OPS op runs."""
+    return {
+        "versions": dict(cs.versions),
+        "current": cs.current,
+        "accept_rounds": cs.accept_rounds,
+        "candidates_shown": cs.candidates_shown,
+        "reviewed_version": cs.reviewed_version,
+        "review_code": cs.review_code,
+        "done": cs.done,
+        "flushed_through": cs._versions_flushed_through,
+    }
+
+
+def _transaction_rollback(cs: CaseState, snap: dict | None) -> None:
+    """Restore the durable state a failed op had changed (see TRANSACTIONAL_OPS)."""
+    if snap is None:
+        return
+    cs.versions = snap["versions"]
+    cs.current = snap["current"]
+    cs.accept_rounds = snap["accept_rounds"]
+    cs.candidates_shown = snap["candidates_shown"]
+    cs.reviewed_version = snap["reviewed_version"]
+    cs.review_code = snap["review_code"]
+    cs.done = snap["done"]
+    cs._versions_flushed_through = snap["flushed_through"]
+    for vid in [v for v in cs.candidate_cache if v not in snap["versions"]]:
+        cs.candidate_cache.pop(vid, None)
 
 
 def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
@@ -677,12 +858,15 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
 
     t0 = time.time()
     cs._timings = {}
+    cs._timings_candidates = None
+    cs._log_extra = {}
     cs._last_resolved = []
     cs.tool_calls += 1   # every call counts, including the ones that fail below
     if op_name in config.MODEL_PROMPT_OPS and cs.model_prompts >= cs.budgets["max_model_prompts"]:
         raise reject("model prompt budget used; edit with seg_paint/seg_edit or call seg_finish",
                      "budget")
     parent_vid = cs.current
+    snap = _transaction_snapshot(cs) if op_name in TRANSACTIONAL_OPS else None
     try:
         # an unknown op / malformed args still count as a tool call and are logged below
         if bad_args:
@@ -699,20 +883,38 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
                       parent=vid_label(parent_vid))
         raise OpError(_with_budget(cs, str(e))) from e
     except Exception:
-        # unexpected error: the full traceback goes to the trajectory with error_kind
-        # 'internal' so scoring can tag `harness` (finding #2)
+        # unexpected error: undo the op's state changes, then log the full traceback with
+        # error_kind 'internal' so scoring can tag `harness` (finding #2)
+        _transaction_rollback(cs, snap)
         cs.log.record(op=op_name, args=args, resolved=cs._last_resolved,
                       error=traceback.format_exc(), error_kind="internal",
                       timings={"total": round(time.time() - t0, 3)},
                       parent=vid_label(parent_vid))
         raise
-    render_files = [cs.log.save_render(img, op_name) for img in out.images]
-    timings = {"render": cs._timings.get("render"), "nni": cs._timings.get("nni"),
-               "total": round(time.time() - t0, 3)}
-    child = cs.current if cs.current != parent_vid else None
-    cs.log.record(op=op_name, args=args, resolved=cs._last_resolved, timings=timings,
-                  parent=vid_label(parent_vid),
-                  child=vid_label(child) if child is not None else None,
-                  observation=out.text, renders=render_files)
+    try:
+        # render saving + trajectory logging stay INSIDE the transaction: the op is not
+        # durable until both succeeded, so a failure here (save_render, record, ...) restores
+        # versions/current version, counters and authorization and logs error_kind 'internal'
+        # before app.py sends the generic error reply (fix round #3).
+        render_files = [cs.log.save_render(img, op_name) for img in out.images]
+        timings = {"render": cs._timings.get("render"), "nni": cs._timings.get("nni"),
+                   "total": round(time.time() - t0, 3)}
+        if cs._timings_candidates is not None:
+            timings["candidates"] = cs._timings_candidates
+        child = cs.current if cs.current != parent_vid else None
+        cs.log.record(op=op_name, args=args, resolved=cs._last_resolved, timings=timings,
+                      parent=vid_label(parent_vid),
+                      child=vid_label(child) if child is not None else None,
+                      observation=out.text, renders=render_files, extra=cs._log_extra)
+    except Exception:
+        _transaction_rollback(cs, snap)
+        try:   # best effort: persistence itself may be what failed
+            cs.log.record(op=op_name, args=args, resolved=cs._last_resolved,
+                          error=traceback.format_exc(), error_kind="internal",
+                          timings={"total": round(time.time() - t0, 3)},
+                          parent=vid_label(parent_vid))
+        except Exception:
+            pass
+        raise
     out.done = cs.done
     return out

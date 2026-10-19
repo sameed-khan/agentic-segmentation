@@ -12,7 +12,7 @@ import segd
 
 AGENT_REACHABLE = [
     "app.py", "case_state.py", "ops.py", "observe.py", "config.py",
-    "fake_nni.py", "log.py", "segctl.py", "marks.py", "render.py",
+    "fake_nni.py", "log.py", "segctl.py", "marks.py", "render.py", "candidates.py",
 ]
 
 

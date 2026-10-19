@@ -143,6 +143,7 @@ class CaseState:
         self.done = False
         self.tool_calls = 0
         self.reviewed_version: int | None = None   # version shown in the last final review
+        self.review_code: str | None = None        # confirmation code of that review (ops.op_finish)
         self.model_prompts = 0
         self.versions: dict[int, VersionRecord] = {0: VersionRecord(0, None, None, b"", 0)}
         self.current = 0                      # v0 = empty
@@ -158,6 +159,13 @@ class CaseState:
         self.upload_packed_bytes = 0
         self.log = None                       # TrajectoryLogger, created in initialize()
         self._versions_flushed_through = -1   # highest version id already in versions.npz
+        # candidate corrections (segd.candidates), computed GT-free per version id; any mask
+        # change to that version invalidates them (ops.op_accept enforces the staleness)
+        self.candidate_cache: dict[int, list] = {}   # version id -> proposed add-candidates
+        self.candidates_shown: int | None = None     # version whose candidates the agent last saw
+        self.accept_rounds = 0                       # successful seg_accept calls (review cap)
+        self._timings_candidates: float | None = None   # seconds spent computing candidates in this op
+        self._log_extra: dict = {}                   # op-specific fields for the trajectory record
         self.created_at = time.time()
 
     # ----------------------------------------------------------------- setup
@@ -258,12 +266,24 @@ class CaseState:
     def version_records(self) -> list[dict]:
         return [r.__dict__ for r in (self.versions[i] for i in sorted(self.versions))]
 
+    def _clear_authorization(self) -> None:
+        """Revoke everything the agent was shown/authorized for on the CURRENT version:
+        the candidate sheet (seg_accept) and the review confirmation (review_code).
+        Called by every path that changes ``current`` (commit/checkout/undo/rollback):
+        authorization must never survive a mask change or a version round trip, while the
+        per-version computation cache (candidate_cache) is kept — re-proposing a cached
+        version is cheap, only the authorization is revoked."""
+        self.candidates_shown = None
+        self.reviewed_version = None
+        self.review_code = None
+
     def commit_mask(self, mask_full: np.ndarray, note: str = "") -> int:
         """Store a new immutable version from a full-volume mask; returns its int id."""
         vid = len(self.versions)
         bbox, packed, nvox = pack_region(mask_full)
         self.versions[vid] = VersionRecord(vid, self.current, bbox, packed, nvox)
         self.current = vid
+        self._clear_authorization()
         # versions.npz is written at finish and after every VERSIONS_NPZ_EVERY committed
         # versions (CONTRACTS §4/§5.7); an explicit flush_versions() covers the tail.
         if config.VERSIONS_NPZ_EVERY and vid % config.VERSIONS_NPZ_EVERY == 0:
@@ -282,7 +302,10 @@ class CaseState:
         except BaseException:
             for vid in [v for v in self.versions if v >= n_before]:
                 del self.versions[vid]
+                self.candidate_cache.pop(vid, None)   # version ids are reused after a rollback
             self.current = parent_vid
+            # fail closed: whatever authorization the op already revoked stays revoked
+            self._clear_authorization()
             self._nni_dirty = True
             self._versions_flushed_through = min(self._versions_flushed_through, n_before - 1)
             raise
@@ -304,7 +327,9 @@ class CaseState:
     def checkout(self, version: str | int) -> int:
         """Switch the current version; returns the new version id (int; label via vid_label)."""
         vid = parse_version(version, len(self.versions))
-        self.current = vid
+        if vid != self.current:
+            self.current = vid
+            self._clear_authorization()   # undo/checkout round trips must not revive authorization
         self._nni_dirty = True
         return vid
 

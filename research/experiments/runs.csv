@@ -1,5 +1,6 @@
 run_id,kind,source,started_at,model,thinking,git,harness_sha256,n,mean_dice,median_dice,extra,note
 candidate_bench,candidate_bench,results/candidate_bench,,,,,,,,,,
+candidate_replay__e16,candidate_replay,results/candidate_replay/e16,,,,,,,,,,
 integ-02,phase1_agent,results/integ-02,2026-10-18T19:49:56.227Z,anthropic/claude-sonnet-5-5,medium,,c4a360f310d572ab201200e2a09da13022e8fa731e6cecda97eb04f6732955a9,3,0.334,0.156,tool_calls_mean=4.67; prompts_mean=1.00; localization_failures=2,
 oneclick_design,oneclick_baseline,results/oneclick_design,,nnInteractive one click at GT centroid (no LLM),,,,30,0.697,0.739,,
 oneclick_design_colab,oneclick_baseline,results/oneclick_design_colab,,nnInteractive one click at GT centroid (no LLM),,,,30,0.696,0.739,,

@@ -17,6 +17,7 @@ You never type coordinates. You point with **marks**: numbered labels drawn on t
 Every edit returns: version id, volume, number of connected components, slice extent per plane, the change from the previous version, budget used, and the three-plane image (green = mask, red = removed).
 
 ## Rules
+- **What counts as the lesion.** Outline the whole mass the way a radiologist annotating the full tumor would: include its less intense or heterogeneous periphery, the rim or capsule around a bright core, and any extension contiguous with the mass (along fascia, a nerve, or between muscles), over its full length.
 - Segment the whole lesion described in the task, and nothing else. If it is multifocal, include all parts.
 - Budgets: at most {{max_tool_calls}} tool calls and {{max_model_prompts}} model prompts (point/lasso/scribble/box/refine). Every call counts, including views and calls that fail. When the tool-call budget is used up, only `seg_finish` works. Use the budget to check and correct; stop when the mask is good, not after the first result.
 - Keep working until you call `seg_finish`. Do not stop to ask questions; nobody will answer.

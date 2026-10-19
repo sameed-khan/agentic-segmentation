@@ -299,6 +299,30 @@ non-transactional persistence after commit) → fixed and regression-tested (151
   judgement of "is this rim/extension part of the lesion" (annotation convention), not candidate availability or tooling.
   These 100 labelled decisions (images + GT label) are a ready evaluation set for decision models (step 4) or prompt optimisation.
 
+### E16. Candidate-decision replay: does a "what counts as the lesion" line change judgement? — `candidate_replay__e16`
+Prompt line (agreed with Sameed, added to `harness/prompts/system.md` as the first Rules bullet): *"What counts as the
+lesion. Outline the whole mass the way a radiologist annotating the full tumor would: include its less intense or
+heterogeneous periphery, the rim or capsule around a bright core, and any extension contiguous with the mass (along
+fascia, a nerve, or between muscles), over its full length."*
+Replay: the 27 candidate reviews of E15 (100 candidates, 18 GT-positive; `harness/study/prepare_candidate_replay.py`)
+sent as single tool-less calls (Sonnet 5.5, thinking high, both review images + review text) with the E15 system
+prompt (base) or with the line (lesion); 3 reps; `harness/study/replay_candidates.ts`, `score_candidate_replay.py`.
+
+| condition | sensitivity | specificity | accepted / review | mean Dice Δ | oracle Δ |
+|---|---|---|---|---|---|
+| base | 0.056 | 0.988 | 0.07 | −0.003 | +0.037 |
+| lesion | 0.130 | 0.988 | 0.12 | −0.000 | +0.037 |
+
+- The line roughly doubles sensitivity (only N21 C1 and M08 C1 flip) at unchanged specificity; Dice impact ≈ 0.
+  The large rims (M33 C1, precision 0.83; N34 C1, 0.73) are still rejected in every call: the model describes them as
+  "a thin shell of muscle/fascia/edema around the mask … would add far too much". One consistent false positive
+  (V57_v2 C4, both conditions).
+- Single-turn replay reproduces the in-agent behaviour (E15: 0/18), so the replay set is a cheap proxy for judgement.
+- Side check (`eval/v2/dilation_check.py`): uniform dilation of final masks does not substitute: +1 voxel gives
+  +0.006 mean Dice, ≥ 2 voxels lowers it (xhigh: r0 0.706, r1 0.712, r2 0.699, r3 0.680). The GT rims are case-specific.
+- **Interpretation:** the remaining delineation gap is an annotation-convention disagreement that the model actively
+  resists on visual grounds; instruction alone does not move it. Kept the line (harmless, slightly positive).
+
 ## 6. Next experiments (planned)
 
 | ID | Question | Runs |

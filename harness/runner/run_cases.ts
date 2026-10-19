@@ -91,6 +91,7 @@ interface Options {
 	authShim: string;
 	resultsDir: string;
 	note: string;
+	examples: string;
 	systemFile: string;
 	taskFile: string;
 }
@@ -114,6 +115,7 @@ function parseArgs(argv: string[]): Options {
 		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
 		resultsDir: join(PROJECT_ROOT, "results"),
 		note: "",
+		examples: "",
 		systemFile: DEFAULT_SYSTEM_FILE,
 		taskFile: DEFAULT_TASK_FILE,
 	};
@@ -171,6 +173,9 @@ function parseArgs(argv: string[]): Options {
 			case "--auth-shim":
 				opts.authShim = resolve(next());
 				break;
+			case "--examples":
+				opts.examples = resolve(next());
+				break;
 			case "--note":
 				opts.note = next();
 				break;
@@ -212,6 +217,8 @@ function printHelp(): void {
   --nni-url <url>           (default http://127.0.0.1:1527)
   --extension <path>        default harness/extension (dir); checks/ping_ext.ts for smoke
   --dry-stub                spawn the bundled stub segd and use it as --segd-url
+  --examples <manifest>     Phase 2 prepare manifest.jsonl: attach each case's leave-one-out example image
+                            (another case's GT outline, 3 planes) to the task message (E12)
   --note <text>             free-text note stored in batch_summary.json (experiment log)
   --auth-shim <path>        auth shim package dir (default @gotgenes/pi-anthropic-auth)
   --results-dir <path>      (default <project>/results)
@@ -502,6 +509,28 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			budgets: `max ${opts.maxToolCalls} tool calls / ${opts.maxModelPrompts} model prompts / ${opts.wallMin} min wall time`,
 		});
 
+		// 2b. Optional example image (E12): another design case of the same histotype with its GT outline.
+		let exampleImages: { type: "image"; data: string; mimeType: string }[] = [];
+		let exampleText = "";
+		if (opts.examples) {
+			const rows = readFileSync(opts.examples, "utf8").split(/\r?\n/).filter((l) => l.trim()).map((l) => JSON.parse(l));
+			const ex = rows.find((r: any) => r.case === caseId);
+			if (!ex?.image_example) throw new Error(`no example image for ${caseId} in ${opts.examples}`);
+			const exPath = resolve(PROJECT_ROOT, ex.image_example);
+			const buf = readFileSync(exPath);
+			exampleImages = [{ type: "image", data: buf.toString("base64"), mimeType: "image/png" }];
+			exampleText =
+				`\n\nThe attached image is an example from a different patient (not this case): a ` +
+				`${HISTOTYPE_TEXT[row.histotype] ?? row.histotype} outlined in green in axial, coronal and sagittal slices. ` +
+				"Use it to recognize this tumor type and to judge how much tissue the outline should include.";
+			mkdirSync(caseDir, { recursive: true });
+			writeFileSync(
+				join(caseDir, "example.json"),
+				JSON.stringify({ manifest: opts.examples, image: ex.image_example, sha256: createHash("sha256").update(buf).digest("hex"),
+					donor: ex.example_donor ?? null, note: ex.example_note ?? null, text: exampleText.trim() }, null, 2) + "\n",
+			);
+		}
+
 		// 3. Extension set: our seg_* factory bound to this case (or an override
 		//    path), plus the auth shim, plus a payload-capture factory.
 		const captureFactory: ExtensionFactory = (pi: ExtensionAPI) => {
@@ -631,7 +660,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		// 9. Prompt loop: keep going until seg_finish (done) or a stop condition.
 		let forcedReason: string | undefined;
 		try {
-			await session.prompt(taskMessage);
+			if (exampleImages.length) await session.prompt(taskMessage + exampleText, { images: exampleImages });
+			else await session.prompt(taskMessage);
 			for (;;) {
 				const status = await statusOf();
 				if (status?.done) break;
@@ -874,6 +904,7 @@ async function main(): Promise<void> {
 		git_describe: shared.git.describe,
 		git_dirty_files: shared.git.dirty,
 		note: opts.note,
+		examples: opts.examples || null,
 		system_prompt_sha256: shared.systemPromptSha,
 		auth_shim_version: shared.shimVersion,
 		pi_version: VERSION,

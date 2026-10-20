@@ -410,3 +410,69 @@ Phase 4 narrowed to BEAMSTER only (brain metastases, CE-T1 MRI, 140 cases: 30 de
    `SEGD_DATA_ROOT`) and `eval/v4/test_score_multi.py` (detection rule, 10% boundary,
    FP/bucket/F1 math, tags, and a synthetic-manifest integration case with dataset
    inference from `case_meta.json`).
+
+## Phase 6 — segmenter swap (SAM-Med3D-turbo instead of nnInteractive)
+
+Goal: harness v2 with SAM-Med3D-turbo as the interactive segmenter, apples-to-apples — the agent
+sees identical tools, prompts, renders, marks, budgets and observation formats; ONLY the
+segmenter behind `CaseState.nni` changes. Full write-up: `research/phase6_sammed3d.md`.
+
+- **Selection.** `POST /cases` accepts `segmenter` (`"nninteractive"` default | `"sammed3d"`) and
+  `segmenter_url` (sammed3d default `config.SAMED3D_URL` = `http://127.0.0.1:8095`; for nninteractive
+  the existing `nni_url` is used, unchanged). Anything else → HTTP 400. `CaseState(segmenter=,
+  segmenter_url=)`. Both appear in `case_meta.json` (`segmenter`, `segmenter_url`; `nni` is
+  `"sammed3d"` for the swap, `"remote"`/`"fake"` otherwise) and in `GET /cases/{h}/status`
+  (`segmenter`). The runner exposes `--segmenter` / `--segmenter-url`, recorded in each case's
+  `meta.json` and in `batch_summary.json`. With the default segmenter nothing changes: observations
+  and PNG bytes are identical to the pre-Phase-6 tree (`tests/test_p6_default_identity.py`).
+- **Client.** `segd.sammed3d` bridges to the local-model project `harness/local_models/sammed3d`
+  (own uv env with torch; segd needs no torch). `sammed3d.client.SamMed3DSession` is a
+  call-signature drop-in for `nnInteractiveRemoteInferenceSession` (identical method names,
+  parameters and defaults for everything CaseState calls: `set_image`, `set_target_buffer`,
+  `set_do_autozoom`, `reset_interactions`, `add_{point,bbox,lasso,scribble,initial_seg}_interaction`,
+  `_predict`, `close`, ...; asserted by `tests/test_client_parity.py`). The sync rule (§4), the
+  upload crop, the model-prompt budget and the reconnect-once rule apply unchanged (a sammed3d
+  `SessionExpiredError` is a transport failure like nnInteractive's). `ops.py` is untouched.
+- **Service** (`sammed3d-service`, FastAPI, 127.0.0.1:8095; `--fake` = numpy stand-in for offline
+  tests). Every prediction returns the FULL session-space mask plus the prompt-mapping log. Per
+  call it recomputes the 3D mask from ALL accumulated points and the previous prediction's low-res
+  mask (the official iterative-clicking semantics); prompts sent with `run_prediction=False` only
+  accumulate. `reset_interactions` clears points and the previous mask; `add_initial_seg` makes the
+  given mask the previous-mask prompt AND, like nnInteractive's `add_initial_seg_interaction` ("WARNING THIS
+  WILL RESET INTERACTIONS"), drops all earlier points and the first-positive anchor; a predicting initial seg
+  (`seg_refine`) adds one EDT-max interior positive point as the window seed (the state-only sync call adds none).
+- **Preprocessing / patches** (official `utils/infer_utils.py`, minus ground truth): resample to 1.5 mm
+  (linear), per-patch `ZNormalization` over x>0, 128³ patches, logits upsampled trilinear, sigmoid>0.5,
+  nearest-neighbour map back to the session grid. GT is NEVER used for patch placement: the first patch
+  is centred on the first positive prompt; later patches cover bbox(positive points ∪ current mask);
+  a box exceeding 128 model voxels (192 mm) on an axis is tiled (~25 % overlap, ±16-voxel margin, cap 27
+  patches, the cap/coarsening is logged), each patch gets the prompt points inside it and its slice of
+  the previous mask as the 32³ low-res mask prompt (a tile is skipped only when it has no point AND no
+  high-res previous-mask foreground; the pooled prompt's sign is irrelevant); logits are averaged in overlaps.
+  Mapping back to the session grid follows ITK/TorchIO nearest-neighbour rules (half-voxel support, round half
+  up; exact-half ties are floating-point dependent in ITK: ≤1 model voxel).
+- **Mapping** (logged per call in the response and stored in the trajectory record as
+  `segmenter_interactions`: one entry per prompt call since the previous prediction with
+  `mapped_points` = `[[i, j, k, label], ...]` in session voxels, then a summary entry with
+  `patches_used`, `windows_model_vox`, `n_points_total`, `patch_note`): point → native point
+  (label 1/0); bbox → centre + 4 quarter points of the box slice (label per include flag; the singleton fixed axis of a 2D box is the slice voxel index itself; a 3D box →
+  centre + 8); lasso → ≤5 deterministic farthest-point samples inside the filled contour (first = EDT
+  max); scribble → ≤5 deterministic evenly spaced samples along the stroke; initial_seg/refine →
+  the mask as low-res mask prompt (+ EDT-max interior point for the predicting call). Deterministic, no
+  test-time tuning.
+- **Documented deviations from the official pipeline**: patch placement from prompts instead of the GT
+  bbox centre (required: no GT); windows near the volume edge are zero-padded, not shifted (as the
+  official CropOrPad); an all-zero / constant patch is normalised to 0 instead of raising; non-identical
+  windows derive their mask prompt from the previous probability map (block-mean to 32³, logit) while an
+  identical window reuses the raw low-res logits (the official carry-over).
+- Not swapped: the candidate generator's optional `probe` method (unused; `config.CANDIDATE_METHOD`
+  is `intensity`) still talks to nnInteractive; the system prompt text still says "nnInteractive"
+  (kept verbatim for apples-to-apples).
+- **Service sessions (Phase 6 review fixes).** A session idle for `--session-ttl` seconds (default 3600) is
+  reaped — never while a request is in flight — whenever a session is created or `/healthz` is read, so
+  capacity recovers after a segd crash without restarting the service; an expired session answers 404 →
+  `SessionExpiredError` → segd's reconnect-once rule. `/healthz` reports `sessions: {count, max, busy,
+  oldest_age_s, max_idle_s, ttl_s, reaped_total}`.
+- **Identity test baseline.** `tests/test_p6_default_identity.py` compares the worktree's default segmenter with
+  a PINNED pre-Phase-6 segd (`tests/fixtures/segd_baseline`, `git archive 1dcc622`, sha256 manifest verified)
+  or `SEGD_BASELINE_SRC`; it skips explicitly (never self-compares) when neither exists.

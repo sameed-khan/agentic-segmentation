@@ -18,5 +18,10 @@ harness/colab/logs/
 .DS_Store
 harness/server/unused/
 
+
 # local secrets (A100)
 .env
+harness/local_models/sammed3d/.venv/
+harness/local_models/sammed3d/checkpoints/*.pth
+harness/runner/node_modules/
+**/.pytest_cache/

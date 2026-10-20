@@ -1,0 +1,21 @@
+{
+ "commit": "1dcc622d1c550e4e290345f3fc42c67cf94194cd",
+ "source": "git archive 1dcc622 harness/server/src/segd (pre-Phase-6 main; identical to the main working tree's segd at the time)",
+ "files": {
+  "segd/__init__.py": "a0e86c87a0ed7065692c36f4763934b127865dc144373e23f1e2c1b77b261ec2",
+  "segd/app.py": "deb77a37bfaf7850815c3067a31b6489539e4805852ee16b3783da7419295804",
+  "segd/candidates.py": "1b4eae6de130a821b3b7dfdd249aa8663cb9b77f23d3ba789fb5e96017ef02dc",
+  "segd/case_state.py": "b83597e9074b5b1c28b35d768b260d06fb426b1bcab9a84aae2054413793ac48",
+  "segd/config.py": "720c3cff93f96b6a5639ea21701f8314708411e9612a3897752596f6f1a60aec",
+  "segd/data.py": "510147ef613d8b7660252c29634077d52f2eeaa1ab62b56f839dcd7f9a55acea",
+  "segd/fake_nni.py": "7e7d46ba69f985899ea7fb81e51af8ed7aef2e305b9ede711014a508bcacd851",
+  "segd/fonts/DejaVuSans-Bold.ttf": "f4d58aceee14e271bcc26de8d67a5ff4722a36b8fa87849035bb8b35f9af78a4",
+  "segd/log.py": "c9f174bd7a95303d4bd87f0b13bfd5a7ac35774ba8cf47d330ad2c820039f04d",
+  "segd/marks.py": "e0f49aeaad24c120815b3da79e52abc7513f6f33499ca0a5be366677c2239ff9",
+  "segd/observe.py": "0e874d1aa15890ede7bea6617438919769a227dfc5173bb9ecc4380048eb607c",
+  "segd/ops.py": "82822604a687b221d30469983fbd2512836bc2211023afbaefd390a5b7c6b131",
+  "segd/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "segd/render.py": "9fff1f9a6156a3a22e0667cbbd02aad2d09b8205fb5fd4916d1bb00f6ed51d5f",
+  "segd/segctl.py": "fb44695bdfd73abf0829a7bb77ef8432ea5b91195d6330ff3dedd6a8600a175f"
+ }
+}

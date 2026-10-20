@@ -76,3 +76,7 @@ V3_MEDGEMMA_MAX_TOKENS = 256
 _V3_REPO_ROOT = Path(__file__).resolve().parents[3]
 V3_MEDGEMMA_CLIENT_FILE = _V3_REPO_ROOT / "local_models" / "medgemma" / "medgemma_client.py"
 V3_PROMPT_DIR = (_V3_REPO_ROOT / "prompts" / "medgemma")
+
+# Phase 6 segmenter swap: the SAM-Med3D local-model service endpoint (harness/local_models/
+# sammed3d, CONTRACTS.md "Phase 6"). Used when a case opens with segmenter="sammed3d".
+SAMED3D_URL = "http://127.0.0.1:8095"

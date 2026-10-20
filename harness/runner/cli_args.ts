@@ -32,6 +32,9 @@ const DEFAULT_AUTH_SHIM = join(
 /** Runner-selectable datasets (Phase 4 = BEAMSTER only; 'mstt' = unchanged behaviour). */
 export const DATASETS = ["mstt", "beamster"] as const;
 
+/** Interactive segmenter behind the identical tool surface (Phase 6 swap). */
+export const SEGMENTERS = ["nninteractive", "sammed3d"] as const;
+
 /** Per-dataset budget/prompt defaults (decision 4): applied for options the user did
  *  NOT pass explicitly. Static per dataset — never derived from GT lesion counts. */
 export const DATASET_DEFAULTS: Record<string, { wallMin: number; maxToolCalls: number; maxModelPrompts: number }> = {
@@ -61,6 +64,8 @@ export interface Options {
 	maxModelPrompts: number;
 	segdUrl: string;
 	nniUrl: string;
+	segmenter: string;
+	segmenterUrl: string | null;
 	v3Pointer: string | null;
 	v3PointerUrl: string | null;
 	v3Medgemma: string | null;
@@ -109,6 +114,8 @@ export function parseArgs(argv: string[]): Options {
 		maxModelPrompts: 15,
 		segdUrl: "http://127.0.0.1:8765",
 		nniUrl: "http://127.0.0.1:1527",
+		segmenter: "nninteractive",
+		segmenterUrl: null,
 		v3Pointer: null,
 		v3PointerUrl: null,
 		v3Medgemma: null,
@@ -177,6 +184,12 @@ export function parseArgs(argv: string[]): Options {
 			case "--nni-url":
 				opts.nniUrl = next();
 				break;
+			case "--segmenter":
+				opts.segmenter = next();
+				break;
+			case "--segmenter-url":
+				opts.segmenterUrl = next();
+				break;
 			case "--v3-pointer":
 				opts.v3Pointer = next();
 				break;
@@ -236,6 +249,9 @@ export function parseArgs(argv: string[]): Options {
 	if (!DATASETS.includes(opts.dataset as any)) {
 		throw new Error(`--dataset must be one of ${DATASETS.join("|")}`);
 	}
+	if (!SEGMENTERS.includes(opts.segmenter as any)) {
+		throw new Error(`--segmenter must be ${SEGMENTERS.join("|")} (got ${opts.segmenter})`);
+	}
 	applyDatasetProfile(opts, explicit);
 	return opts;
 }
@@ -258,6 +274,9 @@ function printHelp(): void {
   --max-model-prompts <n>   budget sent to segd (default 15)
   --segd-url <url>          (default http://127.0.0.1:8765)
   --nni-url <url>           (default http://127.0.0.1:1527)
+  --segmenter <name>        nninteractive (default) | sammed3d (Phase 6 segmenter swap; the
+                            agent-side tools/prompts are identical, only the segmenter changes)
+  --segmenter-url <url>     segmenter service URL (default: segd's, http://127.0.0.1:8095 for sammed3d)
   --v3-pointer <mode>       harness v3 pointer for seg_locate: gui_actor|molmo2 (off unless set)
   --v3-pointer-url <url>    (default http://127.0.0.1:8092 gui_actor / :8093 molmo2)
   --v3-medgemma <mode>      harness v3 MedGemma second reader: q4|bf16 (off unless set)

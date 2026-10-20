@@ -401,6 +401,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			// at <out_dir>/cache/marks, so send the results root here.
 			out_dir: opts.resultsDir,
 			nni_url: opts.nniUrl,
+			segmenter: opts.segmenter,
+			segmenter_url: opts.segmenterUrl,
 			budgets: {
 				max_tool_calls: opts.maxToolCalls,
 				max_model_prompts: opts.maxModelPrompts,
@@ -679,6 +681,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			dataset: opts.dataset,
 			model: opts.model,
 			thinking_level: opts.thinking,
+			segmenter: opts.segmenter,
+			segmenter_url: opts.segmenterUrl,
 			pi_version: VERSION,
 			auth_shim_path: resolve(opts.authShim),
 			auth_shim_version: shared.shimVersion,
@@ -896,6 +900,8 @@ async function main(): Promise<void> {
 		extension: opts.extension,
 		segd_url: opts.segdUrl,
 		nni_url: opts.nniUrl,
+		segmenter: opts.segmenter,
+		segmenter_url: opts.segmenterUrl,
 		concurrency: opts.concurrency,
 		harness_sha256: shared.harnessHash,
 		git_commit: shared.git.commit,

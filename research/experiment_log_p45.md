@@ -57,3 +57,76 @@ research DeepSeek, code review by a fresh-context Opus 5.5 (medium) agent instea
 
 **Results backup.** `~/mirror_a100.sh` (cron every 30 min) rsyncs `results/phase5`, `results/phase4`,
 `results/phase2_*` and `results/p5-*`/`p4-*` runs to `<mount>/results_a100/` (`.last_mirror`).
+
+---
+
+## E31. Phase 5 component studies (design split): no open model passes the Study C gate → Phase 5 paused (2026-10-20)
+
+All numbers on the 30 MSTT design cases; nothing was run on the test split. Code: commits `440196a`…`9afcc3b`.
+Reviews: two fresh-context Opus 5.5 (medium) reviews of the Study A code (first: OK with notes, M1–M4 fixed in
+`483364d`; second: blocker B1 llama-server /healthz → fixed in `a594309`).
+
+**Harness flaws found and fixed during design (all before any reported number).**
+1. *Two-panel marks image:* pointer models point at the tumour on the clean (left) panel 100 % of the time (Molmo2
+   fold rate 1.0), but marks exist only on the right panel → snapping failed. Declared rule: clean-panel points are
+   translated onto the marked panel before snapping (`--clean-panel-fold`, default on; fold-off sensitivity reported in
+   the same pass). Molmo2 marks hit@1 0.10 → 0.57.
+2. *MedGemma box scale:* MedGemma answers boxes on 0–1000 (Gemma convention); scorer accepted only 0–1 → 100 % parse
+   failures. Fixed (strict rule: per-1000 only integer-valued; nested `[[box]]` unwrapped).
+3. *MedGemma 1.5 thinking mode:* on longer prompts it answers `<unused94>thought … <unused95>` + answer; with the
+   original 256-token cap nearly all Study B replies and all Q4 box replies were truncated. Fix: max_tokens 2048, parse
+   only the answer after the thought, truncated thoughts = parse failures. All earlier MedGemma runs invalidated
+   (`results/phase5/_invalid/`).
+4. *Model servers not thread-safe* (GUI-Actor tokenizer race) → inference lock, SERVICE_VERSION 1.0.1, runner refuses
+   to resume across service versions; pre-lock Molmo2 v0 run discarded.
+
+**Study A — standalone localization (GT's largest axial slice given; hit@1 = point inside GT; best of ≤ 6 prompt
+variants per model × condition, so design numbers are optimistic).**
+
+| model | marks hit@1 | raw hit@1 | notes |
+|---|---|---|---|
+| Sonnet 5.5 high (frontier, dev-02-high) | **0.911** | 0.700 | baseline |
+| Opus 5.5 medium (frontier, `phase2_dev/dev-opus55-medium`) | 0.889 | – | |
+| Molmo2-8B | 0.667 | 0.600 | McNemar vs Sonnet p = 0.016; **0 cases hit that Sonnet misses** (7 the reverse) |
+| Qwen3-VL-8B-Instruct | 0.533 | 0.667 | abstains (prose) on 5–6/30 |
+| MolmoPoint-8B | 0.533 | 0.533 | |
+| GUI-Actor-2B | 0.333 | 0.233 | |
+| MedGemma 1.5 4B BF16 | 0.467 (mark id) | 0.200 (box) | |
+| MedGemma 1.5 4B Q4_K_M | 0.300 (mark id) | 0.333 (box) | |
+
+Local-model misses are wrong structures (mostly > 25 mm), on the same hard cases the frontier misses (F14, F15, L33).
+Snapping is lossless (raw-point hit = snapped hit). hit@3 ≈ hit@1 for all pointers (one location emitted).
+
+**3D probes (whole volume + text; mask → deepest point; `results/phase5/probe3d/score_all.log`).** SAT-Nano "tumor":
+3D hit 0.50, k*-slice hit 0.47, Dice 0.16, empty 7 %; other SAT prompts 0.30–0.33. BiomedParse v2 (gated weights,
+accepted by Sameed): empty prediction on 77–100 % of cases for all 12 prompts (no soft-tissue-tumour class); best
+3D hit 0.13.
+
+**Study B — decision sets (single replays; MedGemma v1 = after the thinking fix).**
+
+| set | Sonnet high AUROC | Opus medium AUROC | MedGemma Q4 AUROC | MedGemma BF16 AUROC |
+|---|---|---|---|---|
+| candidate_judgement (100; 18 lesion) | 0.756 (sens 0.11, spec 0.99) | 0.832 | 0.378 (says "lesion" to ~all) | 0.503 (sens 0.83, spec 0.10) |
+| done_check (132; 12 not done) | 0.556 | 0.507 | 0.535 | pending |
+| wrong_structure (140; 21 wrong) | 0.866 | 0.887 | 0.484 | pending |
+
+Frontier candidate sensitivity reproduces E16 (0.11). "Are we done?" is at chance for every model.
+
+**Decomposition of the agent's localization failures (test, existing Phase 2/3 runs, no new test runs).** Of the
+agent's localization failures, most are *recognition* failures (the same model also misses on the correct given slice
+in Phase 2), few are *search* failures: Sonnet high 20 recognition / 7 search (of 27), Sonnet xhigh 15/3, Opus xhigh
+13/2, GPT-6.1-sol high 10/3. Lipomatous cases on fat-suppressed T2 (7 test cases) are not a drag (Sonnet high 0.855
+vs 0.783 on T1 L cases); only design case L33 is a persistent miss.
+
+**Gate (agreed with Sameed before Study C):** an oracle enters the harness only if, on design, it localizes ≥ 3 of the
+agent's 7 design localization failures (F14, F15, L33, L43, N40, V46, V57) without being wrong where the agent is
+right; MedGemma as second reader only if its Study B judgement beats or complements the frontier. Result: **no
+candidate passes** (best: SAT "tumor" finds 1/7 — L33 — and misses half of all tumours; 2D pointers 0 complementary
+cases; MedGemma at chance in Study B). Oracles would never segment (location hints only, nnInteractive does all
+delineation) — design recorded for a future attempt.
+
+**Decision (Sameed, 2026-10-20): Study A is not run on the test split; Study C is not run; Phase 4 is skipped; the
+project pauses here.** Interpretation for the talk: the agent's remaining localization errors are recognition errors
+on atypical anatomy that are hard for *every* available model — small specialists (pointing-trained or
+medical-trained, 2D or 3D) fail on the same cases and below the generalist; the judgement gap (accepting true tumour
+rim) is not closed by a 4B medical VLM either. Neither gap is a pointing-precision or tooling problem.

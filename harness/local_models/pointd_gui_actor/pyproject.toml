@@ -9,6 +9,7 @@ dependencies = [
     "qwen-vl-utils==0.0.8",
     "accelerate==1.1.1",
     "torch==2.7.1",                        # CUDA 12.x Linux wheels on PyPI include sm_80 (A100)
+    "torchvision==0.22.1",                 # qwen-vl-utils / Qwen2-VL image processor import it (found on A100)
     "pillow>=11.0.0",
     "numpy>=2.0.0",
     "fastapi>=0.115.0",
@@ -31,3 +32,10 @@ build-backend = "hatchling.build"
 [tool.uv]
 # Application-style uv project (no wheel to build/install); uv syncs the venv only.
 package = false
+
+# Static metadata for the optional flash-attn sdist so `uv sync`/lock does not have to
+# build it (its setup.py imports torch). The [flash] extra is still opt-in (SDPA default).
+[[tool.uv.dependency-metadata]]
+name = "flash-attn"
+version = "2.7.3"
+requires-dist = ["torch", "einops"]

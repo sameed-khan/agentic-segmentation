@@ -35,13 +35,58 @@ RUNS = [  # run_id, model, thinking  (Sameed's order 2026-10-19 20:30 UTC)
     ("p3-muse13-high", "opencode-go/muse-spark-1.3-contributor", "high"),
     ("p3-muse13-xhigh", "opencode-go/muse-spark-1.3-contributor", "xhigh"),
     ("p3-gpt61sol-high", "openai/gpt-6.1-sol", "high"),
-    ("p3-gpt61sol-xhigh", "openai/gpt-6.1-sol", "xhigh"),
     ("p3-gpt6luna-xhigh", "openai/gpt-6-luna", "xhigh"),
     ("p3-gpt6luna-max", "openai/gpt-6-luna", "max"),
+    # Sameed 2026-10-20: GPT-6.1-sol xhigh is expensive -> first a 30-case probe (6 per histotype, test split,
+    # seed 2026) compared with the best run (Opus 5.5 xhigh) on the same cases; the full run only if the probe gate
+    # passes (eval/v2/sweep_scheduler.py gate_probe). The probe writes into the same run dir, so it counts.
+    ("p3-gpt61sol-xhigh-probe", "openai/gpt-6.1-sol", "xhigh"),
+    ("p3-gpt61sol-xhigh", "openai/gpt-6.1-sol", "xhigh"),
     ("p3-argon4-high", "opencode-go/gemini-4-argon-contributor", "high"),
     ("p3-opus5-best", "anthropic/claude-opus-5", "BEST_OPUS55"),
 ]
 SKIP = set(os.environ.get("SKIP", "").split())
+PROBES = {"p3-gpt61sol-xhigh-probe": {"run_dir": "p3-gpt61sol-xhigh", "full": "p3-gpt61sol-xhigh",
+                                       "baseline": "p3-opus55-xhigh"}}
+GATED = {"p3-gpt61sol-xhigh": "p3-gpt61sol-xhigh-probe"}   # full run -> probe that must pass first
+GATE_MIN_DIFF = 0.03     # preregistered: mean paired Dice difference >= +0.03 AND Wilcoxon two-sided p < 0.05
+GATE_P = 0.05
+
+
+def probe_cases() -> list[str]:
+    """6 random test cases per histotype (seed 2026), fixed once and stored."""
+    f = ST / "probe_cases.json"
+    if f.exists():
+        return json.loads(f.read_text())
+    import random
+    rows = [r for r in csv.DictReader(open(ROOT / "eval/v2/mstt_cases.csv")) if r["split"].strip() == "test"]
+    rng = random.Random(2026)
+    out = []
+    for h in "FLMNV":
+        out += sorted(rng.sample(sorted(r["case"] for r in rows if r["histotype"] == h), 6))
+    f.write_text(json.dumps(out))
+    return out
+
+
+def gate_probe(probe: str) -> dict:
+    """Score the probe cases and compare with the baseline run on the same cases (paired)."""
+    from scipy.stats import wilcoxon
+    meta = PROBES[probe]
+    cases = probe_cases()
+    subprocess.run(["uv", "run", "--project", "harness/server", "python", "eval/v2/score.py",
+                    f"results/{meta['run_dir']}", "--cases", ",".join(cases)], cwd=ROOT, capture_output=True)
+    x = {r["case"]: float(r["dice"]) for r in csv.DictReader(open(ROOT / "results" / meta["run_dir"] / "scores.csv"))}
+    b = {r["case"]: float(r["dice"]) for r in csv.DictReader(open(ROOT / "results" / meta["baseline"] / "scores.csv"))}
+    cs = [c for c in cases if c in x and c in b]
+    diff = st.mean(x[c] - b[c] for c in cs)
+    p = float(wilcoxon([x[c] for c in cs], [b[c] for c in cs]).pvalue) if any(x[c] != b[c] for c in cs) else 1.0
+    res = {"probe": probe, "n": len(cs), "probe_mean": st.mean(x[c] for c in cs),
+           "baseline": meta["baseline"], "baseline_mean": st.mean(b[c] for c in cs), "mean_diff": diff, "p": p,
+           "rule": f"pass iff mean_diff >= {GATE_MIN_DIFF} and Wilcoxon two-sided p < {GATE_P}",
+           "pass": bool(diff >= GATE_MIN_DIFF and p < GATE_P),
+           "at": datetime.now(timezone.utc).isoformat()}
+    (ST / f"gate_{probe}.json").write_text(json.dumps(res, indent=1))
+    return res
 
 
 def log(msg: str) -> None:
@@ -113,6 +158,10 @@ def higher_priority_free(current_run: str, s: dict) -> str | None:
             continue
         if think == "BEST_OPUS55" and best_opus55() is None:
             continue
+        if run in GATED:
+            g = ST / f"gate_{GATED[run]}.json"
+            if not g.exists() or not json.loads(g.read_text())["pass"]:
+                continue
         if s["blocked_until"].get(prov, 0) <= time.time():
             return run
     return None
@@ -120,7 +169,11 @@ def higher_priority_free(current_run: str, s: dict) -> str | None:
 
 def run_once(run: str, model: str, think: str, s: dict) -> tuple[int, bool]:
     import threading
-    cmd = ["npx", "tsx", "run_cases.ts", "--split", "test", "--run-id", run, "--model", model, "--thinking", think,
+    sel = ["--split", "test"]
+    if run in PROBES:
+        sel = ["--cases", ",".join(probe_cases())]
+    run_dir = PROBES[run]["run_dir"] if run in PROBES else run
+    cmd = ["npx", "tsx", "run_cases.ts", *sel, "--run-id", run_dir, "--model", model, "--thinking", think,
            "--concurrency", str(CONC), "--resume", "--nni-url", "http://127.0.0.1:1527",
            "--note", f"Phase 3b model sweep: {model} thinking {think}, harness-v2.0.1, test split"]
     p = subprocess.Popen(cmd, cwd=ROOT / "harness" / "runner", stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -147,7 +200,7 @@ def run_once(run: str, model: str, think: str, s: dict) -> tuple[int, bool]:
             # preempt: a run earlier in Sameed's order is runnable again (its provider's window refreshed).
             # Graceful: the runner finishes in-flight cases and exits (STOP file).
             log(f"preempt {run}: {hp} is runnable again -> STOP file, waiting for in-flight cases")
-            stop = ROOT / "results" / run / "STOP"
+            stop = ROOT / "results" / (PROBES[run]["run_dir"] if run in PROBES else run) / "STOP"
             stop.touch()
             try:
                 p.wait(900)          # wall limit per case is 10 min
@@ -189,6 +242,14 @@ def main() -> None:
                 think = best_opus55()
                 if think is None:
                     continue
+            if run in GATED:
+                g = ST / f"gate_{GATED[run]}.json"
+                if not g.exists():
+                    continue        # probe not finished yet
+                if not json.loads(g.read_text())["pass"]:
+                    (ST / f"sweep_{run}.done").write_text("skipped: probe gate failed (see gate file)\n")
+                    log(f"skip {run}: probe gate failed")
+                    continue
             pick = (run, model, think, prov)
             break
         if pick is None:
@@ -201,6 +262,15 @@ def main() -> None:
         ensure_services()
         log(f"run {run} ({model}, {think})")
         code, nothing = run_once(run, model, think, s)
+        if nothing and run in PROBES:
+            try:
+                res = gate_probe(run)
+            except Exception as e:   # fail closed: an unscorable probe never unlocks the expensive full run
+                res = {"probe": run, "pass": False, "error": repr(e), "at": datetime.now(timezone.utc).isoformat()}
+                (ST / f"gate_{run}.json").write_text(json.dumps(res, indent=1))
+            (ST / f"sweep_{run}.done").touch()
+            log(f"probe {run} done: {res}")
+            continue
         if nothing:
             r = subprocess.run(["uv", "run", "--project", "harness/server", "python", "eval/v2/score.py", f"results/{run}"],
                                cwd=ROOT, capture_output=True, text=True)

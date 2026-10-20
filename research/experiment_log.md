@@ -417,6 +417,14 @@ template; the data are the 169 test cases.)
   `harness-v2.0.1`; xhigh at `harness-v2.0.1-1-g2bcff01` with `harness/study/ask.ts` dirty (localization-study script,
   not used by the agent). Agent-facing prompts/tools identical across both passes; only the bit-identical morphology fix differs.
 
+**Phase 3b sweep changes (Sameed, 2026-10-20):** Opus 5 and Gemini 4 Argon cancelled (not run). Order after
+GPT-6.1-sol high: GPT-6-luna xhigh, GPT-6-luna max, then a **GPT-6.1-sol xhigh probe** on 30 test cases (6 per
+histotype, random seed 2026, fixed in `results/phase3_state/probe_cases.json`: F13 F16 F35 F45 F48 F55 L01 L09 L25 L34
+L37 L41 M06 M11 M13 M22 M26 M37 N03 N09 N13 N17 N32 N46 V33 V38 V50 V51 V53 V64). Preregistered gate: the full
+GPT-6.1-sol xhigh run happens only if, on these 30 cases, mean Dice − Opus 5.5 xhigh ≥ +0.03 **and** paired Wilcoxon
+two-sided p < 0.05 (Opus 5.5 xhigh is the best run; its mean on the 30 cases is 0.732). The probe cases stay in the
+full run if it proceeds. Decision recorded in `results/phase3_state/gate_p3-gpt61sol-xhigh-probe.json`.
+
 ## 7. Next experiments (planned)
 
 | ID | Question | Runs |

@@ -126,3 +126,9 @@ come back when its window refreshes (interleave to maximise throughput).
   remaining runs (p3-gpt6luna-max, p3-gpt61sol-xhigh probe, phase3_state, p6-*), merge phase6-sammed3d and
   phase5-v3 into main (resolve research-doc conflicts; append experiment_log_p45.md), full test suites, tag, push main
   + all branches/tags to mount and origin.
+- 2026-10-20 ~10:45 UTC: final wrap-up. E20/E22 written (0274f6a). Integration (Sameed: feature flags, not branches):
+  Sonnet worker merging phase5-v3 + phase6-sammed3d into branch `integrate` (worktree /home/ubuntu/agseg-int) with
+  presets (experiments/presets, runner --preset) + equivalence tests vs tags. Then: review, fast-forward main, tag
+  `harness-v3-final`(name tbd), push all to mount + GitHub origin. B2: stage-1 rclone copy running (tmux b2:
+  data/, diaphragmatic-endometriosis project folder, .claude) -> final `rclone sync` of agentic-segmentation-data
+  (incl. dvc-remote, archive, git) after the last DVC push; copy this A10's pi sessions to archive/a10/pi_sessions last.

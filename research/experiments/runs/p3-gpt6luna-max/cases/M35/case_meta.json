@@ -1,0 +1,39 @@
+{
+  "case_id": "M35",
+  "shape": [
+    220,
+    220,
+    320
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17410126,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    320
+  ],
+  "created_at": "2026-10-20T08:10:40Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:14:51Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Final three-plane review shows the elongated high-T2 lesion enclosed, with no convincing residual tumor in the adjacent orange panels.",
+  "tool_calls": 22,
+  "model_prompts": 1
+}

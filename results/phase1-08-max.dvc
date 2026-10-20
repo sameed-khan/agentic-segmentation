@@ -1,0 +1,6 @@
+outs:
+- md5: ca104e4091cac8982332762346766bef.dir
+  size: 342143721
+  nfiles: 782
+  hash: md5
+  path: phase1-08-max

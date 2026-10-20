@@ -1,0 +1,6 @@
+outs:
+- md5: f65a84ba3aa2a039c0987280f1bbf761.dir
+  size: 16449042
+  nfiles: 171
+  hash: md5
+  path: oneclick_test

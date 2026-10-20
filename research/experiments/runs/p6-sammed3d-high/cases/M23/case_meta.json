@@ -1,0 +1,41 @@
+{
+  "case_id": "M23",
+  "shape": [
+    270,
+    270,
+    729
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 64370923,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    270,
+    270,
+    729
+  ],
+  "created_at": "2026-10-20T07:54:44Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:55:40Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask follows the bright tumor in all planes; the candidates are shells of normal tissue and were rejected. The medial and upper edges are somewhat uncertain.",
+  "tool_calls": 11,
+  "model_prompts": 2
+}

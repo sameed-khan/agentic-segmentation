@@ -1,0 +1,39 @@
+{
+  "case_id": "M14",
+  "shape": [
+    220,
+    220,
+    300
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 16838473,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    300
+  ],
+  "created_at": "2026-10-20T07:59:44Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:06:07Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "The bright intramuscular mass and small contiguous extension are outlined across all planes; no lesion is evident just beyond the checked ends, and other candidates look like normal tissue.",
+  "tool_calls": 34,
+  "model_prompts": 2
+}

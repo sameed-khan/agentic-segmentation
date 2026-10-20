@@ -1,0 +1,39 @@
+{
+  "case_id": "N32",
+  "shape": [
+    181,
+    181,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3020002,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    137
+  ],
+  "created_at": "2026-10-20T08:31:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:40:12Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "The dominant mass and its visible heterogeneous rim are delineated; very small terminal extensions remain less certain.",
+  "tool_calls": 30,
+  "model_prompts": 2
+}

@@ -1,0 +1,6 @@
+outs:
+- md5: 7e150a49abbd17d8d662d3f30fd3c47a.dir
+  size: 2934814620
+  nfiles: 6049
+  hash: md5
+  path: p3-muse13-high

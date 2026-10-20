@@ -1,0 +1,39 @@
+{
+  "case_id": "V15",
+  "shape": [
+    161,
+    161,
+    97
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3253814,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    97
+  ],
+  "created_at": "2026-10-20T08:48:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:57:43Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "The review shows the serpiginous T2-bright mass enclosed across the main extent, with no convincing lesion tissue just beyond the ends.",
+  "tool_calls": 32,
+  "model_prompts": 4
+}

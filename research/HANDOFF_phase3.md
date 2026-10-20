@@ -115,3 +115,14 @@ come back when its window refreshes (interleave to maximise throughput).
 - 06:24 UTC: Phase 6 build worker 1 got confused (mixed-up context) and stopped; its partial work kept (service, client, geometry, checkpoint sha 899a46d0…, segd edits). .gitignore restored + venv/checkpoint ignored. Worker 2 (GLM high) continuing in agseg-p6.
 - 06:57 UTC: Phase 6 built (b93e04d, Sonnet worker fixed 7 bugs), pilot5 ran end-to-end (design: L20 .785, M07 .919, N26 .683, V37 .431, F14 loc fail) but review BLOCK (refine keeps old clicks; thin mask tiles skipped; backmap boundary; box slice offset; identity test self-compare risk; no session expiry) -> pilot results discarded; fix round by the same Sonnet worker. segd_p6 (:8766) stopped until fixed.
 - 07:19 UTC: Phase 6 fixes reviewed-in (f7b40e8, tag harness-v2-p6), pilot5b clean (F14 .517 L20 .791 M07 .917 N26 .828 V37 .487). E21 preregistered. Full run p6-sammed3d-high running in tmux p6run (/home/ubuntu/agseg-p6/run_p6.sh, log /tmp/p6run.log; results in /home/ubuntu/agseg-p6/results/p6-sammed3d-high; segd_p6 :8766, sammed3d :8095). When done: score with eval/v2/score.py, compare paired vs phase3-high, E22 write-up; copy results into main results/ for DVC.
+- 2026-10-20 ~10:20 UTC: A100 is shut down; THIS (A10) repo is the single source of truth. A100 output imported:
+  phase5/, phase2_dev/dev-opus55-medium, phase2_test/p2-test-opus55-medium, _smoke_phase4 (DVC artifacts); its
+  branch phase5-v3 @7058be6 is on the mount remote (+ bundle in <mount>/archive/a100/backup). Mount reorganised
+  (README.md there): data/, archive/a100/, dvc-remote/ (DVC default remote 'mount'), results_a10/ (old raw mirror,
+  delete after final merge). DVC: one artifact per run (commit ab81c4d).
+- GitHub remote `origin` = git@github.com:sameed-khan/agentic-segmentation.git (empty, auth OK). NOTE: the inherited
+  SSH_AUTH_SOCK is stale; use the live forwarded agent: `export SSH_AUTH_SOCK=$(ls /tmp/ssh-*/agent.* | head -1)`.
+- Final steps (A10, after the sweep + Phase 6 finish): export last runs, E20/E22 write-ups, dvc add + push the
+  remaining runs (p3-gpt6luna-max, p3-gpt61sol-xhigh probe, phase3_state, p6-*), merge phase6-sammed3d and
+  phase5-v3 into main (resolve research-doc conflicts; append experiment_log_p45.md), full test suites, tag, push main
+  + all branches/tags to mount and origin.

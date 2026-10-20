@@ -1,0 +1,41 @@
+{
+  "case_id": "V53",
+  "shape": [
+    381,
+    381,
+    316
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 32717895,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    381,
+    381,
+    316
+  ],
+  "created_at": "2026-10-20T07:48:14Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:53:39Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "The tumor was hard to identify on this T2 volume. The mask is a rounded, slightly hyperintense intramuscular blob in the lower leg. I am not sure it is the real lesion or that its boundary is right.",
+  "tool_calls": 29,
+  "model_prompts": 3
+}

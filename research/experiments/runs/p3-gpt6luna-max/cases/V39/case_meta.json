@@ -1,0 +1,39 @@
+{
+  "case_id": "V39",
+  "shape": [
+    161,
+    161,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3875052,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    126
+  ],
+  "created_at": "2026-10-20T08:58:08Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T09:07:18Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "The contiguous lobulated T2-bright mass is captured in all three planes; adjacent peripheral proposals and out-of-range bright foci appear to be surrounding tissue or normal vessels.",
+  "tool_calls": 32,
+  "model_prompts": 4
+}

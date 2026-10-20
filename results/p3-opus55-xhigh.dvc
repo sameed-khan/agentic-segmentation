@@ -1,0 +1,6 @@
+outs:
+- md5: 7e6f3c4ad26cb2d2697dcc4d2bff548a.dir
+  size: 2591243546
+  nfiles: 4952
+  hash: md5
+  path: p3-opus55-xhigh

@@ -1,0 +1,6 @@
+outs:
+- md5: 61d338421ee778cad12be50b3e02051a.dir
+  size: 17631
+  nfiles: 3
+  hash: md5
+  path: smoke-ping3

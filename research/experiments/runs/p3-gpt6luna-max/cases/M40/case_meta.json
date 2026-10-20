@@ -1,0 +1,39 @@
+{
+  "case_id": "M40",
+  "shape": [
+    220,
+    220,
+    406
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22443349,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    406
+  ],
+  "created_at": "2026-10-20T08:13:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:19:53Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The contour includes the lobulated T2-bright tumor and contiguous heterogeneous extension; surrounding diffuse stranding and tiny off-lesion candidates were excluded.",
+  "tool_calls": 25,
+  "model_prompts": 2
+}

@@ -1,0 +1,6 @@
+outs:
+- md5: d91c644bde2e049da8b579bd7b398987.dir
+  size: 687735274
+  nfiles: 2378
+  hash: md5
+  path: phase2_test

@@ -1,0 +1,6 @@
+outs:
+- md5: b13cb87f6d811f48a5d9afb07fdd92fd.dir
+  size: 683586
+  nfiles: 15
+  hash: md5
+  path: laneA_conc

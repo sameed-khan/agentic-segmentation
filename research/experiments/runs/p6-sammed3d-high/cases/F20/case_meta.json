@@ -1,0 +1,41 @@
+{
+  "case_id": "F20",
+  "shape": [
+    147,
+    147,
+    213
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 5558962,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    147,
+    147,
+    213
+  ],
+  "created_at": "2026-10-20T07:20:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:21:55Z",
+  "final_version": "v5",
+  "confidence": "low",
+  "reason": "Lesion identification uncertain; mask covers the dark heterogeneous mass beside the fibula, lower extent uncertain.",
+  "tool_calls": 21,
+  "model_prompts": 3
+}

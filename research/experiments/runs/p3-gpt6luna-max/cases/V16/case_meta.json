@@ -1,0 +1,39 @@
+{
+  "case_id": "V16",
+  "shape": [
+    91,
+    91,
+    51
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 564554,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    91,
+    91,
+    51
+  ],
+  "created_at": "2026-10-20T08:49:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:53:25Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The mask captures the lobulated T2-bright mass across its axial, coronal, and sagittal extent; adjacent candidate signal and beyond-mask structures appear to be normal tissue.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

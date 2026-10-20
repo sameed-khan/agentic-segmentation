@@ -1,0 +1,6 @@
+outs:
+- md5: cc22b296351b9292960247bc13719c4d.dir
+  size: 1993768
+  nfiles: 147
+  hash: md5
+  path: p3-argon4-high

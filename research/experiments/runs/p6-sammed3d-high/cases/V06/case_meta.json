@@ -1,0 +1,41 @@
+{
+  "case_id": "V06",
+  "shape": [
+    121,
+    121,
+    68
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 413966,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    68
+  ],
+  "created_at": "2026-10-20T08:01:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:01:55Z",
+  "final_version": "v7",
+  "confidence": "medium",
+  "reason": "Mask follows bright tumor in all planes with slightly generous margin; candidates are normal tissue",
+  "tool_calls": 22,
+  "model_prompts": 4
+}

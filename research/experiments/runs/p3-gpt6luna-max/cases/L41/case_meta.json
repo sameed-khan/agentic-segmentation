@@ -1,0 +1,39 @@
+{
+  "case_id": "L41",
+  "shape": [
+    281,
+    281,
+    386
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31418269,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    386
+  ],
+  "created_at": "2026-10-20T07:50:31Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:55:11Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "The encapsulated fatty mass is confined to its visible boundary in all three planes; past-the-mask slices show no extension, and remaining candidates are surrounding normal fat.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

@@ -1,0 +1,6 @@
+outs:
+- md5: 16a0f138d1d261c4dccb8499a91cd53d.dir
+  size: 918
+  nfiles: 31
+  hash: md5
+  path: phase3_state

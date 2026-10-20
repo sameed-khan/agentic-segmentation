@@ -1,0 +1,39 @@
+{
+  "case_id": "L07",
+  "shape": [
+    206,
+    206,
+    166
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7562084,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    206,
+    206,
+    166
+  ],
+  "created_at": "2026-10-20T07:27:33Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:34:00Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "The dominant T1-bright intramuscular mass is well outlined across the review slices; tiny peripheral extensions remain less certain.",
+  "tool_calls": 32,
+  "model_prompts": 1
+}

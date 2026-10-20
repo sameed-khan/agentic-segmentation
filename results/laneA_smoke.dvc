@@ -1,0 +1,6 @@
+outs:
+- md5: 8302741ef07cf42618df56a0a4e7e704.dir
+  size: 1674002
+  nfiles: 16
+  hash: md5
+  path: laneA_smoke

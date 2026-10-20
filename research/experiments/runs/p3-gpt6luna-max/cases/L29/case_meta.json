@@ -1,0 +1,39 @@
+{
+  "case_id": "L29",
+  "shape": [
+    161,
+    161,
+    173
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4569649,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    173
+  ],
+  "created_at": "2026-10-20T07:45:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:53:32Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "The main elongated heterogeneous mass is outlined in all three planes; minor peripheral extent and a tiny attached focus remain slightly uncertain.",
+  "tool_calls": 32,
+  "model_prompts": 3
+}

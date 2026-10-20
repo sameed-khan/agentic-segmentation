@@ -1,0 +1,6 @@
+outs:
+- md5: 4bd61cca8ab09c7e40ba50530ca7345a.dir
+  size: 3986075
+  nfiles: 32
+  hash: md5
+  path: oneclick_design

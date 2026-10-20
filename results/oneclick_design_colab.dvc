@@ -1,0 +1,6 @@
+outs:
+- md5: 26dc135bd6c8e14e128ec8ebc3521934.dir
+  size: 3988971
+  nfiles: 32
+  hash: md5
+  path: oneclick_design_colab

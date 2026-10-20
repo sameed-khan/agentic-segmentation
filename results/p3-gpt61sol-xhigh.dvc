@@ -1,0 +1,6 @@
+outs:
+- md5: 995a9509adc58e888bfd37440e7f731c.dir
+  size: 455480081
+  nfiles: 826
+  hash: md5
+  path: p3-gpt61sol-xhigh

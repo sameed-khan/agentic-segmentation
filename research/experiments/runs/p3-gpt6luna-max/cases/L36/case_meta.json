@@ -1,0 +1,39 @@
+{
+  "case_id": "L36",
+  "shape": [
+    235,
+    251,
+    221
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14210952,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    235,
+    251,
+    221
+  ],
+  "created_at": "2026-10-20T07:46:28Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:50:00Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The outlined volume follows the dominant lobulated fatty mass on the reviewed slices; peripheral candidates appear to be adjacent normal fat or muscle.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

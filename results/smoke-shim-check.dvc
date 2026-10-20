@@ -1,0 +1,6 @@
+outs:
+- md5: 8bd891aae24d94db5f8b75b7fce6fc1d.dir
+  size: 17702
+  nfiles: 3
+  hash: md5
+  path: smoke-shim-check

@@ -1,0 +1,6 @@
+outs:
+- md5: 354970de38ae7012b77c25a3213f5226.dir
+  size: 2363724452
+  nfiles: 4387
+  hash: md5
+  path: p3-haiku55-xhigh

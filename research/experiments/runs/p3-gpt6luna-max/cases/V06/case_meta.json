@@ -1,0 +1,39 @@
+{
+  "case_id": "V06",
+  "shape": [
+    121,
+    121,
+    68
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 413966,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    68
+  ],
+  "created_at": "2026-10-20T08:45:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:50:14Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The mask follows the contiguous heterogeneous tumor across the sampled axial, coronal, and sagittal slices; no convincing candidate corrections belong to it, though the low-signal superior extent remains somewhat uncertain.",
+  "tool_calls": 22,
+  "model_prompts": 2
+}

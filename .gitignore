@@ -5,7 +5,6 @@
 /archive/
 
 # --- heavy run artifacts: tracked by DVC (*.dvc files), not git ---
-/results
 /eval/v2/marks_dev/renders
 /eval/v2/data_check/slices
 

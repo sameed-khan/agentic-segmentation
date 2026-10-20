@@ -1,0 +1,39 @@
+{
+  "case_id": "L04",
+  "shape": [
+    251,
+    251,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20630333,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    330
+  ],
+  "created_at": "2026-10-20T07:26:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:35:56Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The mass margin is clear in the central slices; past-end and adjacent bright structures appear to be normal anatomy, and candidate halos are outside the lesion.",
+  "tool_calls": 28,
+  "model_prompts": 4
+}

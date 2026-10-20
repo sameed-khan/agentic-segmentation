@@ -1,0 +1,39 @@
+{
+  "case_id": "N35",
+  "shape": [
+    201,
+    201,
+    351
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17155167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    351
+  ],
+  "created_at": "2026-10-20T08:35:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:44:47Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "The main mass and visible contiguous nerve-like extension follow the signal abnormality in all planes; the low-signal peripheral rim and a few tiny adjacent foci are less certain.",
+  "tool_calls": 36,
+  "model_prompts": 2
+}

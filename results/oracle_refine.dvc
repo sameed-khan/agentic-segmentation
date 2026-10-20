@@ -1,0 +1,6 @@
+outs:
+- md5: 85c886f44d56cf6df3004a24f9e7dfaf.dir
+  size: 27612
+  nfiles: 3
+  hash: md5
+  path: oracle_refine

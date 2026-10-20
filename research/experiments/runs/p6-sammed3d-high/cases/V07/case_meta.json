@@ -1,0 +1,41 @@
+{
+  "case_id": "V07",
+  "shape": [
+    151,
+    151,
+    177
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 1319949,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    177
+  ],
+  "created_at": "2026-10-20T08:01:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:03:22Z",
+  "final_version": "v4",
+  "confidence": "low",
+  "reason": "Anatomy is ambiguous; the mask covers the posterior-radial rounded mass plus bright vascular tissue, but the tumor extent is uncertain.",
+  "tool_calls": 23,
+  "model_prompts": 4
+}

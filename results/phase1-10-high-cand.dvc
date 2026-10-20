@@ -1,0 +1,6 @@
+outs:
+- md5: eab056f919a1516d525a8ad4c882cdb2.dir
+  size: 207489461
+  nfiles: 467
+  hash: md5
+  path: phase1-10-high-cand

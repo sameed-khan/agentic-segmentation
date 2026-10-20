@@ -1,0 +1,6 @@
+outs:
+- md5: 5773957521a098550cff38b792c3663e.dir
+  size: 2591031317
+  nfiles: 4690
+  hash: md5
+  path: p3-gpt61sol-high

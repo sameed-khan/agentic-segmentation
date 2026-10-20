@@ -1,0 +1,39 @@
+{
+  "case_id": "L37",
+  "shape": [
+    441,
+    441,
+    216
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31509963,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    216
+  ],
+  "created_at": "2026-10-20T07:46:31Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:51:24Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "The margin and internal septa are well followed on the reviewed axial, coronal, and sagittal slices; no adjacent candidate tissue appears to belong to the lesion.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

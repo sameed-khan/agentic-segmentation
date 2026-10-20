@@ -1,0 +1,39 @@
+{
+  "case_id": "V24",
+  "shape": [
+    161,
+    161,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4777770,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    156
+  ],
+  "created_at": "2026-10-20T08:51:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:58:45Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The mask tracks the focal serpiginous T2-bright soft-tissue lesion across the three planes; the small adjacent candidate foci appear separate and are excluded.",
+  "tool_calls": 29,
+  "model_prompts": 1
+}

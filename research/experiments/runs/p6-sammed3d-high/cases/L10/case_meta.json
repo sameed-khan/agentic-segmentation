@@ -1,0 +1,41 @@
+{
+  "case_id": "L10",
+  "shape": [
+    351,
+    351,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 40766992,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    351,
+    351,
+    372
+  ],
+  "created_at": "2026-10-20T07:28:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:30:30Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Mask follows the bright fatty mass in all planes; the candidates were normal tissue. The lateral crescent boundary is somewhat uncertain.",
+  "tool_calls": 13,
+  "model_prompts": 4
+}

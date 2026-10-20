@@ -1,0 +1,41 @@
+{
+  "case_id": "V02",
+  "shape": [
+    181,
+    181,
+    246
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 9633781,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    246
+  ],
+  "created_at": "2026-10-20T08:00:51Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:02:36Z",
+  "final_version": "v9",
+  "confidence": "medium",
+  "reason": "Mask was hand-painted around the bright interosseous mass because model prompts leaked; it covers the lesion but boundaries are approximate.",
+  "tool_calls": 28,
+  "model_prompts": 5
+}

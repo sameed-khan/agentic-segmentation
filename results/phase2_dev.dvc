@@ -1,0 +1,6 @@
+outs:
+- md5: a6176105c99d554c81b8acfcd5ec0246.dir
+  size: 543236801
+  nfiles: 1478
+  hash: md5
+  path: phase2_dev

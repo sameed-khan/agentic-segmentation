@@ -1,0 +1,41 @@
+{
+  "case_id": "N48",
+  "shape": [
+    176,
+    176,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 2892438,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    176,
+    176,
+    165
+  ],
+  "created_at": "2026-10-20T08:00:01Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:00:47Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Bright mass is well delineated. The inferior cutoff is a judgement call because the dimmer tail may be edema. I rejected all three candidates as normal tissue.",
+  "tool_calls": 11,
+  "model_prompts": 1
+}

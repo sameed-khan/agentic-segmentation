@@ -1,0 +1,41 @@
+{
+  "case_id": "V50",
+  "shape": [
+    131,
+    131,
+    132
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 2738931,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    132
+  ],
+  "created_at": "2026-10-20T07:48:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:50:59Z",
+  "final_version": "v7",
+  "confidence": "low",
+  "reason": "Model prompts leaked, so the mask was painted by hand around the bright tumor. The upper slices (65-72) are only approximate.",
+  "tool_calls": 30,
+  "model_prompts": 4
+}

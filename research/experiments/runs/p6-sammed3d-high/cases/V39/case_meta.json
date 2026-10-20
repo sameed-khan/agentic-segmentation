@@ -1,0 +1,41 @@
+{
+  "case_id": "V39",
+  "shape": [
+    161,
+    161,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 3875052,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    126
+  ],
+  "created_at": "2026-10-20T08:03:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:04:36Z",
+  "final_version": "v8",
+  "confidence": "medium",
+  "reason": "Mask covers bright heterogeneous tumor; tumor continues past the inferior volume edge; slice 0 still has a few holes",
+  "tool_calls": 21,
+  "model_prompts": 4
+}

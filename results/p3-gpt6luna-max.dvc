@@ -1,0 +1,6 @@
+outs:
+- md5: 35e933787645cb20c8980ad57435d4e2.dir
+  size: 2607437519
+  nfiles: 5582
+  hash: md5
+  path: p3-gpt6luna-max

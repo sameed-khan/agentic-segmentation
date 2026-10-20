@@ -1,0 +1,41 @@
+{
+  "case_id": "F29",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 33163762,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-20T07:21:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:22:21Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask covers the bright heterogeneous mass around the bone; peri-lesional edema candidates rejected; extent boundaries somewhat uncertain.",
+  "tool_calls": 8,
+  "model_prompts": 1
+}

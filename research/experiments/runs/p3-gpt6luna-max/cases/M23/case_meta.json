@@ -1,0 +1,39 @@
+{
+  "case_id": "M23",
+  "shape": [
+    270,
+    270,
+    729
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 64370923,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    270,
+    270,
+    729
+  ],
+  "created_at": "2026-10-20T08:03:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:13:04Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "The main T2-bright tumor and its contiguous tapering margins are covered in all three planes; I rejected surrounding soft-tissue proposals as non-lesion.",
+  "tool_calls": 31,
+  "model_prompts": 3
+}

@@ -1,0 +1,6 @@
+outs:
+- md5: f84a05df2cbf0ca310d789292c53f82c.dir
+  size: 3358495820
+  nfiles: 6529
+  hash: md5
+  path: p3-dsv41flash-xhigh

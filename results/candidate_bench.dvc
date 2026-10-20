@@ -1,0 +1,6 @@
+outs:
+- md5: daaa0dfbae3da2e9ff8dbc51dbddcd45.dir
+  size: 7725168
+  nfiles: 25
+  hash: md5
+  path: candidate_bench

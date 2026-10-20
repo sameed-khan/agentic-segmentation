@@ -1,0 +1,6 @@
+outs:
+- md5: 107453cda6e9b67b3d86194a9fe20014.dir
+  size: 6264737
+  nfiles: 33
+  hash: md5
+  path: integ-02

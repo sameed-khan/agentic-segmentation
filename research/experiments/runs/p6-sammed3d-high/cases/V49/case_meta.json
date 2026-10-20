@@ -1,0 +1,41 @@
+{
+  "case_id": "V49",
+  "shape": [
+    131,
+    131,
+    97
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 2180061,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    97
+  ],
+  "created_at": "2026-10-20T08:04:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:06:51Z",
+  "final_version": "v10",
+  "confidence": "low",
+  "reason": "Lesion identity uncertain; mask covers vascular tangle beside bone, approximated by a dilated painted region.",
+  "tool_calls": 38,
+  "model_prompts": 8
+}

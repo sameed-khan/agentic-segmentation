@@ -1,0 +1,6 @@
+outs:
+- md5: 99c8fbd87a5cd8ecd585d007f675f0ff.dir
+  size: 101690843
+  nfiles: 324
+  hash: md5
+  path: phase1-03

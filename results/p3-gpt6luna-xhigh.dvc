@@ -1,0 +1,6 @@
+outs:
+- md5: ee0d91c40b000bfca1e9586d8202af19.dir
+  size: 2539801077
+  nfiles: 5393
+  hash: md5
+  path: p3-gpt6luna-xhigh

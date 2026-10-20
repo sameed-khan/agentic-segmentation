@@ -1,0 +1,6 @@
+outs:
+- md5: 1e819971117ebb439c3a4aba1b1aed76.dir
+  size: 53637452
+  nfiles: 150
+  hash: md5
+  path: _smoke_phase4

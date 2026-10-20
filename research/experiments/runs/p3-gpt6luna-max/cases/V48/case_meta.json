@@ -1,0 +1,39 @@
+{
+  "case_id": "V48",
+  "shape": [
+    221,
+    221,
+    351
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14386343,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    351
+  ],
+  "created_at": "2026-10-20T09:01:19Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T09:10:26Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Final review shows the bright branching mass and its longitudinal extensions are covered; small non-touching candidate foci are normal and excluded.",
+  "tool_calls": 30,
+  "model_prompts": 3
+}

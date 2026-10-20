@@ -1,0 +1,6 @@
+outs:
+- md5: eeb5451bb84ce4318666ee954a93235a.dir
+  size: 189168923
+  nfiles: 457
+  hash: md5
+  path: phase1-06-high

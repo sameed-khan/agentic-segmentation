@@ -1,0 +1,41 @@
+{
+  "case_id": "N03",
+  "shape": [
+    151,
+    151,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 4420543,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    165
+  ],
+  "created_at": "2026-10-20T07:55:44Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:58:21Z",
+  "final_version": "v9",
+  "confidence": "low",
+  "reason": "Mask was hand-painted on the bright oval mass because the model prompts leaked into the whole foot. Its extent is approximate, and any nerve extension beyond the mass is not included.",
+  "tool_calls": 32,
+  "model_prompts": 5
+}

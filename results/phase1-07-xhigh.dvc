@@ -1,0 +1,6 @@
+outs:
+- md5: fa7e547eb7237d7316a51cf3c0a42dd7.dir
+  size: 369143162
+  nfiles: 796
+  hash: md5
+  path: phase1-07-xhigh

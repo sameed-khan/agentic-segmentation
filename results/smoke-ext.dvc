@@ -1,0 +1,6 @@
+outs:
+- md5: 04d691baba3f4c5b8e5db42609a6d31d.dir
+  size: 31540
+  nfiles: 3
+  hash: md5
+  path: smoke-ext

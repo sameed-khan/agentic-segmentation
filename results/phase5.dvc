@@ -1,0 +1,6 @@
+outs:
+- md5: 21dc2f540a47fc9f19eb1a5c028e0ade.dir
+  size: 511951240
+  nfiles: 1374
+  hash: md5
+  path: phase5

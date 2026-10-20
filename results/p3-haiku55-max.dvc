@@ -1,0 +1,6 @@
+outs:
+- md5: 2b9d56c69b05b370c0fa2de590221c07.dir
+  size: 2588974048
+  nfiles: 4937
+  hash: md5
+  path: p3-haiku55-max

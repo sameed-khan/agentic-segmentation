@@ -1,5 +1,7 @@
 [core]
-    remote = local
+    remote = mount
     autostage = true
 ['remote "local"']
     url = /home/ubuntu/dvc-remote/agentic-segmentation
+['remote "mount"']
+    url = /home/ubuntu/diaphragmatic-endometriosis/agentic-segmentation-data/dvc-remote/agentic-segmentation

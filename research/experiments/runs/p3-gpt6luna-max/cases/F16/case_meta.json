@@ -1,0 +1,39 @@
+{
+  "case_id": "F16",
+  "shape": [
+    82,
+    82,
+    58
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 333379,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    82,
+    82,
+    58
+  ],
+  "created_at": "2026-10-20T06:55:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:03:19Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "A small discrete soft-tissue focus is outlined across planes; the boundary is reasonably localized, though the limited scan extent and low contrast leave some uncertainty.",
+  "tool_calls": 39,
+  "model_prompts": 3
+}

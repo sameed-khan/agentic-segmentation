@@ -1,0 +1,41 @@
+{
+  "case_id": "V63",
+  "shape": [
+    241,
+    241,
+    89
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 6312968,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    89
+  ],
+  "created_at": "2026-10-20T08:05:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:06:14Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright heterogeneous anterior mass segmented; target identity and superior extent somewhat uncertain; mask reaches the volume edge.",
+  "tool_calls": 17,
+  "model_prompts": 2
+}

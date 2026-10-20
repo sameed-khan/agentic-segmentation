@@ -1,0 +1,39 @@
+{
+  "case_id": "F13",
+  "shape": [
+    211,
+    211,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6174236,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    126
+  ],
+  "created_at": "2026-10-20T06:55:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:02:00Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "The mass and visible contiguous extension are covered; adjacent end-slice signals are indistinct and were not included as tumor.",
+  "tool_calls": 26,
+  "model_prompts": 3
+}

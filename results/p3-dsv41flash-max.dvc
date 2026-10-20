@@ -1,0 +1,6 @@
+outs:
+- md5: 04fa1738dd54f2d86f4b2cc9c9bd78c9.dir
+  size: 3754650806
+  nfiles: 7203
+  hash: md5
+  path: p3-dsv41flash-max

@@ -1,0 +1,41 @@
+{
+  "case_id": "N09",
+  "shape": [
+    280,
+    280,
+    231
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 10780745,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    231
+  ],
+  "created_at": "2026-10-20T07:45:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T07:45:47Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Main mass well outlined in all planes; candidates rejected; tiny stray components remain (<1 mL).",
+  "tool_calls": 7,
+  "model_prompts": 2
+}

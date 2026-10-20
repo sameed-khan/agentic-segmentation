@@ -1,0 +1,41 @@
+{
+  "case_id": "V61",
+  "shape": [
+    161,
+    161,
+    177
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "sammed3d",
+  "segmenter": "sammed3d",
+  "segmenter_url": "http://127.0.0.1:8095",
+  "upload_packed_bytes": 5368925,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    177
+  ],
+  "created_at": "2026-10-20T08:05:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T08:07:12Z",
+  "final_version": "v7",
+  "confidence": "low",
+  "reason": "Mask covers the bright mass in the forefoot/midfoot, but edges are partly hand-painted and some bright tissue may be missed or boundaries imprecise.",
+  "tool_calls": 24,
+  "model_prompts": 5
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V38",
+  "shape": [
+    201,
+    201,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6766635,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    163
+  ],
+  "created_at": "2026-10-20T08:57:48Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T09:04:01Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "The mask tracks the heterogeneous mass across planes; outside-end signal appears to be separate normal vessels or soft tissue, and candidates are normal limb tissue.",
+  "tool_calls": 25,
+  "model_prompts": 2
+}

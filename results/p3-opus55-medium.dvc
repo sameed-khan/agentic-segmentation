@@ -1,0 +1,6 @@
+outs:
+- md5: a4e9bc6db591c56dfa3bba70d4386780.dir
+  size: 1230996107
+  nfiles: 2967
+  hash: md5
+  path: p3-opus55-medium

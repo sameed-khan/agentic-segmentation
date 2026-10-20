@@ -86,7 +86,7 @@ variants per model × condition, so design numbers are optimistic).**
 | model | marks hit@1 | raw hit@1 | notes |
 |---|---|---|---|
 | Sonnet 5.5 high (frontier, dev-02-high) | **0.911** | 0.700 | baseline |
-| Opus 5.5 medium (frontier, `phase2_dev/dev-opus55-medium`) | 0.889 | – | |
+| Opus 5.5 medium (frontier, `phase2_dev/dev-opus55-medium`) | 0.889 | – | test split S: 0.840 (`phase2_test/p2-test-opus55-medium`; Sonnet high 0.826) |
 | Molmo2-8B | 0.667 | 0.600 | McNemar vs Sonnet p = 0.016; **0 cases hit that Sonnet misses** (7 the reverse) |
 | Qwen3-VL-8B-Instruct | 0.533 | 0.667 | abstains (prose) on 5–6/30 |
 | MolmoPoint-8B | 0.533 | 0.533 | |
@@ -107,8 +107,8 @@ accepted by Sameed): empty prediction on 77–100 % of cases for all 12 prompts 
 | set | Sonnet high AUROC | Opus medium AUROC | MedGemma Q4 AUROC | MedGemma BF16 AUROC |
 |---|---|---|---|---|
 | candidate_judgement (100; 18 lesion) | 0.756 (sens 0.11, spec 0.99) | 0.832 | 0.378 (says "lesion" to ~all) | 0.503 (sens 0.83, spec 0.10) |
-| done_check (132; 12 not done) | 0.556 | 0.507 | 0.535 | pending |
-| wrong_structure (140; 21 wrong) | 0.866 | 0.887 | 0.484 | pending |
+| done_check (132; 12 not done) | 0.556 | 0.507 | 0.535 | 0.403 |
+| wrong_structure (140; 21 wrong) | 0.866 | 0.887 | 0.484 | 0.632 |
 
 Frontier candidate sensitivity reproduces E16 (0.11). "Are we done?" is at chance for every model.
 
@@ -130,3 +130,7 @@ project pauses here.** Interpretation for the talk: the agent's remaining locali
 on atypical anatomy that are hard for *every* available model — small specialists (pointing-trained or
 medical-trained, 2D or 3D) fail on the same cases and below the generalist; the judgement gap (accepting true tumour
 rim) is not closed by a 4B medical VLM either. Neither gap is a pointing-precision or tooling problem.
+
+Run files of the MolmoPoint/Qwen3-VL design runs and the 3D-probe prediction masks were lost when the workers'
+temporary worktrees were removed; scores are preserved (worker reports, `results/phase5/probe3d/score_all.log`,
+`results/phase5/_session_artifacts/logs/probe_*`). Pause handoff: `research/HANDOFF_A100_p45_pause.md`.

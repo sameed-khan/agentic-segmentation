@@ -18,6 +18,12 @@ Conditions (identical inputs to the Phase 2 frontier study):
               the nearest mark (marks_box).
 GT-derived manifest fields are never sent: only the images and the prompt text.
 
+--prompt COND=PATH (repeatable) replaces the default template for one condition
+(harness/study/prompts/local_point_<COND>.md; PATH relative to the repo root or
+absolute). With --models selecting a single model this gives per-model×condition
+prompt variants; the effective template path + sha256 per condition are recorded in
+meta.json `prompts` and are immutable on resume.
+
 Output: results/phase5/studyA/<run>/responses.jsonl (one line per
 case×model×condition×rep; resumable exactly like ask.ts: ok rows are skipped, error
 rows dropped and retried) + meta.json. Scoring: score_local_point.py.
@@ -65,13 +71,14 @@ HISTOTYPE_TEXT = {
 }
 SEQUENCE_TEXT = {"T1": "T1-weighted", "T2": "T2-weighted fat-suppressed"}
 
-# condition -> (prompt template, image of the manifest row)
+# condition -> manifest image field of the row (the default template is
+# harness/study/prompts/local_point_<cond>.md; --prompt overrides replace it per condition)
 CONDITION_SPEC = {
-    "raw": ("local_point_raw.md", "image_R"),
-    "marks": ("local_point_marks.md", "image_S"),
-    "raw_box": ("local_point_raw_box.md", "image_R"),
-    "marks_box": ("local_point_marks_box.md", "image_S"),
-    "marks_id": ("local_point_marks_id.md", "image_S"),
+    "raw": "image_R",
+    "marks": "image_S",
+    "raw_box": "image_R",
+    "marks_box": "image_S",
+    "marks_id": "image_S",
 }
 PROMPTS_DIR = PROJECT_ROOT / "harness" / "study" / "prompts"
 DEFAULT_RESULTS_ROOT = "results/phase5/studyA"
@@ -106,6 +113,51 @@ def render_template(text: str, vars_: dict[str, str]) -> str:
     return re.sub(r"\{\{(\w+)\}\}", lambda m: vars_.get(m.group(1), m.group(0)), text)
 
 
+def resolve_prompt_overrides(specs: list[str], root: Path) -> dict[str, Path]:
+    """Parse --prompt COND=PATH specs (repeatable): PATH (absolute, or relative to the
+    repo root) replaces the default local_point_<COND>.md template for that condition.
+    Unknown condition or missing file -> SystemExit with a clear message."""
+    overrides: dict[str, Path] = {}
+    for spec in specs:
+        cond, sep, path = spec.partition("=")
+        if not sep or not cond.strip() or not path:
+            raise SystemExit(f"--prompt expects COND=PATH, got {spec!r} "
+                             f"(known conditions: {', '.join(ALL_CONDITIONS)})")
+        cond = cond.strip()
+        if cond not in ALL_CONDITIONS:
+            raise SystemExit(f"unknown --prompt condition: {cond} "
+                             f"(known: {', '.join(ALL_CONDITIONS)})")
+        template = Path(path)
+        if not template.is_absolute():
+            template = root / template
+        if not template.is_file():
+            raise SystemExit(f"--prompt {cond}: template not found at {template}")
+        overrides[cond] = template
+    return overrides
+
+
+def template_for(condition: str, overrides: dict[str, Path] | None = None) -> tuple[Path, str]:
+    """The effective prompt template for a condition: the --prompt override, else the
+    default harness/study/prompts/local_point_<cond>.md. Returns (path, provenance
+    label as recorded in responses.jsonl `prompt_template` / meta.json `prompts`)."""
+    path = (overrides or {}).get(condition) or PROMPTS_DIR / f"local_point_{condition}.md"
+    try:
+        label = str(path.relative_to(PROJECT_ROOT))
+    except ValueError:
+        label = str(path)
+    return path, label
+
+
+def prompt_provenance(overrides: dict[str, Path] | None = None) -> dict:
+    """Effective template path + sha256 per condition (default or --prompt override);
+    part of the immutable-on-resume config (IMMUTABLE_META_KEYS: `prompts`)."""
+    out = {}
+    for cond in ALL_CONDITIONS:
+        path, label = template_for(cond, overrides)
+        out[cond] = {"path": label, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+    return out
+
+
 def resolve_image(prepare_dir: Path, images_root: Path | None, rel: str | None) -> Path | None:
     """Manifest image paths are relative to the source project root (prepare dir's
     tree); --images-root overrides that root."""
@@ -138,8 +190,8 @@ def call_chat(client: MedGemmaClient, prompt: str, image_path: Path, max_tokens:
 def build_call(row: dict, model: str, condition: str, rep: int, opts) -> dict:
     """Build and execute one service call; returns the responses.jsonl line."""
     spec = MODELS[model]
-    template_name, image_field = CONDITION_SPEC[condition]
-    template_path = PROMPTS_DIR / template_name
+    image_field = CONDITION_SPEC[condition]
+    template_path, template_label = template_for(condition, opts.prompt_overrides)
     template = template_path.read_text()
     vars_ = {"target": HISTOTYPE_TEXT[row["histotype"]], "sequence_text": SEQUENCE_TEXT[row["sequence"]]}
     prompt_text = render_template(template, vars_)
@@ -152,7 +204,7 @@ def build_call(row: dict, model: str, condition: str, rep: int, opts) -> dict:
         "run": opts.run, "case": row["case"], "histotype": row["histotype"],
         "sequence": row["sequence"], "model": model, "condition": condition, "rep": rep,
         "model_id": None, "service_version": None,
-        "prompt_template": f"harness/study/prompts/{template_name}",
+        "prompt_template": template_label,
         "prompt_sha256": hashlib.sha256(template.encode()).hexdigest(),
         "prompt_text": prompt_text, "image": row[image_field], "k": opts.k,
         "raw": "", "points": [], "parsed": None, "parse_error": None, "uncertain": None,
@@ -192,6 +244,10 @@ def parse_args(argv=None):
     ap.add_argument("--conditions", default="",
                     help="optional comma filter (default: each model's full condition set); "
                          f"known: {','.join(ALL_CONDITIONS)}")
+    ap.add_argument("--prompt", action="append", default=[], metavar="COND=PATH",
+                    help="replace the default prompt template for one condition (repeatable; "
+                         "PATH is relative to the repo root or absolute), e.g. "
+                         "--prompt marks=harness/study/prompts/variants/molmo_marks_v2.md")
     ap.add_argument("--prepare-dir", required=True,
                     help="Phase 2 prepare manifest dir (design: <main tree>/results/phase2_dev/prepare, "
                          "test: .../results/phase2_test/prepare) — read-only")
@@ -226,6 +282,7 @@ def parse_args(argv=None):
     for cond in args.conditions_filter:
         if cond not in ALL_CONDITIONS:
             raise SystemExit(f"unknown condition: {cond} (known: {', '.join(ALL_CONDITIONS)})")
+    args.prompt_overrides = resolve_prompt_overrides(args.prompt, PROJECT_ROOT)
     return args
 
 
@@ -323,10 +380,7 @@ def main() -> None:
         "images_root": opts.images_root,
         "urls": opts.urls, "timeout_s": opts.timeout, "concurrency": opts.concurrency,
         "planned_calls": len(calls), "resumed_from_lines": len(done),
-        "prompts": {name: {"path": f"harness/study/prompts/{name}.md",
-                           "sha256": hashlib.sha256((PROMPTS_DIR / f"{name}.md").read_bytes()).hexdigest()}
-                    for name in ("local_point_raw", "local_point_marks", "local_point_raw_box",
-                                 "local_point_marks_box", "local_point_marks_id")},
+        "prompts": prompt_provenance(opts.prompt_overrides),
     }
     check_immutable_config(run_dir, meta, done)
     (run_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")

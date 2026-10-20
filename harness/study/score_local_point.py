@@ -21,6 +21,22 @@ with a 26 px bottom margin):
 Snap-to-mark is the Study-A-specific piece (predeclared rule: nearest
 drawn mark by Euclidean distance over the manifest's combined_px, ties -> lowest id).
 
+Declared clean-panel fold rule (--clean-panel-fold on, default): the marks image is
+clean panel 0 (x in [0, panel_w)) + 16 px gap + marked panel 1; pointer models point at
+the tumour on BOTH panels, so for `marks` (pointd) and `marks_box` (box centre) a point
+whose x lies on the clean panel is translated to the same position on the marked panel
+(x + panel_w + gap, y unchanged) BEFORE snapping (the panels share the same view
+geometry); gap points are not folded. Pointd `marks` ranks are then deduplicated by
+snapped mark id (first occurrence in rank order; duplicates are dropped and do not
+consume a rank) so hit@3 means 3 distinct marks. Per-rank `folded` records whether the
+point was folded; --clean-panel-fold off keeps the pre-fold behaviour exactly.
+
+MedGemma box scale: Gemma answers boxes as [y0, x0, y1, x1] on a 0-1000 integer scale
+(e.g. {"box": [350, 230, 580, 530]}), the Phase 5 prompts ask for [0,1] fractions; the
+scorer accepts both (all four values in [0,1] -> `unit`; else all in [0,1000] ->
+`per1000`, divided by 1000; else parse failure; degenerate boxes y1<y0 or x1<x0 are
+parse failures) and records `box_scale` per scored row.
+
 Inputs: a run dir from local_point_study.py (responses.jsonl) + the prepare manifest
 + GT masks (offline only). Baseline: a Phase 2 run dir (e.g. the main tree's
 results/phase2_test/p2-test-high, read-only) — its scored.jsonl rows are per-call;
@@ -95,6 +111,23 @@ def _strict_int(value) -> int | None:
     return None
 
 
+def _box_scale(box) -> str | None:
+    """Declared MedGemma box-scale rule: Gemma answers boxes as [y0, x0, y1, x1] on a
+    0-1000 integer scale (e.g. {"box": [350, 230, 580, 530]}), the Phase 5 prompts ask
+    for [0,1] fractions. All four values in [0,1] -> "unit"; else all in [0,1000] ->
+    "per1000" (the scorer divides by 1000); otherwise None (parse failure: wrong
+    shape/type, a value outside [0,1000], or mixed-scale values that fit neither
+    declared frame)."""
+    if not (isinstance(box, list) and len(box) == 4
+            and all(isinstance(v, (int, float)) for v in box)):
+        return None
+    if all(0 <= v <= 1 for v in box):
+        return "unit"
+    if all(0 <= v <= 1000 for v in box):
+        return "per1000"
+    return None
+
+
 # ------------------------------------------------------------------ snapping
 def snap_to_mark(px: float, py: float, drawn_marks: list[dict]) -> tuple[dict | None, float]:
     """Nearest drawn mark (combined-image pixel coords); ties -> lowest id.
@@ -111,6 +144,18 @@ def snap_to_mark(px: float, py: float, drawn_marks: list[dict]) -> tuple[dict | 
     return best, best_d
 
 
+def clean_panel_fold_px(x: float, y: float, geom, enabled: bool) -> tuple[float, float, bool]:
+    """Declared clean-panel fold rule (--clean-panel-fold on): the S image is clean
+    panel 0 (x in [0, panel_w)) + PANEL_GAP_PX gap + marked panel 1, and the two panels
+    share the same view geometry, so a point whose x lies on the clean panel is
+    translated to the same position on the marked panel (x + panel_w + gap, y kept)
+    before snapping. Points on the marked panel, in the gap, or beyond it are returned
+    unchanged. Returns (x, y, folded)."""
+    if enabled and 0 <= x < geom.panel_w:
+        return x + geom.panel_w + PANEL_GAP_PX, y, True
+    return x, y, False
+
+
 def answer_snippet(mark_id: int) -> str:
     """The study answer in Phase 2 S-format, scored through score.score_call."""
     return f"ANSWER: {mark_id}"
@@ -122,7 +167,8 @@ def answer_point(x: float, y: float) -> str:
 
 
 # ------------------------------------------------------------------ per response
-def score_response(resp: dict, row: dict, gt2d: np.ndarray, edt: np.ndarray) -> list[dict]:
+def score_response(resp: dict, row: dict, gt2d: np.ndarray, edt: np.ndarray,
+                   clean_panel_fold: bool = True) -> list[dict]:
     """Score one responses.jsonl line -> per-rank scored rows (rank 0 = top point)."""
     base = {
         "run": resp.get("run"), "case": resp["case"], "histotype": row["histotype"],
@@ -130,6 +176,7 @@ def score_response(resp: dict, row: dict, gt2d: np.ndarray, edt: np.ndarray) -> 
         "rep": resp.get("rep"), "latency_ms": resp.get("latency_ms"),
         "response_error": bool(resp.get("error")),
         "n_points": len(resp.get("points") or []),
+        "folded": False, "box_scale": None,
     }
     if base["response_error"]:
         base.update({"rank": 0, "status": "response_error", "hit": False, "distance_mm": None,
@@ -139,12 +186,17 @@ def score_response(resp: dict, row: dict, gt2d: np.ndarray, edt: np.ndarray) -> 
 
     condition = resp["condition"]
     if condition in POINTD_CONDITIONS:
-        return _score_pointd(resp, row, gt2d, edt, base)
-    return _score_chat(resp, row, gt2d, edt, base)
+        return _score_pointd(resp, row, gt2d, edt, base, clean_panel_fold)
+    return _score_chat(resp, row, gt2d, edt, base, clean_panel_fold)
 
 
-def _score_pointd(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
-    """Pointer services: k pixel points; ranks scored independently (hit@1/hit@3)."""
+def _score_pointd(resp: dict, row: dict, gt2d, edt, base, clean_panel_fold: bool) -> list[dict]:
+    """Pointer services: k pixel points; ranks scored independently (hit@1/hit@3).
+
+    With --clean-panel-fold on, `marks` points on the clean panel are folded to the
+    marked panel before snapping, and ranks are deduplicated by snapped mark id (first
+    occurrence in rank order; a later point snapping to an already-used mark is dropped
+    and does not consume a rank) so hit@3 means 3 distinct marks."""
     points = resp.get("points") or []
     if not points:
         base.update({"rank": 0, "status": "abstain", "hit": False, "distance_mm": None,
@@ -152,10 +204,18 @@ def _score_pointd(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
                      "snap_distance_px": None, "raw_point_hit": None, "raw_point_distance_mm": None})
         return [base]
     out = []
-    for rank, point in enumerate(points):
-        row_rank = dict(base, rank=rank, point=[point["x"], point["y"]], png_point=None)
+    seen_marks: set[int] = set()
+    rank = 0
+    for point in points:
+        row_rank = dict(base, point=[point["x"], point["y"]], png_point=None)
         if resp["condition"] == "marks":
-            mark, snap_d = snap_to_mark(point["x"], point["y"], row["drawn_marks"])
+            fx, fy, folded = clean_panel_fold_px(float(point["x"]), float(point["y"]),
+                                                 _geom(row, "S"), clean_panel_fold)
+            mark, snap_d = snap_to_mark(fx, fy, row["drawn_marks"])
+            if clean_panel_fold and mark is not None and int(mark["id"]) in seen_marks:
+                continue  # duplicate snapped mark: dropped, does not consume a rank
+            row_rank.update({"rank": rank, "folded": folded})
+            rank += 1
             if mark is None:  # no drawn marks in the manifest row: cannot snap
                 row_rank.update({"snapped_mark_id": None, "snap_distance_px": None,
                                  "status": "parse_fail", "hit": False, "distance_mm": None,
@@ -163,13 +223,16 @@ def _score_pointd(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
                 out.append(row_rank)
                 continue
             row_rank["snapped_mark_id"] = mark["id"]
+            seen_marks.add(int(mark["id"]))
             row_rank["snap_distance_px"] = round(snap_d, 2)
             call = _phase2_call(resp, answer_snippet(mark["id"]), "S")
             scored = phase2_score.score_call(call, row, gt2d, edt, _geom(row, "S"))
-            # secondary: the RAW (unsnapped) point on the marked panel — never confused
-            # with the snapped answer (research note: report both, never mix).
-            _attach_raw_point(row_rank, resp, row, gt2d, edt, point)
+            # secondary: the RAW (unsnapped) point on the panel it landed on — never
+            # confused with the snapped answer (research note: report both, never mix).
+            _attach_raw_point(row_rank, resp, row, gt2d, edt, point, clean_panel_fold)
         else:
+            row_rank.update({"rank": rank})
+            rank += 1
             # The sent PNG is NOT the panel: render_raw_pointing pastes the image area at
             # (RAW_MARGIN_LEFT_PX, RAW_MARGIN_TOP_PX) with a bottom margin. Convert whole-PNG
             # pixels to panel pixels first; a point in a margin is an outside_panel miss.
@@ -192,7 +255,7 @@ def _score_pointd(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
     return out
 
 
-def _score_chat(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
+def _score_chat(resp: dict, row: dict, gt2d, edt, base, clean_panel_fold: bool) -> list[dict]:
     """MedGemma: strict-JSON answers (box -> centre; mark id; explicit uncertain)."""
     parsed = resp.get("parsed")
     status = "parse_fail" if (resp.get("parse_error") or parsed is None) else None
@@ -222,11 +285,16 @@ def _score_chat(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
         return [row0]
 
     box = (parsed or {}).get("box")
-    if not (isinstance(box, list) and len(box) == 4 and all(
-            isinstance(v, (int, float)) and 0 <= v <= 1 for v in box)):
+    box_scale = _box_scale(box)
+    if box_scale is None:
         row0.update({"status": "parse_fail", "hit": False, "distance_mm": None})
         return [row0]
-    y0, x0, y1, x1 = (float(v) for v in box)  # MedGemma/Gemma convention: [y0, x0, y1, x1]
+    div = 1000.0 if box_scale == "per1000" else 1.0
+    y0, x0, y1, x1 = (float(v) / div for v in box)  # MedGemma/Gemma convention: [y0, x0, y1, x1]
+    if y1 < y0 or x1 < x0:  # degenerate box: parse failure, never silently re-centred
+        row0.update({"status": "parse_fail", "hit": False, "distance_mm": None})
+        return [row0]
+    row0["box_scale"] = box_scale
     cx = (x0 + x1) / 2.0
     cy = (y0 + y1) / 2.0
     if resp["condition"] == "raw_box":
@@ -247,12 +315,14 @@ def _score_chat(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
         row0.update({"status": scored["status"], "hit": scored["hit"],
                      "distance_mm": scored["distance_mm"]})
         return [row0]
-    # marks_box: centre on the combined S image (two panel_w panels + gap), snapped
-    # to the nearest drawn mark
+    # marks_box: centre on the combined S image (clean panel + gap + marked panel),
+    # clean-panel fold applied first, then snapped to the nearest drawn mark
     geom = _geom(row, "S")
     px, py = cx * geom_total_width(geom), cy * geom.panel_h
     row0["point"] = [round(px, 2), round(py, 2)]
-    mark, snap_d = snap_to_mark(px, py, row["drawn_marks"])
+    fx, fy, folded = clean_panel_fold_px(px, py, geom, clean_panel_fold)
+    row0["folded"] = folded
+    mark, snap_d = snap_to_mark(fx, fy, row["drawn_marks"])
     row0["snapped_mark_id"] = mark["id"] if mark else None
     row0["snap_distance_px"] = round(snap_d, 2) if mark else None
     if mark is None:
@@ -260,7 +330,7 @@ def _score_chat(resp: dict, row: dict, gt2d, edt, base) -> list[dict]:
         return [row0]
     call = _phase2_call(resp, answer_snippet(mark["id"]), "S")
     scored = phase2_score.score_call(call, row, gt2d, edt, _geom(row, "S"))
-    _attach_raw_point(row0, resp, row, gt2d, edt, {"x": px, "y": py})
+    _attach_raw_point(row0, resp, row, gt2d, edt, {"x": px, "y": py}, clean_panel_fold)
     row0.update({"status": scored["status"], "hit": scored["hit"],
                  "distance_mm": scored["distance_mm"]})
     return [row0]
@@ -286,16 +356,25 @@ def _geom(row: dict, which: str):
                     tuple(g["crop"]), float(g["scale"]), int(g["panel_w"]), int(g["panel_h"]))
 
 
-def _attach_raw_point(row_rank: dict, resp: dict, row: dict, gt2d, edt, point: dict) -> None:
-    """Secondary diagnostic: the raw (unsnapped) point on the marked panel.
+def _attach_raw_point(row_rank: dict, resp: dict, row: dict, gt2d, edt, point: dict,
+                      clean_panel_fold: bool) -> None:
+    """Secondary diagnostic: the raw (unsnapped) point scored on the panel it landed on.
 
-    combined-image px -> marked-panel px (subtract panel 0 width + gap); the raw point
-    is scored with the R path on view_geom_S. Never mixed with the snapped answer.
+    The clean and marked panels share the same view geometry, so a point is expressed in
+    marked-panel px for the R path: a marked-panel point subtracts panel 0 width + gap;
+    a clean-panel point keeps its own (x, y). With --clean-panel-fold off the legacy
+    behaviour is kept (a clean-panel point has no marked-panel voxel -> None); a gap or
+    out-of-panel point has no panel voxel either way. Never mixed with the snapped
+    answer.
     """
     geom = _geom(row, "S")
-    px = point["x"] - (geom.panel_w + PANEL_GAP_PX)
-    py = point["y"]
-    if px < 0:  # landed on the clean panel: no marked-panel voxel
+    x, y = float(point["x"]), float(point["y"])
+    if clean_panel_fold and 0 <= x < geom.panel_w:
+        px, py = x, y  # clean panel 0: same view geometry as the marked panel
+    else:
+        px = x - (geom.panel_w + PANEL_GAP_PX)
+        py = y
+    if px < 0:  # landed in the gap (or, fold off, on the clean panel): no panel voxel
         row_rank["raw_point_hit"], row_rank["raw_point_distance_mm"] = None, None
         return
     call = _phase2_call(resp, answer_point(px, py), "R")
@@ -465,6 +544,24 @@ def write_report(run_dir: Path, cond_keys: list[tuple], agg: dict, per_hist: dic
                  "(combined_px, ties -> lowest id) -> that mark's projected voxel inside GT "
                  "(score.py S path). The unsnapped point is reported separately "
                  "(raw_point_hit), never mixed with the snapped answer.")
+    if meta.get("clean_panel_fold", "on") == "on":
+        lines.append("- Clean-panel fold (declared rule, --clean-panel-fold on): the marks image is "
+                     "clean panel 0 (x < panel_w) + 16 px gap + marked panel 1; a point/box centre "
+                     "whose x lies on the clean panel is translated to the same position on the "
+                     "marked panel (x + panel_w + gap, y unchanged) BEFORE snapping (the panels "
+                     "share the same view geometry); points in the gap are not folded. Per-rank "
+                     "`folded` records whether the point was folded. Pointer `marks` ranks are "
+                     "deduplicated by snapped mark id (first occurrence in rank order; later "
+                     "points snapping to an already-used mark are dropped and do not consume a "
+                     "rank) so hit@3 means 3 distinct marks.")
+    else:
+        lines.append("- Clean-panel fold is OFF (--clean-panel-fold off): every point/box centre "
+                     "snaps as-is and ranks are not deduplicated.")
+    lines.append("- raw_box / marks_box boxes: [y0, x0, y1, x1]; all four values in [0,1] are "
+                 "fractions (box_scale `unit`), else all in [0,1000] are the Gemma 0-1000 "
+                 "integer scale (box_scale `per1000`, divided by 1000); anything else — wrong "
+                 "shape/type, a value outside [0,1000], or a degenerate box (y1 < y0 or "
+                 "x1 < x0) — is a parse failure.")
     lines.append("- marks_id: mark id answered directly (S path; a non-integer id is a "
                  "parse failure, an unknown integer id = invalid_mark).")
     lines.append("- Parse failures and the explicit `uncertain` answer count as misses and are "
@@ -486,6 +583,11 @@ def main() -> None:
                     help="frontier condition to compare against (S = marks baseline, R = raw)")
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--seed", type=int, default=20261019)
+    ap.add_argument("--clean-panel-fold", choices=("on", "off"), default="on",
+                    help="declared clean-panel fold rule for the marks conditions: a point/box "
+                         "centre on the clean panel is translated to the same position on the "
+                         "marked panel before snapping, and pointd `marks` ranks are "
+                         "deduplicated by snapped mark id (default on; off = pre-fold behaviour)")
     args = ap.parse_args()
 
     run_dir = PROJECT_ROOT / args.results_root / args.run
@@ -511,6 +613,7 @@ def main() -> None:
 
     from segd.data import get_case, load_mask
 
+    fold = args.clean_panel_fold == "on"
     scored: list[dict] = []
     gt_cache: dict[str, tuple] = {}
     for resp in resp_lines:
@@ -519,7 +622,7 @@ def main() -> None:
             mask = load_mask(get_case(case))
             gt_cache[case] = phase2_score.gt_slices_and_edt(rows[case], mask)
         gt2d, edt = gt_cache[case]
-        scored.extend(score_response(resp, rows[case], gt2d, edt))
+        scored.extend(score_response(resp, rows[case], gt2d, edt, fold))
     (run_dir / "scored.jsonl").write_text("".join(json.dumps(c) + "\n" for c in scored))
 
     # ---- aggregation: (model, condition) -> metrics --------------------------
@@ -583,9 +686,11 @@ def main() -> None:
         "baseline_comparison": {f"{m}/{c}": comp for (m, c), comp in baseline.items()},
         "baseline": {"dir": str(baseline_dir), "condition": args.baseline_condition} if baseline_dir else None,
         "n_boot": args.n_boot, "seed": args.seed,
+        "clean_panel_fold": args.clean_panel_fold,
     }, indent=2) + "\n")
     write_report(run_dir, cond_keys, agg, per_hist, baseline,
-                 {**meta, "prepare_manifest": str(prepare_dir / "manifest.jsonl")})
+                 {**meta, "prepare_manifest": str(prepare_dir / "manifest.jsonl"),
+                  "clean_panel_fold": args.clean_panel_fold})
 
     print(f"[score] {len(scored)} scored rows -> {run_dir / 'report.md'}")
     for key in cond_keys:

@@ -108,6 +108,17 @@ const SET_TEMPLATE: Record<(typeof SETS)[number], string> = {
  * The exact text that reaches the provider is asserted per call and persisted in meta.json.
  */
 const MINIMAL_NEUTRAL_SYSTEM_PROMPT = "You are a helpful assistant.";
+/**
+ * Anthropic OAuth (subscription) requests carry the fixed Claude Code identity line in
+ * front of the system prompt (observed on the A100 with pi 1.3.0 + the auth shim,
+ * 2026-10-20). It is identical for every Anthropic call on this account (agent runs
+ * included), so it is accepted EXACTLY as a prefix; anything else is still a mismatch.
+ */
+const CLAUDE_CODE_IDENTITY = "You are Claude Code, Anthropic's official CLI for Claude.";
+const ACCEPTED_PROVIDER_SYSTEM_PROMPTS = [
+	MINIMAL_NEUTRAL_SYSTEM_PROMPT,
+	`${CLAUDE_CODE_IDENTITY}\n\n${MINIMAL_NEUTRAL_SYSTEM_PROMPT}`,
+];
 
 interface ManifestRow {
 	key: string;
@@ -426,7 +437,7 @@ async function runCall(
 		// Never drop a planned call (review P1-4): a missing assistant response is a
 		// terminal error row (ok=false), not a silent return.
 		const noResponse = msg.stopReason === undefined;
-		if (capture.seen && capture.system !== MINIMAL_NEUTRAL_SYSTEM_PROMPT) {
+		if (capture.seen && !ACCEPTED_PROVIDER_SYSTEM_PROMPTS.includes(capture.system ?? "")) {
 			errors.push(
 				`provider system prompt mismatch: got ${JSON.stringify((capture.system ?? "").slice(0, 120))}`,
 			);

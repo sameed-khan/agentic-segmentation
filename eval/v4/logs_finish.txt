@@ -1,0 +1,9 @@
+[p4_finish] 2026-10-20T00:58:57+00:00 iso chain done
+[beamster] 140/140 rows pointed at nifti_iso -> /home/ubuntu/agseg-p4/eval/v4/beamster_cases.csv
+[spinal_mm_seg] 72/72 rows pointed at nifti_iso -> /home/ubuntu/agseg-p4/eval/v4/spinal_mm_seg_cases.csv
+[ucsd_bmets] no manifest (skipped)
+[longitudinal_ct] 334/334 rows pointed at nifti_iso -> /home/ubuntu/agseg-p4/eval/v4/longitudinal_ct_cases.csv
+[beamster] 140/140 cases ok -> /home/ubuntu/agseg-p4/eval/v4/data_check_phase4/beamster.jsonl
+[spinal_mm_seg] 72/72 cases ok -> /home/ubuntu/agseg-p4/eval/v4/data_check_phase4/spinal_mm_seg.jsonl
+[longitudinal_ct] 226/226 cases ok -> /home/ubuntu/agseg-p4/eval/v4/data_check_phase4/longitudinal_ct.jsonl
+[p4_finish] 2026-10-20T01:11:52+00:00 DONE

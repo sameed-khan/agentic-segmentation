@@ -118,6 +118,20 @@ def _load_object(candidate: str, source: str) -> dict:
     return obj
 
 
+def _clamp_read_to_deadline(resp, deadline: float) -> None:
+    """Bound the BODY READ to the caller's absolute wall-clock deadline: urlopen's
+    ``timeout`` only applies to individual socket operations, so a slow-drip reply
+    could otherwise keep the request alive past the op's HTTP budget. Clamps the
+    response socket's timeout to the remaining budget; raises TimeoutError when the
+    budget is already spent."""
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError("reply exceeded the wall-clock deadline")
+    sock = getattr(getattr(getattr(resp, "fp", None), "raw", None), "_sock", None)
+    if sock is not None:
+        sock.settimeout(max(remaining, 0.001))
+
+
 class MedGemmaClient:
     """Minimal OpenAI-compatible chat client for the two MedGemma endpoints."""
 
@@ -130,8 +144,15 @@ class MedGemmaClient:
 
     # -- raw chat -----------------------------------------------------------
     def chat(self, prompt: str, images=None, *, temperature: float = 0.0,
-             max_tokens: int = 256) -> ChatResult:
-        """One user turn: prompt text + optional images (paths/bytes/PIL Images)."""
+             max_tokens: int = 256, deadline: float | None = None) -> ChatResult:
+        """One user turn: prompt text + optional images (paths/bytes/PIL Images).
+
+        ``deadline``: optional ABSOLUTE wall-clock deadline (``time.monotonic()``
+        timestamp, e.g. from a per-operation budget). It bounds the WHOLE request —
+        connection, headers and body read: ``urlopen(timeout=...)`` only bounds
+        individual socket operations, so a slow-drip reply could otherwise exceed the
+        caller's op deadline. Raises RuntimeError when the budget is already spent
+        before the request or when the reply exceeds it."""
         content: list[dict] = [{"type": "text", "text": prompt}]
         for image in images or []:
             content.append({"type": "image_url", "image_url": {"url": image_to_data_url(image)}})
@@ -150,13 +171,19 @@ class MedGemmaClient:
         )
         t0 = time.perf_counter()
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_s) as resp:
+            timeout = self._remaining_s(deadline)
+            with urllib.request.urlopen(request, timeout=timeout) as resp:
+                if deadline is not None:
+                    _clamp_read_to_deadline(resp, deadline)
                 payload = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", "replace")[:500]
             raise RuntimeError(f"MedGemma server HTTP {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
             raise RuntimeError(f"MedGemma server unreachable at {self.base_url}: {exc.reason}") from exc
+        except TimeoutError as exc:   # incl. socket.timeout: the deadline clamp fired
+            raise RuntimeError(f"MedGemma request timed out: wall-clock deadline "
+                               f"exceeded at {self.base_url}") from exc
         latency_ms = (time.perf_counter() - t0) * 1000.0
         message = (payload.get("choices") or [{}])[0].get("message", {})
         text = message.get("content") or ""  # OpenAI chat completion: message.content
@@ -165,16 +192,29 @@ class MedGemmaClient:
                           usage=payload.get("usage"))
 
     # -- strict JSON --------------------------------------------------------
+    def _remaining_s(self, deadline: float | None) -> float:
+        """Effective socket timeout for the remaining wall-clock budget (the client's
+        base timeout when no deadline was given); raises when it is already spent."""
+        if deadline is None:
+            return self.timeout_s
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise RuntimeError("MedGemma deadline already spent; request not sent")
+        return min(self.timeout_s, remaining)
+
     def chat_json(self, prompt: str, images=None, *, temperature: float = 0.0,
                   max_tokens: int = 256, allow_uncertain: bool = True,
-                  uncertain_value: str = "uncertain") -> ChatResult:
+                  uncertain_value: str = "uncertain",
+                  deadline: float | None = None) -> ChatResult:
         """chat + strict JSON parse with the explicit `uncertain` option.
 
         Parse failures are RETURNED (parsed=None, parse_error set), never retried —
         the scorer counts them as errors. `uncertain` is True when the parsed reply's
         `answer` (or the whole reply, for bare strings) equals `uncertain_value`.
+        ``deadline`` (see chat) bounds the whole request wall-clock as well.
         """
-        result = self.chat(prompt, images, temperature=temperature, max_tokens=max_tokens)
+        result = self.chat(prompt, images, temperature=temperature, max_tokens=max_tokens,
+                           deadline=deadline)
         try:
             data = extract_json_object(result.text)
         except (ValueError, json.JSONDecodeError) as exc:

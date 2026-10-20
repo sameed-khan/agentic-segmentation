@@ -945,7 +945,12 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
     cs._log_extra = {}
     cs._last_resolved = []
     cs._last_render_info = None
-    cs._v3_group_deadline = None   # v3 MedGemma group budget, set by v3.medgemma_call
+    # v3 MedGemma ABSOLUTE per-op deadline (finding #1): starts at op ENTRY (not at the
+    # first call), so pre-hook work (renders, candidate generation) counts against the
+    # same budget the extension's HTTP deadline sees; None when MedGemma is off.
+    from segd.v3 import medgemma_on
+    cs._v3_group_deadline = (time.perf_counter() + config.V3_MEDGEMMA_GROUP_TIMEOUT_S
+                             if medgemma_on(cs) else None)
     cs.tool_calls += 1   # every call counts, including the ones that fail below
     if op_name in config.MODEL_PROMPT_OPS and cs.model_prompts >= cs.budgets["max_model_prompts"]:
         raise reject("model prompt budget used; edit with seg_paint/seg_edit or call seg_finish",

@@ -31,8 +31,10 @@ medgemma (second reader -> decisions):
   and candidate id, BEFORE the accept (advice produced later belongs to a different
   proposal set or could not have caused the acceptance):
   accept_adherence        per accept operation: followed (a matched 'lesion' verdict was
-                          accepted) / override (matched advice accepted against) /
-                          unexposed (no matching advice), 'v1->v2:...;...'.
+                          accepted) / override (matched 'normal' advice accepted against)
+                          / abstain (matched advice was an 'uncertain' verdict: no
+                          recommendation either way, EXCLUDED from the follow/override
+                          denominators) / unexposed (no matching advice), 'v1->v2:...;...'.
   accept_dice_delta       Dice(to_version) - Dice(from_version) from versions.npz, ONE
                           per accept operation (operation-level GT-free correctness
                           proxy for the whole accepted set, labelled as such; NOT
@@ -82,7 +84,8 @@ FIELDS = ["case", "histotype", "status", "final_version", "n_locate_calls",
           "first_click_inside", "pointer_followed_inside",
           "medgemma_checkpoints_seen", "review_complete", "review_confidence",
           "candidate_verdicts", "accepted_ids", "n_accepts",
-          "n_accepts_medgemma_lesion", "n_accepts_overridden", "n_accepts_unexposed",
+          "n_accepts_medgemma_lesion", "n_accepts_overridden", "n_accepts_abstained",
+          "n_accepts_unexposed",
           "accept_adherence", "accept_dice_delta", "error"]
 
 V3_RECORDS = "v3"          # trajectory key carrying the harness v3 call records
@@ -145,7 +148,10 @@ def collect_v3_events(traj: list[dict]) -> dict:
                                                          if isinstance(item, dict)],
                                             "child": r.get("child")}
         for e in (r.get(V3_RECORDS) or []):
-            if isinstance(e, dict) and e.get("call") == "checkpoint":
+            if isinstance(e, dict) and e.get("call") == "checkpoint" and e.get("ok"):
+                # DELIVERED advice only: an unusable reply (validation error, id
+                # mismatch, exhausted deadline) arrives with ok=False/parsed=None and
+                # must never be attributed (review finding: OverflowError bookkeeping)
                 ev = dict(e)                           # enclosing record's order/version:
                 ev["order"] = order                    # the proposal set a candidate
                 ev["version"] = r.get("parent")        # verdict belongs to
@@ -243,7 +249,8 @@ def candidate_adherence(events: dict, gt: np.ndarray | None, spacing,
     correctness)."""
     out = {"review_complete": "", "review_confidence": "", "candidate_verdicts": "",
            "accepted_ids": "", "n_accepts": 0, "n_accepts_medgemma_lesion": 0,
-           "n_accepts_overridden": 0, "n_accepts_unexposed": 0,
+           "n_accepts_overridden": 0, "n_accepts_abstained": 0,
+           "n_accepts_unexposed": 0,
            "accept_adherence": "", "accept_dice_delta": ""}
     reviews = [e for e in events["medgemma"] if e.get("checkpoint") == "review"]
     if reviews:
@@ -269,7 +276,7 @@ def candidate_adherence(events: dict, gt: np.ndarray | None, spacing,
     accepted: list[str] = []
     op_labels: list[str] = []
     deltas: list[str] = []
-    n_lesion = n_overridden = n_unexposed = 0
+    n_lesion = n_overridden = n_unexposed = n_abstained = 0
     for a in events["accepts"]:
         statuses: list[str] = []
         for cid in a["ids"]:
@@ -282,12 +289,20 @@ def candidate_adherence(events: dict, gt: np.ndarray | None, spacing,
             if not matches:
                 statuses.append("unexposed")           # distinct from overrides
                 n_unexposed += 1
-            elif matches[-1]["verdict"] == "lesion":   # last delivery before the accept
-                statuses.append("followed")
+                continue
+            verdict = matches[-1]["verdict"]           # last delivery before the accept
+            if verdict == "lesion":
+                statuses.append("followed")            # accepted with its recommendation
                 n_lesion += 1
-            else:
+            elif verdict == "normal":
                 statuses.append("override")            # accepted against its advice
                 n_overridden += 1
+            else:
+                # 'uncertain' (do not guess) — or any non-directional verdict — is an
+                # ABSTAIN, not an override: no recommendation against acceptance, so it
+                # stays OUT of the follow/override denominators
+                statuses.append("abstain")
+                n_abstained += 1
         if statuses:
             op_labels.append(f"{a['from']}->{a['to']}:{'-'.join(statuses)}")
             if versions_dice and a["from"] and a["to"]:
@@ -300,6 +315,7 @@ def candidate_adherence(events: dict, gt: np.ndarray | None, spacing,
         out["n_accepts"] = len(accepted)
         out["n_accepts_medgemma_lesion"] = n_lesion
         out["n_accepts_overridden"] = n_overridden
+        out["n_accepts_abstained"] = n_abstained
         out["n_accepts_unexposed"] = n_unexposed
         out["accept_adherence"] = ";".join(op_labels)
         out["accept_dice_delta"] = ";".join(deltas)   # one entry per accept operation
@@ -392,6 +408,7 @@ def main(argv: list[str] | None = None) -> int:
     followed_inside = sum(1 for r in inside if r["pointer_followed_inside"])
     n_lesion = sum(int(r["n_accepts_medgemma_lesion"] or 0) for r in recs)
     n_over = sum(int(r["n_accepts_overridden"] or 0) for r in recs)
+    n_abst = sum(int(r["n_accepts_abstained"] or 0) for r in recs)
     n_unexp = sum(int(r["n_accepts_unexposed"] or 0) for r in recs)
     print(f"# v3 adherence — {out_dir.name}: {len(recs)} case(s)")
     print(f"- seg_locate cases: {len([r for r in recs if r['n_locate_calls'] != ''])} "
@@ -400,8 +417,9 @@ def main(argv: list[str] | None = None) -> int:
           + (f" (following was right: {followed_inside}/{followed})" if followed else ""))
     print(f"- MedGemma checkpoints seen: {sorted({r['medgemma_checkpoints_seen'] for r in recs if r['medgemma_checkpoints_seen']})}")
     print(f"- accepted candidate ids: {n_lesion} followed a 'lesion' verdict, "
-          f"{n_over} overrode advice, {n_unexp} unexposed (accept-operation Dice deltas "
-          f"in accept_dice_delta)")
+          f"{n_over} overrode advice, {n_abst} abstained ('uncertain'; excluded from "
+          f"the follow/override denominators), {n_unexp} unexposed (accept-operation "
+          f"Dice deltas in accept_dice_delta)")
     print(f"wrote {out_dir / 'v3_adherence.csv'}")
     return 0
 

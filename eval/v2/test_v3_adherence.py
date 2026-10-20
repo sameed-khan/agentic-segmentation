@@ -269,6 +269,80 @@ def test_candidate_adherence_ignores_mismatched_reply():
     assert row["accept_adherence"] == "v1->v2:unexposed"
 
 
+def test_candidate_adherence_uncertain_verdict_is_abstain():
+    """Regression (review round-2): 'uncertain' means 'cannot tell — do not guess'
+    (harness/prompts/medgemma/candidates.md): accepting an uncertain verdict is NEITHER
+    a followed recommendation NOR an override. It gets its own abstain status and
+    stays OUT of the follow/override denominators."""
+    events = {
+        "medgemma": [{"call": "checkpoint", "checkpoint": "candidates", "order": 0,
+                      "version": "v1", "candidate_id": "C1", "ok": True,
+                      "parsed": {"candidate_id": "C1", "verdict": "uncertain",
+                                 "confidence": 0.5}}],
+        "accepts": [{"ids": ["C1"], "from": "v1", "to": "v2", "order": 1}],
+    }
+    row = VA.candidate_adherence(events, None, SPACING, None)
+    assert row["candidate_verdicts"] == "v1:C1:uncertain"
+    assert row["accept_adherence"] == "v1->v2:abstain"
+    assert row["n_accepts_medgemma_lesion"] == 0
+    assert row["n_accepts_overridden"] == 0          # no recommendation against it
+    assert row["n_accepts_abstained"] == 1
+    assert row["n_accepts_unexposed"] == 0
+
+
+def test_candidate_adherence_mixed_verdict_statuses():
+    """lesion -> followed, normal -> override, uncertain -> abstain, no advice ->
+    unexposed: only the first two enter the directional follow/override denominators."""
+    events = {
+        "medgemma": [
+            {"call": "checkpoint", "checkpoint": "candidates", "order": 0,
+             "version": "v1", "candidate_id": "C1", "ok": True,
+             "parsed": {"candidate_id": "C1", "verdict": "lesion", "confidence": 0.8}},
+            {"call": "checkpoint", "checkpoint": "candidates", "order": 1,
+             "version": "v1", "candidate_id": "C2", "ok": True,
+             "parsed": {"candidate_id": "C2", "verdict": "normal", "confidence": 0.9}},
+            {"call": "checkpoint", "checkpoint": "candidates", "order": 2,
+             "version": "v1", "candidate_id": "C3", "ok": True,
+             "parsed": {"candidate_id": "C3", "verdict": "uncertain", "confidence": 0.4}},
+        ],
+        "accepts": [{"ids": ["C1", "C2", "C3"], "from": "v1", "to": "v2", "order": 3}],
+    }
+    row = VA.candidate_adherence(events, None, SPACING, None)
+    assert row["accept_adherence"] == "v1->v2:followed-override-abstain"
+    assert row["n_accepts"] == 3
+    assert row["n_accepts_medgemma_lesion"] == 1 and row["n_accepts_overridden"] == 1
+    assert row["n_accepts_abstained"] == 1 and row["n_accepts_unexposed"] == 0
+
+
+def test_candidate_adherence_uses_delivered_ok_advice_only():
+    """Regression (review round-2, validation-exception bookkeeping): a reply that
+    parsed but FAILED validation (e.g. confidence 10**309 -> OverflowError in float())
+    is stored with parsed=None/ok=False and never attributed (the accept stays
+    unexposed); and the collector only uses DELIVERED records — even a verdict-bearing
+    record without ok=True (the pre-fix shape) is ignored."""
+    overflow_note = f"unusable reply: invalid confidence {10**309}"
+    huge_json = ('{"candidate_id": "C1", "verdict": "lesion", "confidence": '
+                 f'{10**309}' + '}')
+    unvalidated = {"call": "checkpoint", "checkpoint": "candidates", "ok": False,
+                   "candidate_id": "C1", "returned_candidate_id": "C1",
+                   "raw": huge_json[:2000],
+                   "parsed": None, "error": overflow_note}
+    stale_parsed = {"call": "checkpoint", "checkpoint": "candidates", "ok": False,
+                    "candidate_id": "C2",
+                    "parsed": {"candidate_id": "C2", "verdict": "lesion"}}
+    traj = [
+        rec("finish", {}, parent="v0", child="v1", v3=[unvalidated, stale_parsed]),
+        rec("accept", {}, parent="v0", child="v1", accepted={"ids": ["C1"]}),
+    ]
+    events = VA.collect_v3_events(traj)
+    assert events["medgemma"] == []               # nothing delivered -> no advice
+    row = VA.candidate_adherence(events, None, SPACING, None)
+    assert row["candidate_verdicts"] == ""
+    assert row["n_accepts_medgemma_lesion"] == 0 and row["n_accepts_overridden"] == 0
+    assert row["n_accepts_unexposed"] == 1        # the C1 accept stays unexposed
+    assert row["accept_adherence"] == "v0->v1:unexposed"
+
+
 def test_candidate_adherence_reject_ignored():
     events = {"medgemma": [{"call": "checkpoint", "checkpoint": "candidates", "order": 0,
                             "version": "v1", "candidate_id": "C2",

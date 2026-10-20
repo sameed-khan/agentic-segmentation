@@ -9,11 +9,15 @@ Covered: flag plumbing/validation, observation byte-identity when v3 is off, seg
 declaration-gating (server-side guard), pixel->mark mapping/dedup/ranking (global and
 edge marks), budget counting, error paths, checkpoint injection exactly once per
 checkpoint per version, trajectory v3 logging, review_code/authorization unaffected,
-case_meta recording, full-flow with pointer + MedGemma together, the MedGemma group
-deadline (per-op total below the extension HTTP deadline; unavailable notes for
+case_meta recording, full-flow with pointer + MedGemma together, the MedGemma ABSOLUTE
+per-op deadline (set at run_op entry: pre-hook delay + several individually successful
+delayed replies still return the op in time with unavailable notes; per-call clamp;
 skipped checkpoints), candidate-id binding (a reply naming another candidate is
-unusable), per-checkpoint finish-hook protection with notes retained, and
-checkpoint-delivery state restore so a failed persistence retry still delivers.
+unusable), replies whose validation raises (confidence 10**309) stay unavailable AND
+unattributed, whole-iteration per-candidate protection (a row crop failure keeps
+earlier advice and later rows still run), per-checkpoint finish-hook protection with
+notes retained, and checkpoint-delivery state restore so a failed persistence retry
+still delivers.
 """
 from __future__ import annotations
 
@@ -574,6 +578,7 @@ def test_medgemma_call_deadline_clamps_single_slow_call(tmp_path, medgemma_url, 
     delivered while the op is still inside the extension's HTTP deadline (previously a
     180 s call raced the 180 s op abort and the note was lost)."""
     monkeypatch.setattr(config, "V3_MEDGEMMA_GROUP_TIMEOUT_S", 1.0)
+    monkeypatch.setattr(config, "V3_MEDGEMMA_RESPONSE_RESERVE_S", 0.5)
     backend = DelayedBackend(delay=6.0)
     url = medgemma_url(backend)
     cs, lesion = make_case_state_v3(tmp_path, root="slowcall",
@@ -594,6 +599,7 @@ def test_medgemma_group_deadline_bounds_whole_checkpoint_group(tmp_path, medgemm
     still returns its review code with unavailable notes (never a lost response), and
     checkpoints that cannot finish are skipped with an explicit not-sent record."""
     monkeypatch.setattr(config, "V3_MEDGEMMA_GROUP_TIMEOUT_S", 1.0)
+    monkeypatch.setattr(config, "V3_MEDGEMMA_RESPONSE_RESERVE_S", 0.5)
     backend = DelayedBackend(delay=6.0)
     url = medgemma_url(backend)
     cs, lesion = make_case_state_v3(tmp_path, root="groupdead",
@@ -612,6 +618,57 @@ def test_medgemma_group_deadline_bounds_whole_checkpoint_group(tmp_path, medgemm
     assert len(cand) == len(cs.candidate_cache[cs.current])   # one record per candidate
     assert all(e["ok"] is False and ("deadline" in (e["error"] or "")
                                      or "timed out" in (e["error"] or "")) for e in cand)
+
+
+def test_op_deadline_covers_pre_hook_delay_and_aggregate_replies(tmp_path, medgemma_url,
+                                                                monkeypatch):
+    """Regression (review round-2 finding #1): the ABSOLUTE MedGemma deadline starts at
+    run_op ENTRY. A delay in the op body BEFORE the checkpoint hook plus several
+    individually successful delayed replies whose sum exceeds the remaining allowance
+    must still return the whole op in time, with unavailable entries for the rows that
+    no longer fit (previously the budget only started at the first call, so pre-hook
+    work + per-call success could push the op past the extension's HTTP deadline)."""
+    from segd import render
+    monkeypatch.setattr(config, "V3_MEDGEMMA_GROUP_TIMEOUT_S", 5.0)
+    monkeypatch.setattr(config, "V3_MEDGEMMA_RESPONSE_RESERVE_S", 1.0)
+    backend = DelayedBackend(delay=2.0)
+    url = medgemma_url(backend)
+    cs, lesion = make_case_state_v3(tmp_path, root="opdead",
+                                    v3={"medgemma": "q4", "medgemma_url": url,
+                                        "checkpoints": ["review", "candidates"]})
+    cs.commit_mask(_partial_lesion_mask(lesion))
+    real_grid = render.render_review_grid
+
+    def slow_grid(*a, **k):
+        time.sleep(1.0)                       # pre-hook work before the FIRST call
+        return real_grid(*a, **k)
+
+    monkeypatch.setattr(render, "render_review_grid", slow_grid)
+    t0 = time.time()
+    out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})
+    elapsed = time.time() - t0
+    assert not out.done and 'review_code "' in out.text   # the op itself stays intact
+    # the review call finished INSIDE its (post-pre-hook) allowance: its advice arrived
+    assert "Medical second reader (MedGemma): complete no (confidence 0.60)" in out.text
+    # the candidate rows did not fit anymore: unavailable entries, no delivered verdict
+    med_lines = [l for l in out.text.splitlines() if l.startswith("Medical second reader")]
+    assert len(med_lines) == 2
+    assert "candidate verdicts" in med_lines[1]
+    assert not re.search(r"C\d+ lesion", med_lines[1])
+    assert f"{cs.candidate_cache[cs.current][0].id} unavailable" in med_lines[1]
+    # the op returned well inside the pre-hook delay + per-op budget + reserve + slack
+    assert elapsed < 1.0 + config.V3_MEDGEMMA_GROUP_TIMEOUT_S \
+        + config.V3_MEDGEMMA_RESPONSE_RESERVE_S + 3.0
+    assert len(backend.calls) == 2        # review + one candidate attempt, nothing more
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3 = [r for r in recs if r["op"] == "finish" and r.get("error") is None][-1]["v3"]
+    review = [e for e in v3 if e["checkpoint"] == "review"]
+    assert len(review) == 1 and review[0]["ok"] is True
+    cand = [e for e in v3 if e["checkpoint"] == "candidates"]
+    assert len(cand) == len(cs.candidate_cache[cs.current])   # one record per row
+    assert all(e["ok"] is False and e["parsed"] is None
+               and ("deadline" in (e["error"] or "") or "timed out" in (e["error"] or ""))
+               for e in cand)
 
 
 # --------------------------------------------- candidate id binding (review P1 #2)
@@ -637,6 +694,46 @@ def test_candidates_checkpoint_binds_requested_candidate_id(tmp_path, medgemma_u
         assert e["ok"] is False and e["parsed"] is None
         assert e["returned_candidate_id"] == f"C{int(e['candidate_id'][1:]) + 1}"
         assert "candidate id mismatch" in e["error"] and f"{e['candidate_id']}" in e["error"]
+
+
+class HugeConfidenceBackend:
+    """Valid JSON with the matching candidate id, but the confidence is the integer
+    10**309: ``float(c)`` raises OverflowError during validation (review round-2
+    finding: the parsed verdict used to stay attributable despite the unusable reply).
+    """
+
+    name = "hugeconf"
+    model_id = "google/medgemma-1.5-4b-it"
+
+    def load(self):
+        pass
+
+    def generate(self, prompt_text: str, images_b64, temperature: float, max_tokens: int) -> str:
+        m = re.search(r"candidate (C\d+)", prompt_text)
+        cid = m.group(1) if m else "C1"
+        return (f'{{"candidate_id": "{cid}", "verdict": "lesion", '
+                f'"confidence": {10**309}}}')
+
+
+def test_huge_confidence_reply_unavailable_and_unattributed(tmp_path, medgemma_url):
+    """Regression (review round-2): a reply whose VALIDATION raises (confidence 10**309
+    -> OverflowError in float()) leaves the row unavailable, the trajectory record with
+    parsed=None (the verdict is never exposed offline), and the op succeeding."""
+    backend = HugeConfidenceBackend()
+    url = medgemma_url(backend)
+    cs, lesion = make_case_state_v3(tmp_path, root="hugeconf",
+                                    v3={"medgemma": "q4", "medgemma_url": url,
+                                        "checkpoints": ["candidates"]})
+    cs.commit_mask(_partial_lesion_mask(lesion))
+    out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})
+    line = next(l for l in out.text.splitlines() if "candidate verdicts" in l)
+    assert f"{cs.candidate_cache[cs.current][0].id} unavailable" in line
+    assert "lesion" not in line.split("candidate verdicts: ")[1]     # no verdict exposed
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3 = [r for r in recs if r["op"] == "finish" and r.get("error") is None][-1]["v3"]
+    e = v3[0]
+    assert e["ok"] is False and e["parsed"] is None and e["raw"] is not None
+    assert "invalid confidence" in e["error"]
 
 
 # ----------------------------- checkpoint-delivery state restore (review P1 #3)
@@ -726,6 +823,63 @@ def test_finish_hook_protects_each_checkpoint(tmp_path, medgemma_url, monkeypatc
     assert [e for e in v3 if e["checkpoint"] == "candidates" and e["ok"] is False
             and "FileNotFoundError" in e["error"]]
     assert [e for e in v3 if e["checkpoint"] == "review" and e["ok"] is True]
+
+
+def test_candidate_row_crop_failure_keeps_earlier_and_later_rows(tmp_path, medgemma_url,
+                                                                monkeypatch):
+    """Regression (review round-2): the WHOLE per-candidate iteration is guarded, not
+    only prompt loading. Deterministic fault injection: C1 succeeds, C2's row crop
+    raises, C3 still runs. The note keeps C1's delivered verdict, marks C2 unavailable
+    (with the diagnostic), and delivers C3 (previously the outer catch replaced every
+    entry with one unavailable note and the later rows were skipped)."""
+    from segd import render
+    backend = ScriptedMedGemmaBackend()
+    url = medgemma_url(backend)
+    cs, lesion = make_case_state_v3(tmp_path, root="rowcrop",
+                                    v3={"medgemma": "q4", "medgemma_url": url,
+                                        "checkpoints": ["candidates"]})
+    segd.ops.run_op(cs, "open", {})
+    segd.ops.run_op(cs, "sheet", {"axis": "axial", "start": 10, "stop": 70})
+    segd.ops.run_op(cs, "view", {"axis": "axial", "slice": lesion_center(lesion)[2],
+                                 "marks": "fine"})
+    # a fine mark far from the lesion (visible on the viewed slice): pointing there adds
+    # a body-tissue blob whose intensity shell produces SEVERAL candidates
+    vis = cs.markset.visible("axial", lesion_center(lesion)[2], None, "fine")
+    centre = lesion_center(lesion)
+    far = max(vis, key=lambda m: sum((a - b) ** 2 for a, b in zip(m.ijk, centre))).id
+    segd.ops.run_op(cs, "point", {"ids": [far]})
+    real_rc = render.render_candidates
+
+    def exploding_second_row(image, mask, cands, spacing, **k):
+        img, ri = real_rc(image, mask, cands, spacing, **k)
+        orig_crop, n = img.crop, {"n": 0}
+
+        def crop(box):
+            n["n"] += 1
+            if n["n"] == 2:                   # the SECOND row's crop
+                raise RuntimeError("row 2 crop exploded")
+            return orig_crop(box)
+
+        img.crop = crop
+        return img, ri
+
+    monkeypatch.setattr(render, "render_candidates", exploding_second_row)
+    out = segd.ops.run_op(cs, "finish", {"confidence": "medium", "reason": "r"})
+    cands = cs.candidate_cache[cs.current]
+    assert len(cands) >= 3                       # C1 ok, C2 crop failure, C3+ continue
+    line = next(l for l in out.text.splitlines() if "candidate verdicts" in l)
+    verdicts = line.split("candidate verdicts: ")[1].split(". ")[0].split(", ")
+    assert verdicts[0] == f"{cands[0].id} lesion (0.80)"      # earlier advice KEPT
+    assert verdicts[1] == f"{cands[1].id} unavailable"
+    assert verdicts[2] == f"{cands[2].id} lesion (0.80)"      # later row still ran
+    assert len(backend.calls) == 2                           # rows 1 and 3 sent, not row 2
+    recs = [json.loads(l) for l in (cs.out_dir / "trajectory.jsonl").read_text().splitlines()]
+    v3 = [r for r in recs if r["op"] == "finish" and r.get("error") is None][-1]["v3"]
+    ok_rows = [e for e in v3 if e["ok"] is True]
+    assert [e["candidate_id"] for e in ok_rows] == [cands[0].id, cands[2].id]
+    bad = [e for e in v3 if e["candidate_id"] == cands[1].id]
+    assert len(bad) == 1 and bad[0]["ok"] is False and bad[0]["parsed"] is None
+    assert "row 2 crop exploded" in bad[0]["error"]
 
 
 # ------------------------------------------------- pure mapping/geometry helpers

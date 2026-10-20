@@ -163,11 +163,9 @@ def _medgemma_client(url: str, timeout_s: float):
 def _op_group_deadline(cs) -> float:
     """Absolute deadline (perf_counter) shared by ALL MedGemma calls of the current op.
 
-    The extension aborts one segd op after SEGD_OP_TIMEOUT_MS (180 s) and a finish op
-    runs the review plus up to five candidate calls sequentially, so the group shares
-    config.V3_MEDGEMMA_GROUP_TIMEOUT_S (kept below that deadline) instead of every call
-    spending the per-call cap. run_op resets ``cs._v3_group_deadline`` per op; calls
-    outside run_op initialize it on first use."""
+    Set at run_op ENTRY (ops.run_op, only when v3 medgemma is on) so pre-hook work
+    (renders, candidate generation) counts against the same budget the extension's
+    HTTP deadline sees; calls outside run_op initialize it on first use."""
     deadline = getattr(cs, "_v3_group_deadline", None)
     if deadline is None:
         deadline = time.perf_counter() + config.V3_MEDGEMMA_GROUP_TIMEOUT_S
@@ -202,10 +200,15 @@ def medgemma_call(cs, checkpoint: str, image, prompt: str, *, requested_id: str 
     Unusable replies return None with the reason in the record (``parsed`` stays None, so
     offline adherence can never attribute them).
 
-    Deadline: the call shares the op's MedGemma group deadline (config.
-    V3_MEDGEMMA_GROUP_TIMEOUT_S). When that budget is spent the call is NOT sent and the
-    record says so; otherwise the per-request timeout is min(V3_MEDGEMMA_TIMEOUT_S,
-    remaining), so one slow call cannot consume the extension's whole HTTP deadline."""
+    Deadline: the call shares the op's ABSOLUTE MedGemma group deadline (config.
+    V3_MEDGEMMA_GROUP_TIMEOUT_S, set at run_op entry). The per-call allowance is the
+    remaining group budget minus config.V3_MEDGEMMA_RESPONSE_RESERVE_S, so note
+    formatting, render saving and response transport still fit before the extension's
+    HTTP deadline. When no allowance is left the call is NOT sent and the record says
+    so; otherwise the request carries that ABSOLUTE wall-clock deadline (the client
+    bounds connect AND body read, not only individual socket operations) capped by
+    V3_MEDGEMMA_TIMEOUT_S, so one slow call cannot consume the extension's whole
+    HTTP deadline."""
     rec = {"call": "checkpoint", "checkpoint": checkpoint,
            "service": f"medgemma/{cs.v3['medgemma']}", "url": cs.v3["medgemma_url"],
            "prompt_sha256": _sha256(prompt.encode("utf-8")), "image_sha256": None,
@@ -215,23 +218,26 @@ def medgemma_call(cs, checkpoint: str, image, prompt: str, *, requested_id: str 
     t0 = time.perf_counter()
     try:
         remaining = _op_group_deadline(cs) - t0
-        if remaining <= 0:
+        allowance = remaining - config.V3_MEDGEMMA_RESPONSE_RESERVE_S
+        if allowance <= 0:
             rec["error"] = (f"medgemma op deadline exhausted (group budget "
-                            f"{config.V3_MEDGEMMA_GROUP_TIMEOUT_S}s); call not sent")
+                            f"{config.V3_MEDGEMMA_GROUP_TIMEOUT_S}s, "
+                            f"reserve {config.V3_MEDGEMMA_RESPONSE_RESERVE_S}s); "
+                            "call not sent")
             rec["latency_ms"] = 0.0
             return None
         png = _png_bytes(image)                     # image serialization inside the guard:
         rec["image_sha256"] = _sha256(png)          # a bad image is a recorded failure too
         client = _medgemma_client(cs.v3["medgemma_url"],
-                                  timeout_s=min(config.V3_MEDGEMMA_TIMEOUT_S, remaining))
+                                  timeout_s=min(config.V3_MEDGEMMA_TIMEOUT_S, allowance))
         res = client.chat_json(prompt, images=[png], temperature=0.0,
-                               max_tokens=config.V3_MEDGEMMA_MAX_TOKENS)
+                               max_tokens=config.V3_MEDGEMMA_MAX_TOKENS,
+                               deadline=time.monotonic() + allowance)
         rec.update(raw=res.text, latency_ms=round(res.latency_ms, 3), model=res.model)
         parsed = res.parsed
         if parsed is None:
             rec["error"] = f"unusable reply: {res.parse_error}"
             return None
-        rec["parsed"] = parsed
         rec["returned_candidate_id"] = (str(parsed["candidate_id"])
                                         if "candidate_id" in parsed else None)
         problems: list[str] = []
@@ -245,18 +251,26 @@ def medgemma_call(cs, checkpoint: str, image, prompt: str, *, requested_id: str 
                     and verdict.strip().lower() in allowed_verdicts):
                 problems.append(f"invalid verdict {verdict!r}")
             c = parsed.get("confidence")
-            if not (isinstance(c, (int, float)) and not isinstance(c, bool)
-                    and 0.0 <= float(c) <= 1.0):
+            try:
+                valid_conf = (isinstance(c, (int, float)) and not isinstance(c, bool)
+                              and 0.0 <= float(c) <= 1.0)
+            except (OverflowError, ValueError):     # e.g. int 10**309 in the reply
+                valid_conf = False
+            if not valid_conf:
                 problems.append(f"invalid confidence {c!r}")
         if problems:
             rec["error"] = "unusable reply: " + "; ".join(problems)
-            rec["parsed"] = None
             return None
+        # parsed is exposed ONLY after every check passed: a reply that fails
+        # validation (or whose validation raised) must never reach the trajectory as
+        # usable advice (offline adherence counts ``ok`` records only)
+        rec["parsed"] = parsed
         rec["ok"] = True
         return parsed
     except Exception as e:                                  # noqa: BLE001 (by design)
         rec["error"] = f"{type(e).__name__}: {e}"[:300]
         rec["latency_ms"] = round((time.perf_counter() - t0) * 1000.0, 3)
+        rec["parsed"] = None                                # never a half-validated reply
         return None
     finally:
         record_call(cs, **rec)
@@ -540,7 +554,11 @@ def candidates_note(cs, sheet_img, row_rects, cands, vid: int) -> str:
 
     Every reply is bound to the REQUESTED candidate id (the row image it saw): a reply
     naming another candidate is unusable and that row shows as unavailable — so advice
-    can never attach to, or be attributed to, a row the model was not asked about."""
+    can never attach to, or be attributed to, a row the model was not asked about.
+
+    The WHOLE per-candidate iteration (prompt load, row crop, request, formatting) is
+    guarded: an earlier row's delivered advice is kept, a failing row gets its
+    unavailable entry + diagnostic, and later rows still run."""
     entries: list[str] = []
     for i, cand in enumerate(cands):
         key = f"candidates:{vid}:{cand.id}"
@@ -549,18 +567,19 @@ def candidates_note(cs, sheet_img, row_rects, cands, vid: int) -> str:
         cs.v3_fired.add(key)
         try:
             prompt = _prompt("candidates", candidate_id=cand.id)
+            row = sheet_img
+            if row_rects and i < len(row_rects):
+                x0, y0, x1, y1 = row_rects[i]
+                row = sheet_img.crop((x0, y0, x1, y1))
+            parsed = medgemma_call(cs, "candidates", row, prompt,
+                                   requested_id=str(cand.id),
+                                   allowed_verdicts=CANDIDATE_VERDICTS)
         except Exception as e:                              # noqa: BLE001 (by design)
             record_call(cs, call="checkpoint", checkpoint="candidates", ok=False,
-                        candidate_id=str(cand.id),
-                        error=f"prompt: {type(e).__name__}: {e}"[:300])
+                        candidate_id=str(cand.id), parsed=None,
+                        error=f"row: {type(e).__name__}: {e}"[:300])
             entries.append(f"{cand.id} unavailable")
             continue
-        row = sheet_img
-        if row_rects and i < len(row_rects):
-            x0, y0, x1, y1 = row_rects[i]
-            row = sheet_img.crop((x0, y0, x1, y1))
-        parsed = medgemma_call(cs, "candidates", row, prompt, requested_id=str(cand.id),
-                               allowed_verdicts=CANDIDATE_VERDICTS)
         if parsed is None:
             entries.append(f"{cand.id} unavailable")
             continue

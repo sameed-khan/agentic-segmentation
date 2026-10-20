@@ -94,3 +94,28 @@ PYTHONPATH=harness/local_models/sammed3d/src <python with torchio+pytest> -m pyt
 - nnInteractive: `~/nni/start.sh` (tmux `nni`, port 1527).
 - segd: `cd harness/server && uv run segd` (tmux `segd`, port 8765).
 - SAM-Med3D (segmenter swap only): `harness/local_models/sammed3d` (`sammed3d-service`, port 8095).
+
+
+## Starting from scratch (after the GPU instances are gone)
+Everything lives in two places: **code + logs** on GitHub (`git@github.com:sameed-khan/agentic-segmentation.git`),
+**data + results** in Backblaze B2 bucket `sk-research-data`:
+
+| B2 prefix | content |
+|---|---|
+| `agentic-segmentation-data/dvc-remote/agentic-segmentation/` | DVC store: every run as its own artifact (`results/<run>.dvc`) |
+| `agentic-segmentation-data/data/` | MSTT-199 (`mstt199/`) and BEAMSTER (`phase4/beamster/`) images + masks |
+| `agentic-segmentation-data/agentic-segmentation.git/` | bare git mirror (all branches + tags) — backup of GitHub |
+| `agentic-segmentation-data/archive/` | A100 + A10 session transcripts, logs, machine rebuild info |
+
+1. `git clone git@github.com:sameed-khan/agentic-segmentation.git && cd agentic-segmentation`
+2. DVC remote `b2` is in `.dvc/config` (S3 endpoint `https://s3.us-east-005.backblazeb2.com`). Credentials: a B2
+   application key → `dvc remote modify --local b2 access_key_id <keyID>` and
+   `dvc remote modify --local b2 secret_access_key <applicationKey>` (never commit them).
+3. Pull only what you need, e.g. `dvc pull -r b2 results/phase3-high.dvc results/p3-gpt61sol-high.dvc`
+   (or everything: `dvc pull -r b2`). Text records for most analyses are already in git:
+   `research/experiment_log.md` (E1–E22, master narrative), `research/experiment_log_p45.md` (E30–E31),
+   `research/experiments/TABLES.md`, `research/experiments/sweep_summary.md`, `research/experiments/runs/<run>/`
+   (scores.csv, per-case records), `research/REPRODUCE.md` (experiment → preset → tag → artifact).
+4. Images for re-scoring/figures: `rclone copy b2:sk-research-data/agentic-segmentation-data/data ./data` (or
+   re-download via `eval/v2/download_mstt.py`), then `export SEGD_DATA_ROOT=$PWD/data`.
+Re-scoring (`eval/v2/score.py results/<run>`) and figure making run on CPU.

@@ -5,3 +5,6 @@
     url = /home/ubuntu/dvc-remote/agentic-segmentation
 ['remote "mount"']
     url = /home/ubuntu/diaphragmatic-endometriosis/agentic-segmentation-data/dvc-remote/agentic-segmentation
+['remote "b2"']
+    url = s3://sk-research-data/agentic-segmentation-data/dvc-remote/agentic-segmentation
+    endpointurl = https://s3.us-east-005.backblazeb2.com

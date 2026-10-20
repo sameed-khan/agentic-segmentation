@@ -21,14 +21,9 @@ still delivers.
 """
 from __future__ import annotations
 
-import hashlib
-import importlib.util
-import io
 import json
 import re
 import shutil
-import sys
-import threading
 import time
 from pathlib import Path
 
@@ -41,36 +36,10 @@ import segd.ops
 from segd import config
 from segd.app import create_app
 from segd.case_state import OpError, edge_mark_map
+from _fake_services import FixedPointerBackend, ScriptedMedGemmaBackend, _load_module, _serve
 from _helpers import install_fake_data, lesion_center, make_phantom
 
 HARNESS_DIR = next(p for p in Path(__file__).resolve().parents if p.name == "harness")
-
-
-def _load_module(name: str, path):
-    if name in sys.modules:
-        return sys.modules[name]
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[name] = mod   # before exec: pydantic resolves the deferred annotations
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def _serve(app):
-    """uvicorn on an ephemeral loopback port in a daemon thread -> (base url, stop fn)."""
-    import uvicorn
-
-    server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=0, log_level="error"))
-    thread = threading.Thread(target=server.run, daemon=True)
-    thread.start()
-    for _ in range(200):
-        if server.started:
-            break
-        time.sleep(0.05)
-    assert server.started
-    host, port = server.servers[0].sockets[0].getsockname()[:2]
-    return f"http://{host}:{port}", (lambda: (setattr(server, "should_exit", True),
-                                              thread.join(timeout=10)))
 
 
 def make_case_state_v3(tmp_path, case_id="phantom", v3=None, root="run1"):
@@ -97,58 +66,6 @@ def _drawn_positions(cs) -> dict:
 
 
 # ---------------------------------------------------------------- fake services
-class FixedPointerBackend:
-    """Deterministic pointd backend: answers the desired PANEL-pixel points."""
-
-    name = "fixed"
-    model_id = "test/pointer"
-
-    def __init__(self, points):
-        self.points = [(float(x), float(y), score) for x, y, score in points]
-
-    def load(self):
-        pass
-
-    def predict(self, png_bytes, query, k, verify):
-        w, h = Image.open(io.BytesIO(png_bytes)).size
-        out = []
-        for x, y, score in self.points[: max(1, int(k))]:
-            out.append({"x_norm": x / w, "y_norm": y / h, "score": score})
-        return {"points": out, "raw": f"fixed {query!r}", "verifier": None}
-
-
-class ScriptedMedGemmaBackend:
-    """Replies shaped to each checkpoint's JSON contract, chosen by a marker in the
-    prompt text; records every call (prompt text, image count) for assertions."""
-
-    name = "scripted"
-    model_id = "google/medgemma-1.5-4b-it"
-
-    def __init__(self, box=(0.4, 0.4, 0.6, 0.6), complete="no",
-                 problems=(("axial 999", "missed_lesion"),), verdict="lesion"):
-        self.box, self.complete = box, complete
-        self.problems, self.verdict = problems, verdict
-        self.calls: list[tuple[str, int]] = []
-
-    def load(self):
-        pass
-
-    def generate(self, prompt_text: str, images_b64, temperature: float, max_tokens: int) -> str:
-        self.calls.append((prompt_text, len(images_b64)))
-        if '"box": [y0' in prompt_text:
-            return json.dumps({"box": list(self.box) if self.box else None,
-                               "confidence": 0.7})
-        if '"complete"' in prompt_text:
-            return json.dumps({"complete": self.complete,
-                               "problems": [{"panel": p, "issue": i} for p, i in self.problems],
-                               "confidence": 0.6})
-        if '"verdict"' in prompt_text:
-            m = re.search(r"candidate (C\d+)", prompt_text)
-            return json.dumps({"candidate_id": m.group(1) if m else "?",
-                               "verdict": self.verdict, "confidence": 0.8})
-        return json.dumps({"answer": "uncertain", "confidence": 0.5})
-
-
 class ShiftIdBackend:
     """Malicious/off-contract candidate backend: answers every row with the NEXT
     candidate id (a C1 request gets candidate_id C2) — regression for review P1 #2."""

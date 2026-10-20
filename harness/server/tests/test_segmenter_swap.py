@@ -9,19 +9,17 @@ from __future__ import annotations
 
 import json
 import sys
-import threading
-import time
 from pathlib import Path
 
 import numpy as np
 import pytest
-import uvicorn
 from fastapi.testclient import TestClient
 
 import segd.ops
 from segd import sammed3d as sammed3d_bridge
 from segd.app import create_app
 from segd.case_state import CaseState, OpError
+from _fake_services import FakeSamMed3DServer
 from _helpers import (
     add_ring_marks, dice, install_fake_data, install_stubs, lesion_center, make_case_state,
     make_phantom,
@@ -30,35 +28,6 @@ from _helpers import (
 SAMED3D_SRC = Path(__file__).resolve().parents[2] / "local_models" / "sammed3d" / "src"
 pytestmark = pytest.mark.skipif(not SAMED3D_SRC.is_dir(),
                                 reason="harness/local_models/sammed3d not present")
-
-
-class FakeSamMed3DServer:
-    """The sammed3d --fake service on a random localhost port (real HTTP)."""
-
-    def __init__(self):
-        if str(SAMED3D_SRC) not in sys.path:
-            sys.path.insert(0, str(SAMED3D_SRC))
-        from sammed3d import service
-        self.app = service.create_app(service.FakePatchPredictor(), model_info={"mode": "fake"})
-        self.server = uvicorn.Server(uvicorn.Config(self.app, host="127.0.0.1", port=0,
-                                                    log_level="error"))
-        self.thread = threading.Thread(target=self.server.run, daemon=True)
-
-    def __enter__(self):
-        self.thread.start()
-        while not self.server.started:
-            assert self.thread.is_alive(), "fake sammed3d service failed to start"
-            time.sleep(0.02)
-        self.url = f"http://127.0.0.1:{self.server.servers[0].sockets[0].getsockname()[1]}"
-        return self
-
-    def __exit__(self, *exc):
-        self.server.should_exit = True
-        self.thread.join(timeout=5)
-
-    @property
-    def n_sessions(self) -> int:
-        return len(self.app.state.sammed3d["sessions"])
 
 
 @pytest.fixture()

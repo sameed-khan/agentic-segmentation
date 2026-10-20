@@ -159,6 +159,11 @@ class CaseState:
         # import: segd.v3 imports case_state helpers at module level.
         from segd.v3 import normalize_v3
         self.v3 = normalize_v3(v3)
+        if self.v3 and (self.v3["pointer"] or self.v3["medgemma"]) and dataset != "mstt":
+            # never run: the multi-lesion prompts/observations and the v3 components have not
+            # been combined (the runner refuses the same combination)
+            raise ValueError(f"v3 pointer/second-reader components are not supported with "
+                             f"dataset {dataset!r} (only 'mstt')")
         self.v3_fired: set[str] = set()   # checkpoints/injections already delivered
         # ("localize", f"review:{vid}", f"candidates:{vid}:{cid}"; snapshotted and
         # restored by run_op for EVERY op so a failed op can deliver its note on the

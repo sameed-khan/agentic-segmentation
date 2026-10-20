@@ -99,12 +99,15 @@ def create_app() -> FastAPI:
                 geom = data.load_case_geometry(row)
             except KeyError:
                 raise HTTPException(status_code=404, detail=f"unknown case {case_id!r}")
-            cs = CaseState(case_id, geom.image, geom.affine, geom.spacing, row.target_text,
-                           row.sequence, out_dir, nni_url=nni_url, budgets=budgets,
-                           segmenter=segmenter, segmenter_url=segmenter_url,
-                           orig_geometry=(geom.orig_affine, geom.inv_ornt)
-                           if geom.orig_affine is not None else None,
-                           v3=v3, dataset=dataset)
+            try:
+                cs = CaseState(case_id, geom.image, geom.affine, geom.spacing, row.target_text,
+                               row.sequence, out_dir, nni_url=nni_url, budgets=budgets,
+                               segmenter=segmenter, segmenter_url=segmenter_url,
+                               orig_geometry=(geom.orig_affine, geom.inv_ornt)
+                               if geom.orig_affine is not None else None,
+                               v3=v3, dataset=dataset)
+            except ValueError as e:      # unsupported flag combination: runner misconfiguration
+                raise HTTPException(status_code=400, detail=str(e))
             try:
                 cs.initialize()   # marks + nnInteractive upload; runs in the request's worker thread
             except Exception:

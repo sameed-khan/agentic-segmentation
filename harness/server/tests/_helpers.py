@@ -42,6 +42,18 @@ def make_phantom(shape=(120, 120, 80), seed=0, z_halfwidth=0.25):
     return img.astype(np.float32), lesion, body
 
 
+def make_two_lesion_phantom(shape=(120, 120, 80)):
+    """make_phantom() plus a second bright ellipsoid on the same axial slices (multi-lesion,
+    Phase 4/BEAMSTER-style). Returns (image, lesion_a, lesion_b)."""
+    img, lesion, _body = make_phantom(shape)
+    xx, yy, zz = np.meshgrid(*(np.linspace(-1, 1, n, dtype=np.float32) for n in shape),
+                             indexing="ij")
+    second = ((xx + 0.35) / 0.10) ** 2 + ((yy - 0.25) / 0.10) ** 2 + (zz / 0.25) ** 2 < 1
+    img = img.copy()
+    img[second] = 500.0
+    return img, lesion, second
+
+
 def lesion_center(lesion: np.ndarray) -> tuple:
     """Voxel at the lesion centroid (test-side GT knowledge; tests are offline)."""
     idx = np.nonzero(lesion)

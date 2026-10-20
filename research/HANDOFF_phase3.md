@@ -132,3 +132,4 @@ come back when its window refreshes (interleave to maximise throughput).
   `harness-v3-final`(name tbd), push all to mount + GitHub origin. B2: stage-1 rclone copy running (tmux b2:
   data/, diaphragmatic-endometriosis project folder, .claude) -> final `rclone sync` of agentic-segmentation-data
   (incl. dvc-remote, archive, git) after the last DVC push; copy this A10's pi sessions to archive/a10/pi_sessions last.
+- 2026-10-20 ~11:50 UTC: DONE. main @ final tag pushed to GitHub + mount; all runs DVC-pushed; mount mirrored to B2 (rclone check: 0 differences; 175.9 GiB incl. diaphragmatic-endometriosis); dvc status -r b2 verified in sync. Instance can be shut down.

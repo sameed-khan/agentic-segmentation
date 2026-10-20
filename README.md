@@ -108,7 +108,7 @@ Everything lives in two places: **code + logs** on GitHub (`git@github.com:samee
 | `agentic-segmentation-data/archive/` | A100 + A10 session transcripts, logs, machine rebuild info |
 
 1. `git clone git@github.com:sameed-khan/agentic-segmentation.git && cd agentic-segmentation`
-2. DVC remote `b2` is in `.dvc/config` (S3 endpoint `https://s3.us-east-005.backblazeb2.com`). Credentials: a B2
+2. Install DVC with S3 support (`uv tool install "dvc[s3]"` or `pip install "dvc[s3]"`). DVC remote `b2` is in `.dvc/config` (S3 endpoint `https://s3.us-east-005.backblazeb2.com`). Credentials: a B2
    application key → `dvc remote modify --local b2 access_key_id <keyID>` and
    `dvc remote modify --local b2 secret_access_key <applicationKey>` (never commit them).
 3. Pull only what you need, e.g. `dvc pull -r b2 results/phase3-high.dvc results/p3-gpt61sol-high.dvc`

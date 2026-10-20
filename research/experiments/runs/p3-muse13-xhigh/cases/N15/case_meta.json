@@ -1,0 +1,39 @@
+{
+  "case_id": "N15",
+  "shape": [
+    141,
+    141,
+    133
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3468591,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    133
+  ],
+  "created_at": "2026-10-20T02:48:25Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:51:59Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Posterior heterogeneous T2-bright mass with medial tail now included; boundary follows tumor edge in axial, coronal and sagittal, fiducial excluded",
+  "tool_calls": 37,
+  "model_prompts": 2
+}

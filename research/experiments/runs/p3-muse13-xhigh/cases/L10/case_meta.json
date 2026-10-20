@@ -1,0 +1,39 @@
+{
+  "case_id": "L10",
+  "shape": [
+    351,
+    351,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 40766992,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    351,
+    351,
+    372
+  ],
+  "created_at": "2026-10-20T02:16:40Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:20:41Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Large T1-hyperintense intramuscular mass in anterior thigh with full proximal-distal extent 97-304 covered; boundary follows tumor-muscle/fat interface in axial, coronal and sagittal; candidates are subcutaneous fat/normal fat rejected.",
+  "tool_calls": 34,
+  "model_prompts": 3
+}

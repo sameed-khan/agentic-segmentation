@@ -1,0 +1,39 @@
+{
+  "case_id": "M16",
+  "shape": [
+    400,
+    400,
+    270
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30488115,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    400,
+    400,
+    270
+  ],
+  "created_at": "2026-10-20T02:33:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:35:25Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Final review confirms tight boundary in all planes, no lesion in past-mask panels, single component, bladder excluded.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

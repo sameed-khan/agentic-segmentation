@@ -1,0 +1,39 @@
+{
+  "case_id": "M32",
+  "shape": [
+    240,
+    240,
+    442
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 29185074,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    240,
+    240,
+    442
+  ],
+  "created_at": "2026-10-20T02:38:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:40:02Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Large sharply marginated T2-hyperintense mass, outline follows tumor edge in all planes; past-mask panels clean; candidate rim is normal tissue.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

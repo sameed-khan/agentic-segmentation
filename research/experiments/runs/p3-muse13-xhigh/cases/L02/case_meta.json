@@ -1,0 +1,39 @@
+{
+  "case_id": "L02",
+  "shape": [
+    251,
+    251,
+    477
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 37712221,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    477
+  ],
+  "created_at": "2026-10-20T02:12:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:17:57Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Lipomatous knee tumor 0\u2013245 axially well covered; distal muscle leak and large bone leak removed, candidates are subcutaneous fat/muscle rejected; tiny femoral marrow remnant remains but outline otherwise follows tumor.",
+  "tool_calls": 40,
+  "model_prompts": 4
+}

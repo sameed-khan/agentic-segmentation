@@ -1,0 +1,39 @@
+{
+  "case_id": "N36",
+  "shape": [
+    241,
+    241,
+    306
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20636991,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    306
+  ],
+  "created_at": "2026-10-20T02:55:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:59:25Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Final review shows correct extents with no lesion in past-mask panels and good boundary in three planes; candidates C1-C5 are vessels/periphery not tumor, rejected.",
+  "tool_calls": 39,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F26",
+  "shape": [
+    271,
+    271,
+    265
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10113351,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    265
+  ],
+  "created_at": "2026-10-20T02:01:35Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:04:55Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright well-circumscribed lateral arm mass segmented; boundary follows hyperintense core and intermediate rim superiorly expanded; inferior/posterior lace-like muscle excluded; candidates judged as normal muscle/vessels and rejected; superior/inferior ends taper appropriately despite stack artifacts.",
+  "tool_calls": 34,
+  "model_prompts": 2
+}

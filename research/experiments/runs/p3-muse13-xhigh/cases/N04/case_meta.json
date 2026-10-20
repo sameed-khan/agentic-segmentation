@@ -1,0 +1,39 @@
+{
+  "case_id": "N04",
+  "shape": [
+    121,
+    121,
+    111
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1964626,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    111
+  ],
+  "created_at": "2026-10-20T02:44:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:46:23Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Bright round T2 mass well delineated; outline follows lesion edge in axial, coronal, sagittal; extents checked superior/inferior; no candidates.",
+  "tool_calls": 26,
+  "model_prompts": 1
+}

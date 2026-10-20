@@ -1,0 +1,39 @@
+{
+  "case_id": "F19",
+  "shape": [
+    241,
+    241,
+    176
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 12556862,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    176
+  ],
+  "created_at": "2026-10-20T02:00:45Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:03:41Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Single well-defined posterior right neck/shoulder mass, hyperintense heterogeneous on T2; mask follows its capsule in axial and covers full sup-inf extent 82-145 confirmed on multiplanar views; candidates are normal muscle/fat rims, rejected.",
+  "tool_calls": 28,
+  "model_prompts": 1
+}

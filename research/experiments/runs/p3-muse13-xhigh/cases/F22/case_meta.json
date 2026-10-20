@@ -1,0 +1,39 @@
+{
+  "case_id": "F22",
+  "shape": [
+    161,
+    161,
+    145
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2444883,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    145
+  ],
+  "created_at": "2026-10-20T02:00:54Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:08:55Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Large fibrous tumor around knee with distal calf tail; boundaries follow dark mass in axial/coronal/sagittal; tiny superior femoral cortical rim remains but bulk is correct; rejected C1-C3 as normal muscle/fat.",
+  "tool_calls": 41,
+  "model_prompts": 6
+}

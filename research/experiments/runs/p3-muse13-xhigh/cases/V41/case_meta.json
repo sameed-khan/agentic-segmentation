@@ -1,0 +1,39 @@
+{
+  "case_id": "V41",
+  "shape": [
+    141,
+    141,
+    256
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5006167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    256
+  ],
+  "created_at": "2026-10-20T03:08:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:11:26Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Focal nodular T2-hyperintense mass with well-defined bright borders; mask follows edge in axial/coronal/sagittal, past-mask panels show only tiny normal vessels, adjacent vertical vessel (C1) is separate normal vein excluded.",
+  "tool_calls": 28,
+  "model_prompts": 1
+}

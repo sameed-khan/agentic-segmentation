@@ -1,0 +1,39 @@
+{
+  "case_id": "L08",
+  "shape": [
+    301,
+    301,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31748091,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    301,
+    301,
+    372
+  ],
+  "created_at": "2026-10-20T02:15:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:18:55Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Final review shows outline follows T1-bright fatty tumor boundary in all planes, past-mask panels show no lesion, candidates are normal muscle/fat and correctly rejected",
+  "tool_calls": 35,
+  "model_prompts": 1
+}

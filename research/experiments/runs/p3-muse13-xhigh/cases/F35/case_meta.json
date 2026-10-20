@@ -1,0 +1,39 @@
+{
+  "case_id": "F35",
+  "shape": [
+    211,
+    211,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7250503,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    141
+  ],
+  "created_at": "2026-10-20T02:05:03Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:10:42Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Posterior heterogeneous fibrous mass 73-106, 3-51, 91-157 included; bright fluid excluded; small interior dark focus remains excluded but overall boundary follows lesion; candidates are bright fluid/normal muscle, rejected.",
+  "tool_calls": 40,
+  "model_prompts": 1
+}

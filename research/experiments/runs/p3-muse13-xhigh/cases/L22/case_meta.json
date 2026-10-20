@@ -1,0 +1,39 @@
+{
+  "case_id": "L22",
+  "shape": [
+    421,
+    421,
+    153
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23923831,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    153
+  ],
+  "created_at": "2026-10-20T02:20:48Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:22:43Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "well-circumscribed fat-signal mass with capsule; single-point mask follows capsule in axial, coronal, sagittal with taper inferiorly and truncation at superior FOV edge; past-mask panels show no residual lesion; candidates are muscle/fascia, rejected",
+  "tool_calls": 25,
+  "model_prompts": 1
+}

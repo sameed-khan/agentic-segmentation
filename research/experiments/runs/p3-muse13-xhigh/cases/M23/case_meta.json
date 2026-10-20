@@ -1,0 +1,39 @@
+{
+  "case_id": "M23",
+  "shape": [
+    270,
+    270,
+    729
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 64370923,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    270,
+    270,
+    729
+  ],
+  "created_at": "2026-10-20T02:35:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:39:51Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Main myxoid mass well delineated in all planes from axial 205 to 553; past-mask panels superior/anterior/posterior/lateral show no lesion, inferior bright streaks are peritumoral vessels/edema not contiguous bulk; candidates C1-C3 are fat/muscle, C4-C5 tiny isolated noise rejected.",
+  "tool_calls": 38,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N16",
+  "shape": [
+    261,
+    261,
+    241
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18070251,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    241
+  ],
+  "created_at": "2026-10-20T02:48:29Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:51:33Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Bright well-circumscribed T2 mass with superior and inferior nerve tails included; mask follows sharp tumor-muscle boundary in axial, coronal and sagittal sheets, single component, no leak; candidates C2-C3 are distant muscle and C1 is peritumoral muscle, rejected.",
+  "tool_calls": 30,
+  "model_prompts": 3
+}

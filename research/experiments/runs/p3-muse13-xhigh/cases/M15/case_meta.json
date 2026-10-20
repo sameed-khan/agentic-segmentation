@@ -1,0 +1,39 @@
+{
+  "case_id": "M15",
+  "shape": [
+    220,
+    220,
+    132
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7600090,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    132
+  ],
+  "created_at": "2026-10-20T02:33:05Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:38:02Z",
+  "final_version": "v6",
+  "confidence": "high",
+  "reason": "Final review confirms mask covers bright myxoid mass tightly in all planes with clean past-mask panels; candidates C1-C4 are fat/muscle/fascia, not lesion.",
+  "tool_calls": 41,
+  "model_prompts": 4
+}

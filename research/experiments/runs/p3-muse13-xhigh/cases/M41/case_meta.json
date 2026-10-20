@@ -1,0 +1,39 @@
+{
+  "case_id": "M41",
+  "shape": [
+    254,
+    350,
+    221
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23642656,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    254,
+    350,
+    221
+  ],
+  "created_at": "2026-10-20T02:41:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:44:02Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed markedly T2-hyperintense subcutaneous anterior abdominal wall mass, outline follows bright lesion boundary in all three planes, single component. Final review shows no lesion in past-mask panels and tight boundaries; no candidates.",
+  "tool_calls": 21,
+  "model_prompts": 1
+}

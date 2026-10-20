@@ -1,0 +1,39 @@
+{
+  "case_id": "F09",
+  "shape": [
+    261,
+    261,
+    131
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9861026,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    131
+  ],
+  "created_at": "2026-10-20T01:55:40Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:00:30Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "bulky mass well circumscribed, green follows edge on all inside panels, past-mask panels show only muscle/vessels, candidates are muscle rims",
+  "tool_calls": 37,
+  "model_prompts": 2
+}

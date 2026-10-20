@@ -1,0 +1,39 @@
+{
+  "case_id": "L23",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34341828,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-20T02:21:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:25:46Z",
+  "final_version": "v4",
+  "confidence": "high",
+  "reason": "Large encapsulated heterogeneous posterior-medial thigh mass with fatty bright and dedifferentiated dark components, tracked from distal tail near knee (axial ~51) to proximal nodule (axial ~320); outline follows capsule in axial, coronal and sagittal, includes posterior fatty extension, excludes normal muscle and subcutaneous fat; single component. Final review shows no lesion in past-mask panels and good boundary; candidates are normal muscle/fat rims, rejected.",
+  "tool_calls": 35,
+  "model_prompts": 3
+}

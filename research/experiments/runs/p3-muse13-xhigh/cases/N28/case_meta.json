@@ -1,0 +1,39 @@
+{
+  "case_id": "N28",
+  "shape": [
+    426,
+    426,
+    197
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30974149,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    426,
+    426,
+    197
+  ],
+  "created_at": "2026-10-20T02:52:05Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:56:48Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Large anterolateral T2 heterogeneous mass fully covered; review shows tight boundaries in all planes with clean past-mask panels; candidates are peritumoral fat/vessels and rejected.",
+  "tool_calls": 37,
+  "model_prompts": 2
+}

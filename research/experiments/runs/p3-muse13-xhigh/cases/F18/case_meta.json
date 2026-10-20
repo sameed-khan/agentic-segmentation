@@ -1,0 +1,39 @@
+{
+  "case_id": "F18",
+  "shape": [
+    281,
+    281,
+    235
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 19847774,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    235
+  ],
+  "created_at": "2026-10-20T01:59:25Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:03:27Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Infiltrative left thoracoabdominal wall tumor tracked full length; outline follows bright heterogeneous mass in all planes, past-mask panels show no residual lesion, candidates rejected as normal organs.",
+  "tool_calls": 35,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M26",
+  "shape": [
+    261,
+    261,
+    510
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 38931683,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    510
+  ],
+  "created_at": "2026-10-20T02:37:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:38:40Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed bright T2 ovoid mass in medial proximal thigh; single point gives tight boundary following lesion edge in axial, coronal, sagittal; checked inferior tip 267 and superior tip 386 taper appropriately and no candidates remain.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

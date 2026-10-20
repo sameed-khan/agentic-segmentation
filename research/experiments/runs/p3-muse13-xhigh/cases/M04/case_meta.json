@@ -1,0 +1,39 @@
+{
+  "case_id": "M04",
+  "shape": [
+    230,
+    230,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10246017,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    230,
+    230,
+    165
+  ],
+  "created_at": "2026-10-20T02:29:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:34:41Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Bright myxoid tumor well-defined; outline follows edge in axial/coronal/sagittal, past-mask panels show no lesion, candidates are normal fat/muscle/vessels",
+  "tool_calls": 39,
+  "model_prompts": 3
+}

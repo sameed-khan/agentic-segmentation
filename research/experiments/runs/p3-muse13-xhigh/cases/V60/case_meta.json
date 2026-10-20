@@ -1,0 +1,39 @@
+{
+  "case_id": "V60",
+  "shape": [
+    141,
+    141,
+    68
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1693032,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    68
+  ],
+  "created_at": "2026-10-20T03:13:45Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:18:15Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Main vascular mass well covered in axial/coronal/sagittal; thin superior/inferior vessel tails uncertain but likely contiguous extension; medial small vessels excluded to avoid leak into normal vasculature as tested.",
+  "tool_calls": 36,
+  "model_prompts": 2
+}

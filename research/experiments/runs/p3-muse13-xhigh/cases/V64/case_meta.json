@@ -1,0 +1,39 @@
+{
+  "case_id": "V64",
+  "shape": [
+    376,
+    376,
+    146
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 11176237,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    376,
+    376,
+    146
+  ],
+  "created_at": "2026-10-20T03:16:31Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:20:18Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed T2-hyperintense round mass with heterogeneous internal signal; single point prompt captured full extent axial 34-59 with outline following bright boundary in axial, coronal and sagittal planes; no candidates remain.",
+  "tool_calls": 35,
+  "model_prompts": 1
+}

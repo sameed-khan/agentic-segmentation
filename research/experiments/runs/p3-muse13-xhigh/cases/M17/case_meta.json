@@ -1,0 +1,39 @@
+{
+  "case_id": "M17",
+  "shape": [
+    230,
+    230,
+    200
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 12336993,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    230,
+    230,
+    200
+  ],
+  "created_at": "2026-10-20T02:33:38Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:38:44Z",
+  "final_version": "v4",
+  "confidence": "high",
+  "reason": "review shows core, superior feathery pole and inferior tail covered in all planes with clean past-mask panels; C1 is muscle, rejected",
+  "tool_calls": 39,
+  "model_prompts": 4
+}

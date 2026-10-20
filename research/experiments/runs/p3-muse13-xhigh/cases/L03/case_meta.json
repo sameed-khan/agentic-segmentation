@@ -1,0 +1,39 @@
+{
+  "case_id": "L03",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33957821,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-20T02:13:38Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:16:26Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Large T1-hyperintense anterior thigh mass with sharp capsule; mask follows bright tumor boundary in axial/coronal/sagittal, tips checked proximally and distally; candidates are normal fat/muscle.",
+  "tool_calls": 26,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F51",
+  "shape": [
+    221,
+    221,
+    116
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6590528,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    116
+  ],
+  "created_at": "2026-10-20T02:11:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:15:34Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Final review shows mask covers heterogeneous anterior shoulder mass in all planes, past-mask panels contain no lesion tissue, and candidates C1-C3 are normal muscle/fat posterior to tumor.",
+  "tool_calls": 35,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N14",
+  "shape": [
+    261,
+    261,
+    376
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 8984069,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    376
+  ],
+  "created_at": "2026-10-20T02:48:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:50:39Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed posterior T2-bright nodule with tapered ends, single component 2.0mL, outline follows boundary in axial/coronal/sagittal; vessels excluded. Final review shows no lesion in past-mask panels and good boundary.",
+  "tool_calls": 26,
+  "model_prompts": 1
+}

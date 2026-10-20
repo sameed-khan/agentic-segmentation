@@ -1,0 +1,39 @@
+{
+  "case_id": "N03",
+  "shape": [
+    151,
+    151,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4420543,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    165
+  ],
+  "created_at": "2026-10-20T02:43:50Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T02:49:11Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright well-circumscribed mass with contiguous distal tail included; past-mask panels empty, candidates are non-contiguous normal tissue.",
+  "tool_calls": 40,
+  "model_prompts": 2
+}

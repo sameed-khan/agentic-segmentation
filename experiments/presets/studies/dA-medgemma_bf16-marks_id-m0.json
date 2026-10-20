@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "dA-medgemma_bf16-marks_id-m0",
+  "kind": "study",
+  "description": "Phase 5 Study A (E31): standalone localization of medgemma_bf16 on the 30 MSTT design cases, condition(s) marks_id; needs the model service(s) running (harness/local_models/*; URLs default to their standard ports) and the Phase 2 prepare manifest (results/phase2_dev.dvc). The run command writes results/phase5/studyA/<run>; the second command scores it offline.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "a594309f21f9edeb4927e4bf6026dc4f3dd28cc8",
+    "git_describe": "harness-v2.0.1-27-ga594309",
+    "results": "results/phase5.dvc (studyA/dA-medgemma_bf16-marks_id-m0)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/studyA/dA-medgemma_bf16-marks_id-m0/meta.json"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/local_point_study.py", "--run", "dA-medgemma_bf16-marks_id-m0", "--models", "medgemma_bf16", "--conditions", "marks_id", "--prepare-dir", "results/phase2_dev/prepare", "--reps", "1", "--k", "3", "--max-tokens", "2048", "--concurrency", "1", "--timeout", "900.0"]
+      },
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/score_local_point.py", "--run", "dA-medgemma_bf16-marks_id-m0", "--baseline-dir", "results/phase2_dev/dev-02-high", "--baseline-condition", "S"]
+      }
+    ]
+  }
+}

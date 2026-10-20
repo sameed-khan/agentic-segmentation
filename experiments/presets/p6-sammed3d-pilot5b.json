@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "p6-sammed3d-pilot5b",
+  "kind": "agent_run",
+  "description": "Phase 6 pilot after review fixes: 5 design cases (one per histotype), SAM-Med3D-turbo segmenter, Sonnet 5.5 high, concurrency 2.",
+  "provenance": {
+    "git_tag": "harness-v2-p6",
+    "git_commit": "f7b40e8de0015f0a5d8b79e295366fc9d3f93b01",
+    "git_describe": "harness-v2-p6 (run code: harness-v2.0.1-29-gf7b40e8 = same commit)",
+    "results": "results/p6-sammed3d-pilot5b.dvc",
+    "log_entry": "E22",
+    "recorded_in": "results/p6-sammed3d-pilot5b/batch_summary.json (research/experiments/runs/p6-sammed3d-pilot5b/batch_summary.json when exported)"
+  },
+  "runner": {
+    "run_id": "p6-sammed3d-pilot5b",
+    "model": "anthropic/claude-sonnet-5-5",
+    "thinking": "high",
+    "dataset": "mstt",
+    "cases": ["F14", "L20", "M07", "N26", "V37"],
+    "concurrency": 2,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "sammed3d",
+    "segmenter_url": "http://127.0.0.1:8095",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "phase6 pilot after review fixes (design cases)"
+  }
+}

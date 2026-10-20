@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "name": "phase3-high",
+  "kind": "agent_run",
+  "description": "Phase 3 primary: Sonnet 5.5, thinking high, test split (169), concurrency 4. Ran on tag harness-v2 (be9bfd7); V25 was rerun on harness-v2.0.1 after the morphology fix (behaviour-identical), so harness-v2.0.1 reproduces it.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "0b22d7a3250a7b73b521de49baacb634d86fc57e",
+    "git_describe": "harness-v2.0.1",
+    "results": "results/phase3-high.dvc",
+    "log_entry": "E17 (+ §6 preregistration)",
+    "recorded_in": "results/phase3-high/batch_summary.json (research/experiments/runs/phase3-high/batch_summary.json when exported)",
+    "original_batches": [
+      {
+        "git_commit": "be9bfd71ece5dab59cc896caaa0d5d4148e978c1",
+        "git_describe": "harness-v2-1-gbe9bfd7",
+        "cases": 169
+      },
+      {
+        "git_commit": "0b22d7a3250a7b73b521de49baacb634d86fc57e",
+        "git_describe": "harness-v2.0.1",
+        "cases": 1,
+        "note": "V25 rerun"
+      }
+    ]
+  },
+  "runner": {
+    "run_id": "phase3-high",
+    "model": "anthropic/claude-sonnet-5-5",
+    "thinking": "high",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 4,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3 primary: harness-v2, test split (169), thinking high (preregistered, experiment_log §6)"
+  }
+}

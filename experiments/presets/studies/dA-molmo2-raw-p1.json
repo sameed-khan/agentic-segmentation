@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "dA-molmo2-raw-p1",
+  "kind": "study",
+  "description": "Phase 5 Study A (E31): standalone localization of molmo2 on the 30 MSTT design cases, condition(s) raw; needs the model service(s) running (harness/local_models/*; URLs default to their standard ports) and the Phase 2 prepare manifest (results/phase2_dev.dvc). The run command writes results/phase5/studyA/<run>; the second command scores it offline.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "440196aff1ffed5ce16018c2d5d0ca46fa0021ea",
+    "git_describe": "harness-v2.0.1-25-g440196a",
+    "results": "results/phase5.dvc (studyA/dA-molmo2-raw-p1)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/studyA/dA-molmo2-raw-p1/meta.json"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/local_point_study.py", "--run", "dA-molmo2-raw-p1", "--models", "molmo2", "--conditions", "raw", "--prepare-dir", "results/phase2_dev/prepare", "--reps", "1", "--k", "3", "--max-tokens", "256", "--concurrency", "2", "--timeout", "900.0", "--prompt", "raw=harness/study/prompts/variants/studyA/point_v1.md"]
+      },
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/score_local_point.py", "--run", "dA-molmo2-raw-p1", "--baseline-dir", "results/phase2_dev/dev-02-high", "--baseline-condition", "S"]
+      }
+    ]
+  }
+}

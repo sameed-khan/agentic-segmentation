@@ -678,6 +678,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		const meta = {
 			case_id: caseId,
 			run_id: opts.runId,
+			preset: opts.preset,
 			dataset: opts.dataset,
 			model: opts.model,
 			thinking_level: opts.thinking,
@@ -819,7 +820,7 @@ async function main(): Promise<void> {
 	};
 
 	console.log(
-		`[runner] run=${opts.runId} cases=${rows.map((r) => r.case).join(",")} concurrency=${opts.concurrency} ` +
+		`[runner] run=${opts.runId}${opts.preset ? ` preset=${opts.preset}` : ""} cases=${rows.map((r) => r.case).join(",")} concurrency=${opts.concurrency} ` +
 			`model=${opts.model} thinking=${opts.thinking} extension=${opts.extension} segd=${opts.segdUrl}` +
 			(opts.v3 ? ` v3=${JSON.stringify(opts.v3)}` : " v3=off"),
 	);
@@ -894,6 +895,7 @@ async function main(): Promise<void> {
 
 	const summary = {
 		run_id: opts.runId,
+		preset: opts.preset,
 		dataset: opts.dataset,
 		model: opts.model,
 		thinking_level: opts.thinking,

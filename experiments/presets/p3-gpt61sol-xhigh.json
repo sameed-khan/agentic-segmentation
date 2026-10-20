@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "p3-gpt61sol-xhigh",
+  "kind": "agent_run",
+  "description": "Phase 3b sweep: GPT-6.1-sol thinking xhigh — ONLY the 30-case probe (6 test cases per histotype, seed 2026; results/phase3_state/probe_cases.json) was run; it failed the preregistered gate vs Opus 5.5 xhigh (mean diff +0.0015, p 0.75) and the full 169-case run was skipped. Concurrency 8.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "06fe6ba12a11c87cb1a698115d1d20fb9aa5a493",
+    "git_describe": "harness-v2.0.1-33-g06fe6ba",
+    "results": "results/p3-gpt61sol-xhigh.dvc",
+    "log_entry": "E20",
+    "recorded_in": "results/p3-gpt61sol-xhigh/batch_summary.json (research/experiments/runs/p3-gpt61sol-xhigh/batch_summary.json when exported)"
+  },
+  "runner": {
+    "run_id": "p3-gpt61sol-xhigh",
+    "model": "openai/gpt-6.1-sol",
+    "thinking": "xhigh",
+    "dataset": "mstt",
+    "cases": ["F13", "F16", "F35", "F45", "F48", "F55", "L01", "L09", "L25", "L34", "L37", "L41", "M06", "M11", "M13", "M22", "M26", "M37", "N03", "N09", "N13", "N17", "N32", "N46", "V33", "V38", "V50", "V51", "V53", "V64"],
+    "concurrency": 8,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3b model sweep: openai/gpt-6.1-sol thinking xhigh, harness-v2.0.1, 30-case probe (6 per histotype, seed 2026) of the test split"
+  }
+}

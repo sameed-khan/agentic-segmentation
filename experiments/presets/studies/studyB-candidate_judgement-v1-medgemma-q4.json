@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "studyB-candidate_judgement-v1-medgemma-q4",
+  "kind": "study",
+  "description": "Phase 5 Study B (E31) local replay of the candidate_judgement decision set to medgemma_q4 (MedGemma 1.5 4B; needs the service, :8091 q4 / :8094 bf16). Needs the decision-set manifest (python harness/study/build_decision_sets.py, preset studyB-build-sets).",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "a594309f21f9edeb4927e4bf6026dc4f3dd28cc8",
+    "git_describe": "harness-v2.0.1-27-ga594309",
+    "results": "results/phase5.dvc (studyB/candidate_judgement/v1-medgemma-q4)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/studyB/candidate_judgement/v1-medgemma-q4/meta.json"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/replay_local.py", "--set", "candidate_judgement", "--run", "v1-medgemma-q4", "--model", "medgemma_q4", "--reps", "1", "--max-tokens", "2048", "--concurrency", "1"]
+      },
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/score_decision.py", "--set", "candidate_judgement", "--run", "v1-medgemma-q4"]
+      }
+    ]
+  }
+}

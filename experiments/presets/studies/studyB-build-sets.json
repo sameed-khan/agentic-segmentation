@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "studyB-build-sets",
+  "kind": "study",
+  "description": "Phase 5 Study B (E31): build the three decision sets (candidate_judgement 100 rows, done_check 132, wrong_structure 140) from the Phase 1/2 design runs (E16 candidate replay, phase1-06/07/08, phase1-10 trajectories); GT-derived labels never enter a prompt. Writes results/phase5/studyB/<set>/{manifest.jsonl,set_meta.json}.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "185399cfb66564e847c5b838b69a7ad9c8cc0d54",
+    "git_describe": "harness-v2.0.1-24-g185399c",
+    "results": "results/phase5.dvc (studyB/*/manifest.jsonl, set_meta.json)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/studyB/<set>/set_meta.json"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/build_decision_sets.py", "--runs-root", "results", "--out", "results/phase5/studyB"]
+      }
+    ]
+  }
+}

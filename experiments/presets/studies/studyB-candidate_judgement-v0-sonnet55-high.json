@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "studyB-candidate_judgement-v0-sonnet55-high",
+  "kind": "study",
+  "description": "Phase 5 Study B (E31) frontier replay of the candidate_judgement decision set (anthropic/claude-sonnet-5-5 high), single tool-less turns. Needs the decision-set manifest (python harness/study/build_decision_sets.py, preset studyB-build-sets).",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "185399cfb66564e847c5b838b69a7ad9c8cc0d54",
+    "git_describe": "harness-v2.0.1-24-g185399c-dirty",
+    "results": "results/phase5.dvc (studyB/candidate_judgement/v0-sonnet55-high)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/studyB/candidate_judgement/v0-sonnet55-high/meta.json"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": "harness/study",
+        "argv": ["npx", "tsx", "replay_decisions.ts", "--set", "candidate_judgement", "--run", "v0-sonnet55-high", "--model", "anthropic/claude-sonnet-5-5", "--thinking", "high", "--reps", "1", "--concurrency", "4", "--wall-min", "5", "--images-root", "{repo}"]
+      },
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/study/score_decision.py", "--set", "candidate_judgement", "--run", "v0-sonnet55-high"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "probe3d-score",
+  "kind": "study",
+  "description": "Phase 5 3D probes (E31): offline scorer over all probe arms (3D hit, k*-slice hit, Dice, empty rate); GT via segd.data.load_mask, data root via SEGD_DATA_ROOT.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "9afcc3b7b2a35d2975fd9aa50782c655359740be",
+    "git_describe": "harness-v2.0.1-37-g9afcc3b",
+    "results": "results/phase5.dvc (probe3d/)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/probe3d/score_all.log; harness/local_models/probe3d/README.md"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/server", "python", "harness/local_models/probe3d/score_probe3d.py", "--all"]
+      }
+    ]
+  }
+}

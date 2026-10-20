@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "p3-argon4-high",
+  "kind": "agent_run",
+  "description": "Phase 3b sweep: opencode-go/gemini-4-argon-contributor thinking high — ABORTED immediately (provider opencode-go has no API implementation for \"google-generative-ai\"); no usable results. Cancelled by Sameed (E20). Kept so every results/p3-*.dvc has a preset.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "015349473e37a8eb8d3acf936e6e6af3e3afd643",
+    "git_describe": "harness-v2.0.1-25-g0153494",
+    "results": "results/p3-argon4-high.dvc",
+    "log_entry": "E20",
+    "recorded_in": "results/p3-argon4-high/batch_summary.json (research/experiments/runs/p3-argon4-high/batch_summary.json when exported)"
+  },
+  "runner": {
+    "run_id": "p3-argon4-high",
+    "model": "opencode-go/gemini-4-argon-contributor",
+    "thinking": "high",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 8,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3b model sweep: opencode-go/gemini-4-argon-contributor thinking high, harness-v2.0.1, test split"
+  }
+}

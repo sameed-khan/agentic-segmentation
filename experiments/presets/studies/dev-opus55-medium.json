@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "dev-opus55-medium",
+  "kind": "study",
+  "description": "Phase 2 localization study (single-turn pointing on the GT's largest axial slice, no tools): anthropic/claude-opus-5-5 medium, conditions S, 3 reps, design split.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "bafd5f1820e96fa1c8f8949dc761bc4522e5aacb",
+    "git_describe": "harness-v2.0.1-22-gbafd5f1",
+    "results": "results/phase2_dev.dvc (dev-opus55-medium)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase2_dev/dev-opus55-medium/meta.json"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": "harness/study",
+        "argv": ["npx", "tsx", "ask.ts", "--run", "dev-opus55-medium", "--conditions", "S", "--reps", "3", "--concurrency", "4", "--model", "anthropic/claude-opus-5-5", "--thinking", "medium", "--wall-min", "5", "--results-root", "{repo}/results/phase2_dev", "--prepare-dir", "{repo}/results/phase2_dev/prepare"]
+      }
+    ]
+  }
+}

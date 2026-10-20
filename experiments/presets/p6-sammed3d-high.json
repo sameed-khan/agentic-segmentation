@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "p6-sammed3d-high",
+  "kind": "agent_run",
+  "description": "Phase 6 segmenter swap: harness v2 with SAM-Med3D-turbo instead of nnInteractive; Sonnet 5.5 high; test split (169); concurrency 6. Requires the sammed3d service on :8095 (harness/local_models/sammed3d). The original run used a second segd on :8766 (override with --segd-url); the segd URL is operational, not part of the preset.",
+  "provenance": {
+    "git_tag": "harness-v2-p6",
+    "git_commit": "f7b40e8de0015f0a5d8b79e295366fc9d3f93b01",
+    "git_describe": "harness-v2-p6",
+    "results": "results/p6-sammed3d-high.dvc",
+    "log_entry": "E21 (preregistration), E22 (result)",
+    "recorded_in": "results/p6-sammed3d-high/batch_summary.json (research/experiments/runs/p6-sammed3d-high/batch_summary.json when exported)"
+  },
+  "runner": {
+    "run_id": "p6-sammed3d-high",
+    "model": "anthropic/claude-sonnet-5-5",
+    "thinking": "high",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 6,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "sammed3d",
+    "segmenter_url": "http://127.0.0.1:8095",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 6: harness v2 + SAM-Med3D-turbo instead of nnInteractive; Sonnet 5.5 high; test split (preregistered E21)"
+  }
+}

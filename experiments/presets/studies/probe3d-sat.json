@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "probe3d-sat",
+  "kind": "study",
+  "description": "Phase 5 3D probe (E31): SAT-Nano text-prompted segmentation on the 30 design cases (whole volume + text; mask -> deepest point). GPU job: run under `flock /tmp/gpu_probe.lock` with >= 26 GB free (README). Needs the SAT clone/weights per harness/local_models/probe3d/README.md.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "9afcc3b7b2a35d2975fd9aa50782c655359740be",
+    "git_describe": "harness-v2.0.1-37-g9afcc3b",
+    "results": "results/phase5.dvc (probe3d/)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/probe3d/score_all.log; harness/local_models/probe3d/README.md"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": ".",
+        "env": {
+          "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+        },
+        "argv": ["uv", "run", "--project", "harness/local_models/probe3d/sat", "torchrun", "--nproc_per_node=1", "--master_port", "1235", "harness/local_models/probe3d/sat/run_sat.py"]
+      }
+    ]
+  }
+}

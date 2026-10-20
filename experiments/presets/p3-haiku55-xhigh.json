@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "p3-haiku55-xhigh",
+  "kind": "agent_run",
+  "description": "Phase 3b model sweep (E20): harness v2.0.1, MSTT test split (169 cases), anthropic/claude-haiku-5-5 thinking xhigh, concurrency 8, defaults budgets 40 tool calls / 15 prompts / 10 min wall / 3 nudges.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "0b2d65c9d8865e2270250a68b92712ca93dc8827",
+    "git_describe": "harness-v2.0.1-12-g0b2d65c",
+    "results": "results/p3-haiku55-xhigh.dvc",
+    "log_entry": "E20",
+    "recorded_in": "results/p3-haiku55-xhigh/batch_summary.json (research/experiments/runs/p3-haiku55-xhigh/batch_summary.json when exported)"
+  },
+  "runner": {
+    "run_id": "p3-haiku55-xhigh",
+    "model": "anthropic/claude-haiku-5-5",
+    "thinking": "xhigh",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 8,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3b model sweep: anthropic/claude-haiku-5-5 thinking xhigh, harness-v2.0.1, test split"
+  }
+}

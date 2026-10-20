@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "p3-gpt61sol-high",
+  "kind": "agent_run",
+  "description": "Phase 3b model sweep (E20): harness v2.0.1, MSTT test split (169 cases), openai/gpt-6.1-sol thinking high, concurrency 8, defaults budgets 40 tool calls / 15 prompts / 10 min wall / 3 nudges.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "27b8e41b6d1da151c86d3726ff2e6706f3484234",
+    "git_describe": "harness-v2.0.1-26-g27b8e41",
+    "results": "results/p3-gpt61sol-high.dvc",
+    "log_entry": "E20",
+    "recorded_in": "results/p3-gpt61sol-high/batch_summary.json (research/experiments/runs/p3-gpt61sol-high/batch_summary.json when exported)"
+  },
+  "runner": {
+    "run_id": "p3-gpt61sol-high",
+    "model": "openai/gpt-6.1-sol",
+    "thinking": "high",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 8,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3b model sweep: openai/gpt-6.1-sol thinking high, harness-v2.0.1, test split"
+  }
+}

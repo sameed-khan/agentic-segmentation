@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "probe3d-biomedparse",
+  "kind": "study",
+  "description": "Phase 5 3D probe (E31): BiomedParse v2 on the 30 design cases (12 prompts; gated weights). GPU job: run under `flock /tmp/gpu_probe.lock`.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "9afcc3b7b2a35d2975fd9aa50782c655359740be",
+    "git_describe": "harness-v2.0.1-37-g9afcc3b",
+    "results": "results/phase5.dvc (probe3d/)",
+    "log_entry": "E31",
+    "recorded_in": "results/phase5/probe3d/score_all.log; harness/local_models/probe3d/README.md"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": ".",
+        "argv": ["uv", "run", "--project", "harness/local_models/probe3d/biomedparse", "python", "harness/local_models/probe3d/biomedparse/run_biomedparse.py"]
+      }
+    ]
+  }
+}

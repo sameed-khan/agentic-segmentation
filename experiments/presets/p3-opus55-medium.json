@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "p3-opus55-medium",
+  "kind": "agent_run",
+  "description": "Phase 3b model sweep (E20): harness v2.0.1, MSTT test split (169 cases), anthropic/claude-opus-5-5 thinking medium, concurrency 8, defaults budgets 40 tool calls / 15 prompts / 10 min wall / 3 nudges.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "15c519a7b0f1947309297623622357e9fc882557",
+    "git_describe": "harness-v2.0.1-5-g15c519a-dirty",
+    "results": "results/p3-opus55-medium.dvc",
+    "log_entry": "E20",
+    "recorded_in": "results/p3-opus55-medium/batch_summary.json (research/experiments/runs/p3-opus55-medium/batch_summary.json when exported)",
+    "git_dirty_files_at_run": ["M harness/runner/run_cases.ts", " M harness/runner/run_until_done.sh", "?? eval/v2/model_sweep_lanes.sh", "?? eval/v2/start_sweep.sh", "?? eval/v2/start_sweep_lanes.sh", "?? eval/v2/sweep_scheduler.py"]
+  },
+  "runner": {
+    "run_id": "p3-opus55-medium",
+    "model": "anthropic/claude-opus-5-5",
+    "thinking": "medium",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 8,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3b model sweep: anthropic/claude-opus-5-5 thinking medium, harness-v2.0.1, test split"
+  }
+}

@@ -11,6 +11,7 @@
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { listPresetNames, loadPreset, presetToArgv } from "./presets.ts";
 import { DEFAULT_SYSTEM_FILE } from "./system_prompt.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -51,6 +52,7 @@ export interface V3Spec {
 }
 
 export interface Options {
+	preset: string | null;         // --preset <name>: experiments/presets/<name>.json (provenance only)
 	cases: string[];
 	split: string | null;
 	dataset: string;
@@ -96,11 +98,29 @@ export function applyDatasetProfile(opts: Options, explicit: Set<string>): void 
 	}
 }
 
-export function parseArgs(argv: string[]): Options {
+/**
+ * `--preset <name>` expands into the preset's recorded flags placed BEFORE the user's own
+ * flags (explicit flags win; a user `--cases`/`--split` replaces the preset's selection).
+ * Returns the argv to parse and the preset name (null without --preset).
+ */
+export function expandPreset(argv: string[]): { argv: string[]; preset: string | null } {
+	const idx = argv.indexOf("--preset");
+	if (idx < 0) return { argv, preset: null };
+	if (argv.indexOf("--preset", idx + 1) >= 0) throw new Error("--preset given twice");
+	const name = argv[idx + 1];
+	if (name === undefined || name.startsWith("--")) throw new Error("missing value for --preset");
+	const rest = [...argv.slice(0, idx), ...argv.slice(idx + 2)];
+	const userFlags = new Set(rest.filter((t) => t.startsWith("--")));
+	return { argv: [...presetToArgv(loadPreset(name), userFlags), ...rest], preset: name };
+}
+
+export function parseArgs(rawArgv: string[]): Options {
+	const { argv, preset } = expandPreset(rawArgv);
 	// options the user passed explicitly (per-dataset defaults must not override them);
 	// each flag is added BEFORE its break so the tracking cannot be skipped
 	const explicit = new Set<string>();
 	const opts: Options = {
+		preset,
 		cases: [],
 		split: null,
 		dataset: "mstt",
@@ -142,6 +162,10 @@ export function parseArgs(argv: string[]): Options {
 			return value;
 		};
 		switch (arg) {
+			case "--list-presets":
+				console.log(listPresetNames().join("\n"));
+				process.exit(0);
+				break;
 			case "--cases":
 				opts.cases = next().split(",").map((c) => c.trim()).filter(Boolean);
 				break;
@@ -259,6 +283,10 @@ export function parseArgs(argv: string[]): Options {
 function printHelp(): void {
 	console.log(`Usage: npx tsx run_cases.ts [options]
 
+  --preset <name>           load experiments/presets/<name>.json (a logged experiment's recorded model,
+                            thinking, cases, budgets, concurrency, dataset, segmenter, v3 flags, prompts);
+                            explicit flags below override it (--cases replaces the preset's split and
+                            vice versa). --list-presets prints the names.
   --cases F14,M07           comma-separated case ids (or --split)
   --split design|test|all   run every case in that split of the dataset's cases csv
   --dataset <name>          mstt (default, eval/v2/mstt_cases.csv, unchanged behaviour) or beamster

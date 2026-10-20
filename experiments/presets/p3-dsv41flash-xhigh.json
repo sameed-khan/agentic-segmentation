@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "p3-dsv41flash-xhigh",
+  "kind": "agent_run",
+  "description": "Phase 3b model sweep (E20): harness v2.0.1, MSTT test split (169 cases), opencode-go/deepseek-v4.1-flash thinking xhigh, concurrency 8, defaults budgets 40 tool calls / 15 prompts / 10 min wall / 3 nudges.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "dcb840c89725d991d7a656ca1948158597917c61",
+    "git_describe": "harness-v2.0.1-7-gdcb840c-dirty",
+    "results": "results/p3-dsv41flash-xhigh.dvc",
+    "log_entry": "E20",
+    "recorded_in": "results/p3-dsv41flash-xhigh/batch_summary.json (research/experiments/runs/p3-dsv41flash-xhigh/batch_summary.json when exported)",
+    "git_dirty_files_at_run": ["M eval/v2/sweep_scheduler.py"]
+  },
+  "runner": {
+    "run_id": "p3-dsv41flash-xhigh",
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "thinking": "xhigh",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 8,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3b model sweep: opencode-go/deepseek-v4.1-flash thinking xhigh, harness-v2.0.1, test split"
+  }
+}

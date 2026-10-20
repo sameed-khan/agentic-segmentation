@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "phase3-xhigh",
+  "kind": "agent_run",
+  "description": "Phase 3 second pass: Sonnet 5.5, thinking xhigh, test split (169), concurrency 4, entirely on harness-v2.0.1.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "2bcff0195adeb3f270eda4c7497578bd0cf1799e",
+    "git_describe": "harness-v2.0.1-1-g2bcff01-dirty",
+    "results": "results/phase3-xhigh.dvc",
+    "log_entry": "E19",
+    "recorded_in": "results/phase3-xhigh/batch_summary.json (research/experiments/runs/phase3-xhigh/batch_summary.json when exported)",
+    "git_dirty_files_at_run": ["M harness/study/ask.ts"]
+  },
+  "runner": {
+    "run_id": "phase3-xhigh",
+    "model": "anthropic/claude-sonnet-5-5",
+    "thinking": "xhigh",
+    "dataset": "mstt",
+    "split": "test",
+    "concurrency": 4,
+    "wall_min": 10,
+    "max_nudges": 3,
+    "max_tool_calls": 40,
+    "max_model_prompts": 15,
+    "segmenter": "nninteractive",
+    "v3": null,
+    "system_file": "harness/prompts/system.md",
+    "task_file": "harness/prompts/task.md",
+    "system_prompt_sha256": "76f3d80e21f5052d1ec73247606e608333515c9540e14afc1885f8f1a13f3717",
+    "note": "Phase 3 second pass: harness-v2, test split (169), thinking xhigh (preregistered, experiment_log §6)"
+  }
+}

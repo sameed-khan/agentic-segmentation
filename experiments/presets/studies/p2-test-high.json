@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "p2-test-high",
+  "kind": "study",
+  "description": "Phase 2 localization study (single-turn pointing on the GT's largest axial slice, no tools): anthropic/claude-sonnet-5-5 high, conditions R,S,S-gen, 3 reps, test split.",
+  "provenance": {
+    "git_tag": "harness-v2.0.1",
+    "git_commit": "2bcff0195adeb3f270eda4c7497578bd0cf1799e",
+    "git_describe": "harness-v2.0.1-1-g2bcff01-dirty",
+    "results": "results/phase2_test.dvc (p2-test-high)",
+    "log_entry": "E18",
+    "recorded_in": "results/phase2_test/p2-test-high/meta.json"
+  },
+  "study": {
+    "commands": [
+      {
+        "cwd": "harness/study",
+        "argv": ["npx", "tsx", "ask.ts", "--run", "p2-test-high", "--conditions", "R,S,S-gen", "--reps", "3", "--concurrency", "4", "--model", "anthropic/claude-sonnet-5-5", "--thinking", "high", "--wall-min", "5", "--results-root", "{repo}/results/phase2_test", "--prepare-dir", "{repo}/results/phase2_test/prepare"]
+      }
+    ]
+  }
+}

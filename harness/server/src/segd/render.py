@@ -997,24 +997,30 @@ def render_review_grid(image: np.ndarray, mask: np.ndarray, spacing=(1.0, 1.0, 1
     return out, RenderInfo("review", views, [], [], window)
 
 
-REVIEW_COMPONENT_MAX = 5     # rows in the per-component review sheet (largest first)
+REVIEW_COMPONENT_MAX = 5     # components per component-review sheet (largest first;
+                             # more sheets are returned in batches so every current-mask
+                             # component is represented in the finish review)
 
 
 def render_review_components(image: np.ndarray, mask: np.ndarray,
                              spacing=(1.0, 1.0, 1.0),
                              markset: M.MarkSet | None = None,
-                             max_components: int = REVIEW_COMPONENT_MAX
+                             max_components: int = REVIEW_COMPONENT_MAX,
+                             start: int = 0,
                              ) -> tuple[Image.Image, RenderInfo]:
     """Per-component review sheet for multi-lesion targets (Phase 4, non-MSTT datasets).
 
     The union-extent review grid (render_review_grid) inspects the union of all lesions;
     with several separated lesions its 25/50/75% columns can fall between them and each
     lesion's own boundary is never seen. This sheet adds what the grid cannot show: one
-    row per connected component of ``mask`` (largest first, up to ``max_components``),
-    columns axial/coronal/sagittal through the component's centre of mass, every cell
-    cropped to THAT component's bbox grown by ``max(20 mm, 30% of its extent)`` per side
-    (one shared scale per row). Green outline; chip 'Ck ax 123' names the row's component
-    rank (volumes are in the observation text). Derived from the current mask only.
+    row per connected component of ``mask`` (largest first), columns axial/coronal/sagittal
+    through the component's centre of mass, every cell cropped to THAT component's bbox
+    grown by ``max(20 mm, 30% of its extent)`` per side (one shared scale per row). Green
+    outline; chip 'Ck ax 123' names the row's component rank (volumes are in the
+    observation text). Components are rendered largest first; the sheet covers ranks
+    ``start+1 .. start+max_components`` — callers batch through ALL components (one sheet
+    per ``max_components`` ranks, as many sheets as needed) so no current-mask component
+    is omitted. Derived from the current mask only.
     """
     image = np.asarray(image)
     mask = np.asarray(mask) > 0
@@ -1025,11 +1031,15 @@ def render_review_components(image: np.ndarray, mask: np.ndarray,
     shape = image.shape
     sizes = np.bincount(labels.ravel())
     sizes[0] = 0
-    order = [int(i) for i in np.argsort(sizes)[::-1] if i != 0][:max_components]
+    order = [int(i) for i in np.argsort(sizes)[::-1] if i != 0]
+    batch = order[start:start + max_components]
+    if not batch:
+        raise ValueError(f"component sheet batch is empty: {len(order)} components, "
+                         f"start={start}, max_components={max_components}")
     window = _window_for(image, markset)
     views: list[ViewGeom] = []
     row_imgs: list[Image.Image] = []
-    for rank, lab in enumerate(order, start=1):
+    for rank, lab in enumerate(batch, start=start + 1):
         comp = labels == lab
         idx = np.nonzero(comp)
         centre = tuple(int(np.clip(np.floor(a.mean() + 0.5), 0, sn - 1))

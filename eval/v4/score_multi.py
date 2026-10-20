@@ -132,7 +132,7 @@ def lesion_metrics(gt: np.ndarray, pred: np.ndarray, spacing: tuple) -> dict:
         })
     tp, fp = int(detected.sum()), int((inter[1:, 1:].sum(axis=0) == 0).sum())
     precision = tp / (tp + fp) if (tp + fp) else 0.0
-    recall = tp / n_g if n_g else 0.0
+    recall = tp / n_g if n_g else float("nan")   # empty GT: sensitivity is undefined
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
 
     out = {
@@ -141,10 +141,15 @@ def lesion_metrics(gt: np.ndarray, pred: np.ndarray, spacing: tuple) -> dict:
         "mean_lesion_dice": float(les_dice[detected].mean()) if tp else float("nan"),
         "per_lesion": per_lesion,
     }
-    # breakdown by lesion size (decision 6 buckets: <0.5 / 0.5-2 / >2 mL)
-    bounds = {"lt05": (0.0, 0.5), "b05_2": (0.5, 2.0), "gt2": (2.0, float("inf"))}
-    for key, (lo_b, hi_b) in bounds.items():
-        in_b = (gt_ml >= lo_b) & (gt_ml < hi_b) if key != "gt2" else gt_ml > 2.0
+    # breakdown by lesion size (decision 6 buckets: <0.5 / 0.5-2 (2.0 inclusive) / >2 mL;
+    # the same boundary convention as bucket_of — a 2.000 mL lesion is in b05_2 everywhere)
+    for key in ("lt05", "b05_2", "gt2"):
+        if key == "lt05":
+            in_b = gt_ml < 0.5
+        elif key == "b05_2":
+            in_b = (gt_ml >= 0.5) & (gt_ml <= 2.0)
+        else:
+            in_b = gt_ml > 2.0
         n_b, det_b = int(in_b.sum()), int((in_b & detected).sum())
         out[f"n_{key}"] = n_b
         out[f"det_{key}"] = det_b
@@ -154,10 +159,10 @@ def lesion_metrics(gt: np.ndarray, pred: np.ndarray, spacing: tuple) -> dict:
 
 
 def bucket_of(volume_ml: float) -> str:
-    """Size-bucket key of one lesion volume (decision 6: <0.5 / 0.5-2 / >2 mL)."""
+    """Size-bucket key of one lesion volume (decision 6: <0.5 / 0.5-2 (2.0 inclusive) / >2 mL)."""
     if volume_ml < 0.5:
         return "lt05"
-    if volume_ml < 2.0:
+    if volume_ml <= 2.0:
         return "b05_2"
     return "gt2"
 
@@ -306,10 +311,16 @@ def write_md(out_dir: Path, recs: list[dict]) -> None:
         det = sum(int(r["n_detected"]) for r in ok)
         fp = sum(int(r["n_fp"]) for r in ok)
         dice_vals = [r["dice"] for r in ok if isinstance(r["dice"], float)]
-        f1_vals = [r["lesion_f1"] for r in ok]
-        lines += ["", f"**Pooled**: {n_l} GT lesions, {det} detected (sensitivity {det / n_l:.3f}), "
-                  f"{fp} FPs, lesion F1 {2 * det / (2 * det + fp):.3f}"
-                  if (2 * det + fp) else f"**Pooled**: {n_l} GT lesions, {det} detected, {fp} FPs",
+        f1_vals = [r["lesion_f1"] for r in ok
+                   if isinstance(r["lesion_f1"], float) and not math.isnan(r["lesion_f1"])]
+        # pooled F1 counts false negatives (review P1 #4): 2*det / (2*det + FP + FN),
+        # FN = n_l - det — the same definition as the per-case 2PR/(P+R). Zero
+        # denominator (no GT lesions at all) renders undefined, never divides by zero.
+        denom = 2 * det + fp + (n_l - det)
+        sens_s = f"{det / n_l:.3f}" if n_l else "undefined (no GT lesions)"
+        f1_s = f"{2 * det / denom:.3f}" if denom else "undefined"
+        lines += ["", f"**Pooled**: {n_l} GT lesions, {det} detected (sensitivity {sens_s}), "
+                  f"{fp} FPs, lesion F1 {f1_s}",
                   f"mean global Dice {np.mean(dice_vals):.3f}, mean lesion F1 {np.mean(f1_vals):.3f}",
                   "", "## By lesion size", "",
                   "| bucket | lesions | detected | sensitivity | mean lesion dice |", "|---|---|---|---|---|"]
@@ -378,8 +389,9 @@ def main(argv: list[str] | None = None) -> int:
     if ok:
         det = sum(int(r["n_detected"]) for r in ok)
         n_l = sum(int(r["n_lesions"]) for r in ok)
-        print(f"summary: {len(ok)} cases, {n_l} GT lesions, {det} detected "
-              f"({det / n_l:.3f}), FPs {sum(int(r['n_fp']) for r in ok)}", flush=True)
+        sens = f"({det / n_l:.3f})" if n_l else "(undefined: no GT lesions)"
+        print(f"summary: {len(ok)} cases, {n_l} GT lesions, {det} detected {sens}, "
+              f"FPs {sum(int(r['n_fp']) for r in ok)}", flush=True)
     return 0
 
 

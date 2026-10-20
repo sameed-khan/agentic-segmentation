@@ -51,9 +51,11 @@ BUCKETS = {"lt05": "<0.5", "b05_2": "0.5-2", "gt2": ">2"}
 
 
 def bucket_of(volume_ml: float) -> str:
+    """Size buckets (decision 6): <0.5 / 0.5-2 (2.0 inclusive) / >2 mL — the same
+    boundary convention as eval/v4/score_multi.bucket_of."""
     if volume_ml < 0.5:
         return "lt05"
-    if volume_ml < 2.0:
+    if volume_ml <= 2.0:
         return "b05_2"
     return "gt2"
 

@@ -158,6 +158,54 @@ def test_render_review_components():
     assert len(ri1.views) == 3                    # single component -> one row
 
 
+def _cube(m, sl_x, sl_y, sl_z):
+    m[sl_x[0]:sl_x[1], sl_y[0]:sl_y[1], sl_z[0]:sl_z[1]] = True
+
+
+def test_review_represents_every_component_in_batches():
+    """Regression (review P1 #3): the component sheet used to cap at 5 rows and the union
+    grid only samples 3 fraction planes per axis, so the 6th+ component could be absent
+    from BOTH review images. With 7 separated components whose smallest misses every
+    union-grid plane, batching (5 components per sheet, as many sheets as needed) must
+    still show it. The union grid itself is unchanged."""
+    from scipy import ndimage as ndi
+    from segd.render import render_review_components, render_review_grid
+    rng = np.random.default_rng(0)
+    shape = (160, 160, 160)
+    img = rng.normal(300, 20, shape).astype(np.float32)
+    mask = np.zeros(shape, bool)
+    # five larger components spanning the volume along the diagonal ...
+    spans = [(10, 40), (45, 70), (75, 98), (100, 120), (125, 140), (141, 159)]
+    for lo, hi in spans:
+        _cube(mask, (lo, hi), (lo, hi), (lo, hi))
+    # ... and a 6th, smallest component whose z/y/x slice intervals avoid every
+    # union-grid plane (verified below)
+    _cube(mask, (70, 76), (124, 130), (30, 36))
+    labels, n = ndi.label(mask, structure=ndi.generate_binary_structure(3, 1))
+    assert n == 7
+
+    grid, grid_info = render_review_grid(img, mask, (1.0, 1.0, 1.0))
+    assert grid.width <= 1568 and len(grid_info.views) == 15
+    small = labels == labels[72, 126, 32]         # the smallest component
+    idx = [np.nonzero(small)[i] for i in range(3)]
+    axes = {"axial": 2, "coronal": 1, "sagittal": 0}
+    for axis, ai in axes.items():
+        plane_sl = {v.slice_idx for v in grid_info.views if v.axis == axis}
+        assert not any(int(s) in plane_sl for s in idx[ai]), \
+            f"test precondition: smallest component must miss every {axis} union-grid plane"
+
+    # batches of 5: two sheets covering ALL 7 components, smallest included
+    sheets = [render_review_components(img, mask, (1.0, 1.0, 1.0), start=s)
+              for s in range(0, n, 5)]
+    assert [len(ri.views) for _im, ri in sheets] == [15, 6]
+    all_views = [v for _im, ri in sheets for v in ri.views]
+    for axis, ai in axes.items():
+        sl = int(np.floor(idx[ai].mean() + 0.5))
+        assert any(v.axis == axis and v.slice_idx == sl for v in all_views), \
+            f"smallest component missing from the component sheets on {axis}"
+    assert grid_info.kind == "review" and sheets[0][1].kind == "review_components"
+
+
 # ------------------------------------------------------------ real-data smoke (FakeNNI)
 def test_marks_density_profile_off_by_default_and_fingerprinted():
     """Decision 5: the dense profile is a dataset-level option; MSTT/default marks are

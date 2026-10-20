@@ -22,7 +22,6 @@ import {
 	renameSync,
 	writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -39,6 +38,13 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { createSegExtension, SEG_TOOL_NAMES } from "../extension/index.ts";
 import {
+	DATASETS,
+	DEFAULT_EXTENSION_DIR,
+	parseArgs,
+	type Options,
+	type V3Spec,
+} from "./cli_args.ts";
+import {
 	DEFAULT_SYSTEM_FILE,
 	DEFAULT_SYSTEM_MULTI_FILE,
 	DEFAULT_SYSTEM_V3_FILE,
@@ -48,32 +54,11 @@ import {
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(HERE, "..", "..");
 const HARNESS_DIR = join(PROJECT_ROOT, "harness");
-const DEFAULT_EXTENSION_DIR = join(HARNESS_DIR, "extension");
-const DEFAULT_TASK_FILE = join(HARNESS_DIR, "prompts", "task.md");
-const DEFAULT_TASK_MULTI_FILE = join(HARNESS_DIR, "prompts", "task_multi.md");
 const MSTT_CASES_CSV = join(PROJECT_ROOT, "eval", "v2", "mstt_cases.csv");
 const phase4CasesCsv = (dataset: string): string =>
 	join(PROJECT_ROOT, "eval", "v4", `${dataset}_cases.csv`);
 const DESIGN_SHAPES = join(PROJECT_ROOT, "eval", "v2", "data_check", "design.jsonl");
-const DEFAULT_AUTH_SHIM = join(
-	homedir(),
-	".pi",
-	"agent",
-	"npm",
-	"node_modules",
-	"@gotgenes",
-	"pi-anthropic-auth",
-);
 const STUB_SERVER = join(HERE, "test", "stub_segd.mjs");
-
-/** Runner-selectable datasets (Phase 4 = BEAMSTER only; 'mstt' = unchanged behaviour). */
-const DATASETS = ["mstt", "beamster"] as const;
-
-/** Per-dataset budget/prompt defaults (decision 4): applied for options the user did
- *  NOT pass explicitly. Static per dataset — never derived from GT lesion counts. */
-const DATASET_DEFAULTS: Record<string, { wallMin: number; maxToolCalls: number; maxModelPrompts: number }> = {
-	beamster: { wallMin: 12, maxToolCalls: 50, maxModelPrompts: 20 },
-};
 
 const HISTOTYPE_TEXT: Record<string, string> = {
 	F: "fibrous soft-tissue tumor",
@@ -99,255 +84,9 @@ const DEFAULT_V3_MEDGEMMA_URLS: Record<string, string> = {
 	bf16: "http://127.0.0.1:8094",
 };
 
-/** The `v3` object sent in the POST /cases body and recorded in run meta (null = off). */
-interface V3Spec {
-	pointer: string | null;
-	pointer_url: string | null;
-	medgemma: string | null;
-	medgemma_url: string | null;
-	checkpoints: string[];
-}
-
 // ---------------------------------------------------------------------------
-// Options
+// Options (parsing in ./cli_args.ts, unit-tested by test/cli_args.test.mts)
 // ---------------------------------------------------------------------------
-
-interface Options {
-	cases: string[];
-	split: string | null;
-	dataset: string;
-	runId: string;
-	concurrency: number;
-	model: string;
-	thinking: string;
-	wallMin: number;
-	maxNudges: number;
-	maxToolCalls: number;
-	maxModelPrompts: number;
-	segdUrl: string;
-	nniUrl: string;
-	v3Pointer: string | null;
-	v3PointerUrl: string | null;
-	v3Medgemma: string | null;
-	v3MedgemmaUrl: string | null;
-	v3Checkpoints: string[];
-	v3: V3Spec | null;
-	extension: string;
-	dryStub: boolean;
-	authShim: string;
-	resultsDir: string;
-	note: string;
-	examples: string;
-	systemFile: string;
-	systemFileSupplied: boolean;   // tracked apart from the value: an explicit
-	taskFile: string;
-	taskFileSupplied: boolean;     // default-path override must still win
-	resume: boolean;
-}
-
-function parseArgs(argv: string[]): Options {
-	// options the user passed explicitly (per-dataset defaults must not override them)
-	const explicit = new Set<string>();
-	const opts: Options = {
-		cases: [],
-		split: null,
-		dataset: "mstt",
-		runId: `run-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`,
-		concurrency: 4,
-		model: "anthropic/claude-sonnet-5-5",
-		thinking: "medium",
-		wallMin: 10,
-		maxNudges: 3,
-		maxToolCalls: 40,
-		maxModelPrompts: 15,
-		segdUrl: "http://127.0.0.1:8765",
-		nniUrl: "http://127.0.0.1:1527",
-		v3Pointer: null,
-		v3PointerUrl: null,
-		v3Medgemma: null,
-		v3MedgemmaUrl: null,
-		v3Checkpoints: [],
-		v3: null,
-		extension: DEFAULT_EXTENSION_DIR,
-		dryStub: false,
-		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
-		resultsDir: join(PROJECT_ROOT, "results"),
-		note: "",
-		resume: false,
-		examples: "",
-		systemFile: DEFAULT_SYSTEM_FILE,
-		systemFileSupplied: false,   // tracked apart from the value: an explicit
-		taskFile: DEFAULT_TASK_FILE,
-		taskFileSupplied: false,     // default-path override must still win
-	};
-
-	for (let i = 0; i < argv.length; i++) {
-		const arg = argv[i];
-		const next = (): string => {
-			const value = argv[++i];
-			if (value === undefined) throw new Error(`missing value for ${arg}`);
-			return value;
-		};
-		switch (arg) {
-			case "--cases":
-				opts.cases = next().split(",").map((c) => c.trim()).filter(Boolean);
-				break;
-			case "--split":
-				opts.split = next();
-				break;
-				case "--dataset":
-				opts.dataset = next();
-				break;
-			case "--run-id":
-				opts.runId = next();
-				break;
-			case "--concurrency":
-				opts.concurrency = Number(next());
-				break;
-			case "--model":
-				opts.model = next();
-				break;
-			case "--thinking":
-				opts.thinking = next();
-				break;
-			case "--wall-min":
-				opts.wallMin = Number(next());
-				break;
-				explicit.add("--wall-min");
-			case "--max-nudges":
-				opts.maxNudges = Number(next());
-				break;
-			case "--max-tool-calls":
-				opts.maxToolCalls = Number(next());
-				break;
-				explicit.add("--max-tool-calls");
-			case "--max-model-prompts":
-				opts.maxModelPrompts = Number(next());
-				break;
-				explicit.add("--max-model-prompts");
-			case "--segd-url":
-				opts.segdUrl = next();
-				break;
-			case "--nni-url":
-				opts.nniUrl = next();
-				break;
-			case "--v3-pointer":
-				opts.v3Pointer = next();
-				break;
-			case "--v3-pointer-url":
-				opts.v3PointerUrl = next();
-				break;
-			case "--v3-medgemma":
-				opts.v3Medgemma = next();
-				break;
-			case "--v3-medgemma-url":
-				opts.v3MedgemmaUrl = next();
-				break;
-			case "--v3-checkpoints":
-				opts.v3Checkpoints = next()
-					.split(",")
-					.map((c) => c.trim())
-					.filter(Boolean);
-				break;
-			case "--extension":
-				opts.extension = resolve(next());
-				break;
-			case "--dry-stub":
-				opts.dryStub = true;
-				break;
-			case "--auth-shim":
-				opts.authShim = resolve(next());
-				break;
-			case "--examples":
-				opts.examples = resolve(next());
-				break;
-			case "--note":
-				opts.note = next();
-				break;
-			case "--resume":
-				opts.resume = true;
-				break;
-			case "--results-dir":
-				opts.resultsDir = resolve(next());
-				break;
-			case "--system-file":
-				opts.systemFile = resolve(next());
-				opts.systemFileSupplied = true;   // tracked apart from the value: an explicit
-				break;                            // default-path override must still win
-			case "--task-file":
-				opts.taskFile = resolve(next());
-				break;
-				opts.taskFileSupplied = true;   // tracked apart from the value: an explicit
-				// default-path override must still win
-			case "--help":
-			case "-h":
-				printHelp();
-				process.exit(0);
-				break;
-			default:
-				throw new Error(`unknown option: ${arg}`);
-		}
-	}
-	if (!DATASETS.includes(opts.dataset as any)) {
-		throw new Error(`--dataset must be one of ${DATASETS.join("|")}`);
-	}
-	applyDatasetProfile(opts, explicit);
-	return opts;
-	}
-
-/** Per-dataset defaults (decision 4): budgets and prompt files for options the user did
- *  not pass explicitly. Static per dataset - never derived from GT lesion counts. MSTT
- *  (absent from DATASET_DEFAULTS) keeps the original defaults. */
-function applyDatasetProfile(opts: Options, explicit: Set<string>): void {
-	const d = DATASET_DEFAULTS[opts.dataset];
-	if (d) {
-		if (!explicit.has("--wall-min")) opts.wallMin = d.wallMin;
-		if (!explicit.has("--max-tool-calls")) opts.maxToolCalls = d.maxToolCalls;
-		if (!explicit.has("--max-model-prompts")) opts.maxModelPrompts = d.maxModelPrompts;
-	}
-	if (!explicit.has("--task-file")) {
-		opts.taskFile = opts.dataset === "mstt" ? DEFAULT_TASK_FILE : DEFAULT_TASK_MULTI_FILE;
-	}
-}
-
-function printHelp(): void {
-	console.log(`Usage: npx tsx run_cases.ts [options]
-
-  --cases F14,M07           comma-separated case ids (or --split)
-  --split design|test|all   run every case in that split of the dataset's cases csv
-  --dataset <name>          mstt (default, eval/v2/mstt_cases.csv, unchanged behaviour) or beamster
-                            (Phase 4: eval/v4/beamster_cases.csv; beamster budget defaults 50 tool
-                            calls / 20 prompts / 12 min wall unless overridden by flag)
-  --run-id <id>             run directory name under results/ (default: timestamp)
-  --concurrency <n>         parallel cases in this process (default 4)
-  --model <provider/id>     (default anthropic/claude-sonnet-5-5)
-  --thinking <level>        (default medium)
-  --wall-min <n>            per-case wall-time limit (default 10)
-  --max-nudges <n>          follow-up "call seg_finish" messages (default 3)
-  --max-tool-calls <n>      budget sent to segd (default 40)
-  --max-model-prompts <n>   budget sent to segd (default 15)
-  --segd-url <url>          (default http://127.0.0.1:8765)
-  --nni-url <url>           (default http://127.0.0.1:1527)
-  --v3-pointer <mode>       harness v3 pointer for seg_locate: gui_actor|molmo2 (off unless set)
-  --v3-pointer-url <url>    (default http://127.0.0.1:8092 gui_actor / :8093 molmo2)
-  --v3-medgemma <mode>      harness v3 MedGemma second reader: q4|bf16 (off unless set)
-  --v3-medgemma-url <url>   (default http://127.0.0.1:8091 q4 / :8094 bf16)
-  --v3-checkpoints <list>   comma list of localize,review,candidates (default: all three;
-                            the MedGemma checkpoints injected into tool observations)
-  --extension <path>        default harness/extension (dir); checks/ping_ext.ts for smoke
-  --dry-stub                spawn the bundled stub segd and use it as --segd-url
-  --examples <manifest>     Phase 2 prepare manifest.jsonl: attach each case's leave-one-out example image
-                            (another case's GT outline, 3 planes) to the task message (E12)
-  --note <text>             free-text note stored in batch_summary.json (experiment log)
-  --resume                  skip cases already complete in this run (meta.json done, no API errors);
-                            move incomplete case dirs to <run>/_incomplete/. The runner stops pulling new
-                            cases after a case hits a provider/API error and exits with code 3.
-  --auth-shim <path>        auth shim package dir (default @gotgenes/pi-anthropic-auth)
-  --results-dir <path>      (default <project>/results)
-  --system-file <path>      (default harness/prompts/system.md)
-  --task-file <path>        (default harness/prompts/task.md)`);
-}
-
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------

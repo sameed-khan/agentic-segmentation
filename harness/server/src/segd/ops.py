@@ -765,14 +765,20 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
         cand_img = None
         comp_text = ""
         # Phase 4 (non-MSTT datasets): with several separated lesions the union-extent
-        # grid's fraction columns can fall between them — add the per-component sheet
-        # (rows through each component's centre) so every lesion's outline is reviewable.
+        # grid's fraction columns can fall between them — add the per-component sheet(s)
+        # (rows through each component's centre, 5 components per image, as many images
+        # as needed) so every detected lesion's outline is reviewable.
         if is_multi_lesion(cs) and st["n_components"] >= 2:
-            img_comp, _rc = _render().render_review_components(cs.image, mask, cs.spacing)
-            images.append(img_comp)
-            comp_text = ("The next image is the component sheet: one row per detected component "
-                         "(largest first, up to 5), axial/coronal/sagittal through its centre. "
-                         "Check each lesion's outline separately. ")
+            rd = _render()
+            for comp_start in range(0, st["n_components"], rd.REVIEW_COMPONENT_MAX):
+                img_comp, _rc = rd.render_review_components(cs.image, mask, cs.spacing,
+                                                            start=comp_start)
+                images.append(img_comp)
+            comp_text = (f"The next {len(images) - 1} image(s) after the union grid are component "
+                         f"sheets: one row per detected component (largest first, "
+                         f"{rd.REVIEW_COMPONENT_MAX} components per image, one image after another "
+                         "until all components are shown), axial/coronal/sagittal through its "
+                         "centre. Check each lesion's outline separately. ")
         if st["n_components"] > 0:
             # required candidate round: every first review for a version also proposes
             # candidates (capped after CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS accepted rounds)

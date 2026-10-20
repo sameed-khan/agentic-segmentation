@@ -6,6 +6,7 @@ Run: uv run --project harness/server python -m pytest eval/v4/test_score_multi.p
 """
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
 
@@ -32,8 +33,23 @@ def test_bucket_of():
     assert bucket_of(0.1) == "lt05"
     assert bucket_of(0.5) == "b05_2"
     assert bucket_of(1.9) == "b05_2"
-    assert bucket_of(2.0) == "gt2"
+    assert bucket_of(2.0) == "b05_2"      # 2.0 mL belongs to the middle bucket (review P2 #5)
+    assert bucket_of(2.0001) == "gt2"
     assert bucket_of(30.0) == "gt2"
+
+
+def test_bucket_boundary_2ml_aggregate_matches_bucket_of():
+    """Regression (review P2 #5): a lesion of exactly 2.000 mL (2000 voxels at 1 mm spacing)
+    used to land in NO aggregate bucket while bucket_of(2.0) said 'gt2'. Now 2.0 is in the
+    middle bucket everywhere."""
+    shape = (40, 40, 40)
+    gt = np.zeros(shape, bool)
+    gt[5:15, 5:15, 10:30] = True          # exactly 10*10*20 = 2000 voxels = 2.000 mL
+    assert gt.sum() == 2000
+    m = lesion_metrics(gt, gt.copy(), (1.0, 1.0, 1.0))
+    assert m["per_lesion"][0]["bucket"] == "b05_2"
+    assert m["n_lt05"] == 0 and m["n_b05_2"] == 1 and m["n_gt2"] == 0
+    assert m["det_b05_2"] == 1
 
 
 def test_lesion_metrics_detection_fp_and_buckets():
@@ -145,3 +161,99 @@ def test_score_case_synthetic_manifest(tmp_path, monkeypatch):
     # the per-lesion rows exported by main()
     rows = [dict(lr, case=rec["case"]) for lr in rec["per_lesion"]]
     assert len(rows) == 2 and sum(r["detected"] for r in rows) == 1
+
+
+# --------------------------------------------------------------------- CLI level
+def _write_case(tmp_path, monkeypatch, run_dir, case, gt, pred, n_lesions, dataset="toy",
+                split="design"):
+    """One synthetic case dir + manifest row, dataset read from case_meta.json."""
+    import nibabel as nib
+    monkeypatch.setattr(segd.data, "PHASE4_CSV", str(tmp_path / "{dataset}_cases.csv"))
+    d = tmp_path / "data" / dataset
+    d.mkdir(parents=True, exist_ok=True)
+    img = np.full(gt.shape, 100.0, dtype=np.float32)
+    nib.save(nib.Nifti1Image(img, np.eye(4)), str(d / f"{case}.nii.gz"))
+    nib.save(nib.Nifti1Image(gt.astype(np.uint8), np.eye(4)), str(d / f"{case}_segm.nii.gz"))
+    case_dir = run_dir / case
+    case_dir.mkdir(parents=True, exist_ok=True)
+    nib.save(nib.Nifti1Image(pred.astype(np.uint8), np.eye(4)),
+             str(case_dir / "final_mask.nii.gz"))
+    (case_dir / "trajectory.jsonl").write_text(
+        '{"ts": "2026-10-21T00:00:00Z", "op": "finish", "args": {"confidence": "high"}}\n')
+    (case_dir / "case_meta.json").write_text(
+        f'{{"case_id": "{case}", "dataset": "{dataset}", "tool_calls": 5, "model_prompts": 2,\n'
+        ' "created_at": "2026-10-21T00:00:00Z", "finished_at": "2026-10-21T00:05:00Z"}\n')
+    return (f"{case},{dataset}-target,MRI,CE-T1,{d / f'{case}.nii.gz'},{d / f'{case}_segm.nii.gz'},"
+            f"{n_lesions},3.0,{split},,")
+
+
+def _manifest_header():
+    return ("case,target_text,modality,sequence,image_path,mask_paths,n_lesions,"
+            "lesion_volume_ml,split,image_path_src,mask_paths_src\n")
+
+
+def test_pooled_f1_equals_per_case_f1(tmp_path, monkeypatch):
+    """Regression (review P1 #4): the pooled report used to compute 2*det/(2*det+FP),
+    omitting FN — a single case with 2 GT lesions, 1 detected and 0 FP printed pooled
+    F1 1.000 while its per-case F1 is 2/3. The pooled line must equal the per-case F1."""
+    shape = (80, 80, 80)
+    gt = _ball(shape, (25, 25, 25), 8) | _ball(shape, (60, 60, 60), 8)
+    pred = _ball(shape, (25, 25, 25), 8)          # lesion 1 only, no FP
+    rows = [_write_case(tmp_path, monkeypatch, tmp_path / "run", "Toy_001", gt, pred, 2)]
+    (tmp_path / "toy_cases.csv").write_text(_manifest_header() + "\n".join(rows) + "\n")
+
+    rc = SM.main([str(tmp_path / "run"), "--workers", "1"])
+    assert rc == 0
+    rec = SM.score_case(str(tmp_path / "run" / "Toy_001"))
+    assert rec["n_lesions"] == 2 and rec["n_detected"] == 1 and rec["n_fp"] == 0
+    assert rec["lesion_f1"] == pytest.approx(2 / 3)
+    md = (tmp_path / "run" / "scores_multi.md").read_text()
+    pooled = next(l for l in md.splitlines() if l.startswith("**Pooled**"))
+    # sensitivity 0.5; F1 = 2*1/(2*1+0+1) = 2/3, identical to the per-case F1
+    assert "sensitivity 0.500" in pooled and "lesion F1 0.667" in pooled, pooled
+
+
+def test_cli_empty_gt_runs_and_reports_undefined(tmp_path, monkeypatch):
+    """Regression (review P2 #6): with ALL scored GT masks empty the pooled summary used
+    to crash on det/n_l (and the markdown on the same division when the empty-GT case
+    had FP predictions). Both empty and non-empty predictions on empty GT must run and
+    render sensitivity/F1 as explicitly undefined."""
+    shape = (40, 40, 40)
+    empty = np.zeros(shape, bool)
+    rows = [
+        _write_case(tmp_path, monkeypatch, tmp_path / "run", "Toy_empty_pred",
+                    empty, empty, 0),
+        _write_case(tmp_path, monkeypatch, tmp_path / "run", "Toy_fp_pred",
+                    empty, _ball(shape, (20, 20, 20), 5), 0),
+    ]
+    (tmp_path / "toy_cases.csv").write_text(_manifest_header() + "\n".join(rows) + "\n")
+
+    rc = SM.main([str(tmp_path / "run"), "--workers", "1"])
+    assert rc == 0
+    md = (tmp_path / "run" / "scores_multi.md").read_text()
+    pooled = next(l for l in md.splitlines() if l.startswith("**Pooled**"))
+    assert "0 GT lesions" in pooled and "1 FPs" in pooled, pooled
+    # sensitivity: undefined (no GT lesions); F1: defined value (denominator 1 via the FP)
+    assert "sensitivity undefined (no GT lesions)" in pooled and "lesion F1 0.000" in pooled
+    # per-case rows render the undefined sensitivity explicitly, cases stay 'ok'
+    assert md.count("| — |") >= 2 or "undefined" in md
+    for case in ("Toy_empty_pred", "Toy_fp_pred"):
+        rec = SM.score_case(str(tmp_path / "run" / case))
+        assert rec["status"] == "ok" and "empty_gt" in rec["flags"]
+        assert math.isnan(rec["lesion_sensitivity"])
+
+
+def test_write_md_pooled_zero_denominator_is_undefined(tmp_path):
+    """Regression (review P2 #6, direct): an ok case with ZERO GT lesions used to make the
+    pooled markdown crash on det/n_l. It must render an explicit undefined value."""
+    nan = float("nan")
+    recs = [{"case": "Toy_000", "status": "ok", "split": "design", "dice": 0.0,
+             "hd95_mm": nan, "nsd_2mm": nan, "n_lesions": 0, "n_detected": 0, "n_fp": 0,
+             "lesion_sensitivity": nan, "lesion_f1": nan, "mean_lesion_dice": nan,
+             "tag": "none_detected", "flags": "empty_gt", "error": ""}]
+    SM.write_md(tmp_path, recs)
+    md = (tmp_path / "scores_multi.md").read_text()
+    pooled = next(l for l in md.splitlines() if l.startswith("**Pooled**"))
+    assert "sensitivity undefined (no GT lesions)" in pooled, pooled
+    assert "lesion F1 undefined" in pooled, pooled          # zero denominator: no crash
+    assert "—" in next(l for l in md.splitlines() if l.startswith("| Toy_000"))

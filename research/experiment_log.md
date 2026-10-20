@@ -427,6 +427,21 @@ full run if it proceeds. Decision recorded in `results/phase3_state/gate_p3-gpt6
 If the probe (or the full run) hits the provider quota limit, the sweep stops there without waiting for a reset
 (Sameed): no full GPT-6.1-sol xhigh run; the segmenter-swap study (SAM-Med3D) runs instead.
 
+### E21 (preregistration). Phase 6: segmenter swap — harness v2 with SAM-Med3D-turbo instead of nnInteractive
+Question: how much of the agent's performance comes from the interactive segmenter? Everything identical to
+`phase3-high` (agent Sonnet 5.5 high, harness v2 prompts/tools/renders/marks, budgets 40 tool calls / 15 prompts /
+10 min, 169 test cases) except the segmenter: SAM-Med3D-turbo (checkpoint sha256 899a46d0…, official preprocessing:
+1.5 mm, masked z-norm, 128³ patches), behind an nnInteractive-compatible adapter (branch `phase6-sammed3d`, tag
+`harness-v2-p6`, design + review: `research/phase6_sammed3d.md`, reviewed by gpt-6.1-sol, 6 findings fixed).
+Engineering choices (fixed before the test run): patch placement from the agent's prompts and the current mask only (never
+GT); bbox > 192 mm tiled with overlapping patches (Sameed, option a); box/lasso/scribble mapped to ≤ 5–9 deterministic
+points, refine = mask prompt with click reset (nnInteractive semantics); all mappings logged per call. System prompt
+unchanged (it still names nnInteractive). Concurrency 6 (phase3-high used 4).
+**Primary endpoint:** paired per-case Dice vs `phase3-high` (Wilcoxon), mean and per histotype. **Secondary:**
+localization failures, prompts/tool calls per case (does the agent compensate for a weaker segmenter?), the 26 cases with
+GT extent > 192 mm separately, share of emulated (box/lasso/scribble) vs native (point/refine) calls, latency.
+Design pilot (5 design cases, after fixes; not test data): F14 0.517, L20 0.791, M07 0.917, N26 0.828, V37 0.487.
+
 ## 7. Next experiments (planned)
 
 | ID | Question | Runs |

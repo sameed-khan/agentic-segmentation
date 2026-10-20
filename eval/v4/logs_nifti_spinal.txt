@@ -1,0 +1,68 @@
+Myel_002: ct[698, 512, 512]@[0.9766, 0.9766, 0.6006] HU[-1024, 2365] lesions=26 vertebra_labels=18
+Myel_003: ct[983, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=8 vertebra_labels=24
+Myel_005: ct[908, 512, 512]@[0.9297, 0.9297, 0.6006] HU[-1024, 2059] lesions=12 vertebra_labels=24
+Myel_006: ct[1095, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=38 vertebra_labels=24
+Myel_001: ct[1095, 512, 512]@[0.9766, 0.9766, 0.6005] HU[-1024, 3071] lesions=42 vertebra_labels=24
+Myel_004: ct[946, 512, 512]@[0.9766, 0.9766, 0.6001] HU[-1024, 3071] lesions=54 vertebra_labels=24
+Myel_008: ct[1021, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 1898] lesions=32 vertebra_labels=24
+Myel_009: ct[938, 512, 512]@[0.9766, 0.9766, 0.6005] HU[-1024, 3071] lesions=68 vertebra_labels=24
+Myel_011: ct[1021, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=27 vertebra_labels=24
+Myel_010: ct[938, 512, 512]@[0.9277, 0.9277, 0.6002] HU[-1024, 3071] lesions=59 vertebra_labels=24
+Myel_014: ct[938, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=38 vertebra_labels=24
+Myel_016: ct[976, 512, 512]@[0.9023, 0.9023, 0.6] HU[-1024, 3071] lesions=20 vertebra_labels=24
+Myel_012_sc1: ct[1035, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=22 vertebra_labels=24; Myel_012_sc2: ct[1035, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=32 vertebra_labels=24
+Myel_017: ct[511, 512, 512]@[0.9766, 0.9766, 0.6001] HU[-1024, 3071] lesions=54 vertebra_labels=15
+Myel_007: ct[1095, 512, 512]@[0.9238, 0.9238, 0.6006] HU[-1024, 3071] lesions=135 vertebra_labels=24
+Myel_015: ct[1021, 512, 512]@[0.9512, 0.9512, 0.6002] HU[-1024, 3071] lesions=92 vertebra_labels=24
+Myel_020: ct[1021, 512, 512]@[0.9434, 0.9434, 0.6001] HU[-1024, 3071] lesions=54 vertebra_labels=24
+Myel_019: ct[983, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=76 vertebra_labels=24
+Myel_021: ct[983, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=86 vertebra_labels=25
+Myel_018_sc1: ct[1035, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=59 vertebra_labels=24; Myel_018_sc2: ct[1021, 512, 512]@[0.8828, 0.8828, 0.6001] HU[-1024, 3071] lesions=25 vertebra_labels=24
+Myel_026: ct[938, 512, 512]@[0.875, 0.875, 0.6002] HU[-1024, 3071] lesions=26 vertebra_labels=24
+Myel_022: ct[991, 512, 512]@[0.9766, 0.9766, 0.6] HU[-1024, 3071] lesions=94 vertebra_labels=24
+Myel_028: ct[863, 512, 512]@[0.9355, 0.9355, 0.6002] HU[-1024, 3071] lesions=33 vertebra_labels=24
+Myel_027: ct[983, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=50 vertebra_labels=24
+Myel_029: ct[983, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 1898] lesions=24 vertebra_labels=24
+Myel_023_sc1: ct[976, 512, 512]@[0.9766, 0.9766, 0.6001] HU[-1024, 2631] lesions=40 vertebra_labels=24; Myel_023_sc2: ct[998, 512, 512]@[0.9766, 0.9766, 0.6001] HU[-1024, 2650] lesions=41 vertebra_labels=24
+Myel_030: ct[1035, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=29 vertebra_labels=23
+Myel_031: ct[975, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=15 vertebra_labels=24
+Myel_025: ct[946, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=135 vertebra_labels=24
+Myel_033: ct[998, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=36 vertebra_labels=24
+Myel_036: ct[1021, 512, 512]@[0.9434, 0.9434, 0.6001] HU[-1024, 3071] lesions=37 vertebra_labels=24
+Myel_040: ct[953, 512, 512]@[0.9746, 0.9746, 0.6001] HU[-1024, 3071] lesions=26 vertebra_labels=24
+Myel_034: ct[1073, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=72 vertebra_labels=24
+Myel_039: ct[961, 512, 512]@[0.9766, 0.9766, 0.6] HU[-1024, 3071] lesions=59 vertebra_labels=24
+Myel_041: ct[923, 512, 512]@[0.9668, 0.9668, 0.6004] HU[-1024, 3071] lesions=56 vertebra_labels=24
+Myel_038: ct[1035, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=94 vertebra_labels=24
+Myel_042: ct[998, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=59 vertebra_labels=24
+Myel_045: ct[983, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=42 vertebra_labels=24
+Myel_046: ct[849, 512, 512]@[0.959, 0.959, 0.6001] HU[-1024, 2224] lesions=40 vertebra_labels=24
+Myel_050: ct[983, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=22 vertebra_labels=24
+Myel_048: ct[1103, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=41 vertebra_labels=24
+Myel_051: ct[1021, 512, 512]@[0.9121, 0.9121, 0.6001] HU[-1024, 3071] lesions=58 vertebra_labels=24
+Myel_044: ct[1028, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=134 vertebra_labels=24
+Myel_054: ct[983, 512, 512]@[0.9668, 0.9668, 0.6003] HU[-1024, 3071] lesions=35 vertebra_labels=24
+Myel_056: ct[923, 512, 512]@[0.9355, 0.9355, 0.6004] HU[-1024, 3071] lesions=16 vertebra_labels=24
+Myel_055: ct[1021, 512, 512]@[0.9512, 0.9512, 0.6002] HU[-1024, 3071] lesions=31 vertebra_labels=25
+Myel_053: ct[1058, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 2291] lesions=93 vertebra_labels=24
+Myel_057: ct[998, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=35 vertebra_labels=24
+Myel_043_sc1: ct[1058, 512, 512]@[0.9766, 0.9766, 0.6005] HU[-1024, 3071] lesions=90 vertebra_labels=24; Myel_043_sc2: ct[1058, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=138 vertebra_labels=24
+Myel_052_sc1: ct[946, 512, 512]@[0.8281, 0.8281, 0.6] HU[-1024, 3071] lesions=76 vertebra_labels=24; Myel_052_sc2: ct[946, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=94 vertebra_labels=24
+Myel_062: ct[1095, 512, 512]@[0.9766, 0.9766, 0.6005] HU[-1024, 3071] lesions=43 vertebra_labels=24
+Myel_058: ct[1035, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=87 vertebra_labels=24
+Myel_060: ct[1058, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 2566] lesions=76 vertebra_labels=25
+Myel_061: ct[1035, 512, 512]@[0.9355, 0.9355, 0.6005] HU[-1024, 3071] lesions=85 vertebra_labels=24
+Myel_065: ct[923, 512, 512]@[0.9766, 0.9766, 0.6003] HU[-1024, 3071] lesions=35 vertebra_labels=24
+Myel_063: ct[849, 512, 512]@[0.9766, 0.9766, 0.6] HU[-1024, 3071] lesions=82 vertebra_labels=24
+Myel_066: ct[908, 512, 512]@[0.9473, 0.9473, 0.6005] HU[-1024, 3071] lesions=48 vertebra_labels=24
+Myel_064: ct[1058, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=78 vertebra_labels=24
+Myel_068: ct[1021, 512, 512]@[0.9766, 0.9766, 0.6001] HU[-1024, 3071] lesions=69 vertebra_labels=24
+Myel_067: ct[998, 512, 512]@[0.9766, 0.9766, 0.6005] HU[-1024, 3071] lesions=78 vertebra_labels=24
+Myel_071: ct[946, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=94 vertebra_labels=24
+Myel_079: ct[983, 512, 512]@[0.9199, 0.9199, 0.6003] HU[-1024, 3071] lesions=27 vertebra_labels=24
+Myel_078: ct[871, 512, 512]@[0.9766, 0.9766, 0.6002] HU[-1024, 3071] lesions=74 vertebra_labels=24
+Myel_077: ct[983, 512, 512]@[0.9766, 0.9766, 0.6001] HU[-1024, 3071] lesions=89 vertebra_labels=23
+Myel_072: ct[1073, 512, 512]@[0.9766, 0.9766, 0.6004] HU[-1024, 3071] lesions=100 vertebra_labels=24
+Myel_080: ct[871, 512, 512]@[0.9766, 0.9766, 0.6001] HU[-1024, 3071] lesions=50 vertebra_labels=24
+Myel_081: ct[946, 512, 512]@[0.8242, 0.8242, 0.6001] HU[-1024, 3071] lesions=86 vertebra_labels=24
+converted 67 / 67 patients -> /home/ubuntu/agentic-segmentation/data/phase4/spinal_mm_seg/nifti

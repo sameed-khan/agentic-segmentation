@@ -110,3 +110,4 @@ come back when its window refreshes (interleave to maximise throughput).
 - 01:11 UTC: haiku55-max done (0.686). Phase 4 data IS downloaded (local data/phase4, ~340 GB incl. raw); copying phase4 + mstt199 to network mount ~/diaphragmatic-endometriosis/agentic-segmentation-data/ (tmux sync, /tmp/sync_mount.log, waits for p4_finish data checks). Manifests use absolute /home/ubuntu/agentic-segmentation/data paths -> need a DATA_ROOT remap on the A100.
 - 01:36 UTC: Sameed: drop Opus 5 -> marker sweep_p3-opus5-best.done contains 'skipped' (no scores exist; not a result).
 - 03:14 UTC: Phase 4 harness changes committed on phase5-v3 (1c8de32; 186+148 tests; manifest image/mask column swap fixed); pushed to mount; gpt-6.1-sol review running. A10 owns Phase 3 + main; A100 agent owns phase5-v3 (Phases 4-5).
+- 03:29 UTC: phase5-v3 @145cd2d pushed (Phase 4 fixes). HANDOFF_A100.md finalized (also at mount root). A10 now: Phase 3 only.

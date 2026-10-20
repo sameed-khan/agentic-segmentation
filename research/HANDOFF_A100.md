@@ -5,7 +5,9 @@ preregistration), `research/harness_v3_methodology.md`, `research/phase5_impleme
 `research/phase4_datasets.md`, `research/phase4_harness_changes.md`, `harness/server/CONTRACTS.md`.
 
 **Task (Sameed, 2026-10-20):** run **Phase 4** (generalization to BEAMSTER) and **Phase 5** (specialist pointers,
-MedGemma, harness v3) **simultaneously** on the A100, while the rest of Phase 3 finishes unattended on the A10.
+MedGemma, harness v3) **simultaneously** on the A100. **Phase 3 is not yours:** the A10 orchestrator (a separate
+agent on the other Lambda machine) finishes Phase 3 completely (sweep, exports, log entries). Do not run, export,
+rescore or edit anything Phase 3.
 For a 7-minute talk; priorities below. Sameed's preferences are in §9.
 
 ---
@@ -37,17 +39,24 @@ Longitudinal-CT and Spinal-MM-SEG are **skipped** (Sameed); UCSD-BMETS blocked (
 8. Local models (Phase 5): `harness/local_models/setup_a100.sh` (venvs, pinned weights, llama.cpp sm_80 build, tmux services). **MedGemma needs `HF_TOKEN` with the HAI-DEF terms accepted** — ask Sameed. Ports: MedGemma Q4 :8091, GUI-Actor :8092, Molmo2 :8093, MedGemma BF16 :8094. Then `python harness/local_models/smoke_test.py`. VRAM plan (80 GB): nni ≤ 5 GB, Molmo2 BF16 ~19, GUI-Actor ~7, MedGemma BF16 ~10, Q4 ~5.
 9. Run `cd harness/server && NNI_URL= uv run pytest -q` (expect all pass) before any run.
 
-## 3. Phase 3 (A10, unattended) — what you must do at the end
-The A10 keeps running `eval/v2/sweep_scheduler.py` (cron watchdog). Remaining queue: Muse Spark 1.3 high/xhigh
-(opencode-go), GPT-6.1-sol high/xhigh, GPT-6-luna xhigh/max (openai), Gemini 4 Argon high (opencode-go). Opus 5 dropped.
-Completion: `results_a10/phase3_state/SWEEP_COMPLETE`. Per finished run: `results_a10/phase3_state/sweep_<run>.done`.
-At the end (on the A100): copy the new `results_a10/p3-*` into your `results/`, run `eval/v2/export_run.py results/<run>`
-for each, `eval/v2/build_log_tables.py`, `eval/v2/sweep_summary.py > research/experiments/sweep_summary.md`,
-write E20 (model sweep) in the experiment log, `dvc add results && dvc push`, commit, push to the mount remote.
-Done so far (exported on main): Opus 5.5 medium 0.746 / high 0.745 / xhigh 0.766; Haiku 5.5 xhigh 0.661 / max 0.686;
-DeepSeek v4.1 flash xhigh 0.629 / max 0.633 (many wall-time forced finishes); Sonnet 5.5 high 0.688 / xhigh 0.737.
-**Quota coordination:** the A10 sweep now only uses opencode-go and OpenAI. Anthropic is free for the A100. Do not run
-OpenAI/opencode-go agent configurations on the A100 until the sweep is done (they would compete and trip quota blocks).
+## 3. Division of labour with the A10 orchestrator (Phase 3)
+- **A10 agent owns Phase 3** and branch `main` (harness-v2.0.1 + Phase 3 logs, exports, E20–E29). It pushes `main` to
+  the mount remote (cron every 30 min + after each export). You never push `main` and never touch Phase 3 results.
+- **You own Phases 4–5** and branch `phase5-v3`. Push only that branch.
+- **Experiment log:** to avoid merge conflicts, write your entries in `research/experiment_log_p45.md` (E30, E31, …),
+  not in `research/experiment_log.md` (A10 writes E20–E29 there). Same for tables: `eval/v2/build_log_tables.py`
+  output can be regenerated after the merge.
+- **Final merge (you, once `results_a10/phase3_state/SWEEP_COMPLETE` exists and the A10 agent has pushed its last
+  commit):** `git fetch origin && git merge origin/main` into `phase5-v3` (expect only research-doc conflicts; append
+  `experiment_log_p45.md` into the main log), run the full test suites, then push and fast-forward `main`
+  (`git push origin phase5-v3:main`). Until then, merging `origin/main` into your branch is optional (read-only).
+- `results_a10/` (mirror of A10 results) is for reference only (e.g. a Phase 3 baseline run needed for a paired
+  comparison such as Study C vs `phase3-high`); copy what you need into your own `results/`, never modify the mirror.
+- **Shared quotas:** both machines use Sameed's same provider accounts. The A10 sweep is now using **opencode-go**
+  (Muse Spark, later Gemini 4 Argon) and **OpenAI** (GPT-6.1-sol, GPT-6-luna). Anthropic is not used by the sweep.
+  Your agent runs: prefer Anthropic models until the sweep ends. Your subagents (GLM via opencode-go, gpt-6.1-sol via
+  OpenAI) share those quotas: keep them light; the A10 scheduler switches providers on quota limits, so you cannot
+  break it, only slow it.
 
 ## 4. Priorities (talk-driven; Sameed agreed)
 1. **Phase 5 Study A** — standalone localization by GUI-Actor-2B, Molmo2-8B, MedGemma (Q4 + BF16) on the 169 test
@@ -87,9 +96,9 @@ All flags are off by default; v3-off is byte-identical to harness v2 (cross-revi
 - The 10-minute wall cap per case (15 for beamster, if changed) is a budget: report forced-finish rates.
 
 ## 8. Logging / provenance rules
-Experiment log entries E21+ (`research/experiment_log.md`), `eval/v2/export_run.py` → `research/experiments/runs/`,
+Experiment log entries E30+ in `research/experiment_log_p45.md`, `eval/v2/export_run.py` → `research/experiments/runs/`,
 `build_log_tables.py`; git tags for every frozen configuration; preregister before any test-split run; never tune on test.
-Commit with thorough messages; push to the mount remote (`git push origin phase5-v3`). Workers never commit; back up
+Commit with thorough messages; push to the mount remote (`git push origin phase5-v3` only). Workers never commit; back up
 files before edits; review critical code with `openai/gpt-6.1-sol:high` before results are collected.
 
 ## 9. Sameed's preferences

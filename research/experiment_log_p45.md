@@ -1,7 +1,8 @@
 # Experiment log, Phases 4–5 (A100 line, branch `phase5-v3`)
 
 Continuation of `research/experiment_log.md` (E1–E19 + §6 preregistration of Phase 3; E20–E29 are written by the A10
-orchestrator on `main`). Entries here are E30+. This file is appended to the main log at the final merge.
+orchestrator on `main`). Entries here are E30+. After the merge into the single main line this file stays a separate
+file; `research/experiment_log.md` (authoritative) references it from its E30–E31 section.
 Same conventions: every number points to a file under `results/` (DVC / mirrored to `<mount>/results_a100/`) or
 `research/experiments/runs/`.
 

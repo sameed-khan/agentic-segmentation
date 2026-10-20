@@ -492,7 +492,8 @@ Preregistered in E21. Same agent (Sonnet 5.5 high), harness v2, 169 test cases; 
   mappings logged per call (`segmenter_interactions` in trajectories). Analysis script `eval/v2/phase6_analysis.py`.
 - Caveats: system prompt still names nnInteractive; concurrency 6 vs 4; SAM-Med3D weights' licence not stated in the repo.
 
-### E30–E31 (A100, branch `phase5-v3`; merged into main): see `research/experiment_log_p45.md`
+### E30–E31 (A100, branch `phase5-v3`, now merged into the main line): full entries in `research/experiment_log_p45.md` (kept as a separate file)
+Reproduce: presets `experiments/presets/studies/{dA-*,studyB-*,probe3d-*}` (`research/REPRODUCE.md`).
 Phase 5 component studies on the design set (specialist pointers GUI-Actor-2B, Molmo2-8B, MolmoPoint, Qwen3-VL-8B,
 MedGemma 1.5 Q4/BF16; 3D probes SAT/BiomedParse; Study B decision replays): no candidate oracle passed the Study C gate,
 so Phase 4 (BEAMSTER) and Study C were not run. Opus 5.5 medium single-slice pointing on test: 0.840 (Sonnet high 0.826).

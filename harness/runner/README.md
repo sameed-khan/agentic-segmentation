@@ -24,7 +24,16 @@ the same file).
 cd harness/runner
 npx tsx run_cases.ts --split design --run-id phase1-01 --concurrency 4
 npx tsx run_cases.ts --cases F14,M07 --run-id try-01
+npx tsx run_cases.ts --preset p3-opus55-high            # a logged experiment by name (experiments/presets/)
+npx tsx run_cases.ts --preset p3-opus55-high --split design --run-id try-02   # explicit flags override
 ```
+
+`--preset <name>` loads `experiments/presets/<name>.json` (model, thinking, case selection, budgets,
+concurrency, dataset, segmenter, v3 flags, system/task prompt files, note) and applies it as ordinary flags
+placed *before* yours, so every explicit flag wins (`--cases` replaces the preset's `split` and vice versa).
+`--list-presets` prints the names. Machine settings (`--segd-url`, `--nni-url`, `--results-dir`, auth shim) are
+not part of a preset. `run_preset_until_done.sh <preset>` repeats `--resume` across provider limits. See
+`research/REPRODUCE.md` for the experiment → preset → tag → results map.
 
 Options (`npx tsx run_cases.ts --help`):
 
@@ -32,6 +41,8 @@ Options (`npx tsx run_cases.ts --help`):
 |---|---|---|
 | `--cases F14,M07` | – | explicit case ids (from `eval/v2/mstt_cases.csv`) |
 | `--split design\|test\|all` | – | every case in that split |
+| `--preset <name>` | – | recorded experiment configuration (see above); explicit flags override it |
+| `--dataset mstt\|beamster` | `mstt` | Phase 4: `beamster` = `eval/v4/beamster_cases.csv`, multi-lesion prompts, budgets 50/20/12 min unless flags given; data root `SEGD_DATA_ROOT` |
 | `--run-id <id>` | timestamp | output directory under `results/` |
 | `--concurrency <n>` | 4 | cases in flight in this one process |
 | `--model <provider/id>` | `anthropic/claude-sonnet-5-5` | |
@@ -42,6 +53,8 @@ Options (`npx tsx run_cases.ts --help`):
 | `--max-model-prompts <n>` | 15 | sent to segd and substituted into the system prompt |
 | `--segd-url <url>` | `http://127.0.0.1:8765` | |
 | `--nni-url <url>` | `http://127.0.0.1:1527` | |
+| `--segmenter <name>` | `nninteractive` | Phase 6: `sammed3d` swaps the segmenter behind the identical tool surface (service on `:8095`, `harness/local_models/sammed3d`) |
+| `--segmenter-url <url>` | segd default | `http://127.0.0.1:8095` for `sammed3d` |
 | `--v3-pointer <mode>` | off | harness v3 pointer for `seg_locate`: `gui_actor\|molmo2`; sent as the case's `v3` flags, declares `seg_locate`, and (with any v3 flag) switches the default system prompt to `system_v3.md` |
 | `--v3-pointer-url <url>` | per mode | `:8092` gui_actor / `:8093` molmo2 |
 | `--v3-medgemma <mode>` | off | harness v3 MedGemma second reader: `q4\|bf16` (fixed checkpoints injected into tool observations) |

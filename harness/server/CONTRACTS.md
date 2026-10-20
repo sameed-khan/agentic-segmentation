@@ -107,7 +107,8 @@ drawn with their panel positions (and edge marks `E<n>` → in-plane coordinates
 All endpoints JSON. Responses: `{"ok": true, "text": "...", "images": ["<base64 png>", ...], "done": false}`
 or `{"ok": false, "error": "...", "text": "<same as error>"}` (HTTP 200 for agent-facing errors so the tool can
 show them; 4xx/5xx only for programmer errors).
-- `POST /cases` body `{case_id, run_id, out_dir, nni_url|null, budgets?}` → opens state (loads image via
+- `POST /cases` body `{case_id, run_id, out_dir, nni_url|null, budgets?, dataset?, segmenter?, segmenter_url?,
+  v3?}` (the optional keys are the feature flags of §7; absent = harness-v2.0.1 behaviour) → opens state (loads image via
   `segd.data.load_image`, computes/loads marks, uploads to nnInteractive). Returns `{ok, handle}`. handle = case_id.
 - `POST /cases/{handle}/op` body `{op: "open"|"sheet"|"view"|"point"|..., args: {...}}` → agent-facing response.
 - `GET /cases/{handle}/status` → counters, current version, done flag.
@@ -122,6 +123,49 @@ nnInteractive calls are blocking → run ops in a threadpool (`run_in_threadpool
 `seg_finish`→finish. The extension knows its case handle from env `SEGD_CASE` (pi CLI) or from the runner.
 Arg names in tools = arg names in ops (snake_case). Mark IDs: integers for global marks, strings "E<n>" for edges;
 the tool schema accepts `ids: array of (integer|string)`.
+
+## 7. Feature flags (one main line; every experiment is a flag combination)
+
+The integrated segd carries three optional feature sets that were developed on separate branches
+(`phase5-v3`, `phase6-sammed3d`). They are **orthogonal case-open flags**; with none of them set the behaviour is
+exactly the frozen Phase 3 harness (tag `harness-v2.0.1`): same tools, prompts, observations, PNG bytes,
+trajectory fields. The runner sends a flag only when it is not at its default (`dataset`, `v3`), or records it in
+`meta.json`/`batch_summary.json` (`segmenter`, `segmenter_url`, `dataset`, `v3`, `preset`).
+
+| Flag (case-open key) | Runner flag | Values (default first) | Selects | Details |
+|---|---|---|---|---|
+| `v3` | `--v3-pointer`, `--v3-pointer-url`, `--v3-medgemma`, `--v3-medgemma-url`, `--v3-checkpoints` | `null` (off) / `{pointer: gui_actor\|molmo2, medgemma: q4\|bf16, checkpoints}` | `seg_locate` pointer tool, MedGemma second-reader checkpoints | "Deviations/v3" below; `segd/v3.py` |
+| `dataset` | `--dataset` | `mstt` / `beamster` | manifest (`eval/v2/mstt_cases.csv` / `eval/v4/beamster_cases.csv`), multi-lesion prompts/observations/review sheet, dense marks profile, budgets 50/20/12 min | "Deviations/Phase 4" below; data root `$SEGD_DATA_ROOT` |
+| `segmenter` (+ `segmenter_url`) | `--segmenter`, `--segmenter-url` | `nninteractive` / `sammed3d` | the interactive segmenter behind `CaseState.nni` (identical call surface) | "Phase 6" below; service `harness/local_models/sammed3d` on `:8095` |
+
+Environment: `NNI_URL` (live nnInteractive; unset/empty = `FakeNNI`), `SEGD_DATA_ROOT` (data tree, default
+`<repo>/data`), `SAMED3D_SRC` (sammed3d project `src/`, default the sibling `harness/local_models/sammed3d/src`).
+Invalid values (unknown segmenter/dataset/v3 key) → HTTP 400 (runner misconfiguration).
+
+Port map of the local services: MedGemma q4 `:8091` / bf16 `:8094`, pointers GUI-Actor `:8092` / Molmo2 `:8093`
+(the only `v3.pointer` values), Study-A-only MolmoPoint `:8095` / Qwen3-VL `:8096`, SAM-Med3D segmenter `:8095`.
+**`pointd_molmopoint` and `sammed3d` both default to `:8095`** (developed on separate branches): never run them at
+the same time with defaults — start one with `--port` (and pass `--segmenter-url` / the study's `--molmopoint-url`).
+
+**Combinations.** Every flag is independent except:
+- `v3` (pointer or MedGemma set) + `dataset="beamster"` → **refused** (HTTP 400 / `ValueError` in `CaseState`; the
+  runner refuses it too): the multi-lesion prompts and the seg_locate/second-reader paragraph were never combined
+  and no experiment ran it. An all-off `v3` object (`{checkpoints: []}`) is v2 behaviour and composes with anything.
+- `v3` + `segmenter="sammed3d"` and `dataset="beamster"` + `segmenter="sammed3d"` are mechanically supported and
+  smoke-tested (`tests/test_flag_matrix.py`) but were never run as experiments.
+
+**Equivalence tests** (`tests/test_identity.py`; driver `tests/_identity_driver.py` runs one scripted op sequence in
+a subprocess per segd tree and compares observation text, PNG sha256, counters and the normalized trajectory):
+
+| Flags | Reference |
+|---|---|
+| defaults | pinned fixture `tests/fixtures/segd_baseline` = `git archive harness-v2.0.1 harness/server/src/segd` (sha256 manifest; a second test checks it still equals the tag) |
+| `segmenter=sammed3d` (fake service) | branch `phase6-sammed3d` @`d8e82cf`, `git archive` at test time |
+| `v3` pointer+MedGemma (fake services) | branch `phase5-v3` @`7058be6`, `git archive` at test time |
+| `dataset=beamster` (two-lesion phantom) | branch `phase5-v3` @`7058be6` |
+
+Reproducing a logged experiment is `--preset <name>` (`experiments/presets/`, `research/REPRODUCE.md`); a preset only
+sets runner flags, so the flags above are the complete experiment-defining surface of the harness.
 
 ## Deviations
 - **2026-10-18 (fix round, reviewer findings 1–14).** Budget semantics (§4): EVERY `seg_*`
@@ -400,7 +444,7 @@ Phase 4 narrowed to BEAMSTER only (brain metastases, CE-T1 MRI, 140 cases: 30 de
    'none_detected' (no GT lesion detected) replaces the MSTT 'localization' tag (same
    precedence otherwise); per-case `n_lesions` (GT components, computed — cross-checked
    against the manifest column) in `scores_multi.csv` + per-lesion `lesions_multi.csv`.
-7. **Tests (decision 7).** MSTT byte-identity: `test_v3_off_identity.py` (unchanged)
+7. **Tests (decision 7).** MSTT byte-identity: `test_identity.py` (formerly `test_v3_off_identity.py`)
    still passes — all Phase 4 paths are gated on `dataset != "mstt"` and every new
    CaseState/render parameter defaults to the previous behaviour. New:
    `harness/server/tests/test_phase4_beamster.py` (manifest reader + remap, MSTT defaults,
@@ -411,7 +455,7 @@ Phase 4 narrowed to BEAMSTER only (brain metastases, CE-T1 MRI, 140 cases: 30 de
    FP/bucket/F1 math, tags, and a synthetic-manifest integration case with dataset
    inference from `case_meta.json`).
 
-## Phase 6 — segmenter swap (SAM-Med3D-turbo instead of nnInteractive)
+## Deviations/Phase 6 — segmenter swap (SAM-Med3D-turbo instead of nnInteractive)
 
 Goal: harness v2 with SAM-Med3D-turbo as the interactive segmenter, apples-to-apples — the agent
 sees identical tools, prompts, renders, marks, budgets and observation formats; ONLY the
@@ -424,7 +468,7 @@ segmenter behind `CaseState.nni` changes. Full write-up: `research/phase6_sammed
   `"sammed3d"` for the swap, `"remote"`/`"fake"` otherwise) and in `GET /cases/{h}/status`
   (`segmenter`). The runner exposes `--segmenter` / `--segmenter-url`, recorded in each case's
   `meta.json` and in `batch_summary.json`. With the default segmenter nothing changes: observations
-  and PNG bytes are identical to the pre-Phase-6 tree (`tests/test_p6_default_identity.py`).
+  and PNG bytes are identical to the pre-Phase-6 tree (`tests/test_identity.py`).
 - **Client.** `segd.sammed3d` bridges to the local-model project `harness/local_models/sammed3d`
   (own uv env with torch; segd needs no torch). `sammed3d.client.SamMed3DSession` is a
   call-signature drop-in for `nnInteractiveRemoteInferenceSession` (identical method names,
@@ -473,6 +517,6 @@ segmenter behind `CaseState.nni` changes. Full write-up: `research/phase6_sammed
   capacity recovers after a segd crash without restarting the service; an expired session answers 404 →
   `SessionExpiredError` → segd's reconnect-once rule. `/healthz` reports `sessions: {count, max, busy,
   oldest_age_s, max_idle_s, ttl_s, reaped_total}`.
-- **Identity test baseline.** `tests/test_p6_default_identity.py` compares the worktree's default segmenter with
-  a PINNED pre-Phase-6 segd (`tests/fixtures/segd_baseline`, `git archive 1dcc622`, sha256 manifest verified)
-  or `SEGD_BASELINE_SRC`; it skips explicitly (never self-compares) when neither exists.
+- **Identity test baseline.** `tests/test_identity.py` (§7): default flags vs the pinned `harness-v2.0.1` fixture
+  (or `SEGD_BASELINE_SRC`), `segmenter=sammed3d` vs `phase6-sammed3d`; skips explicitly (never self-compares) when
+  the reference is unavailable.

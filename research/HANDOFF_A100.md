@@ -108,5 +108,24 @@ running scripts `opencode-go/deepseek-v4.1-flash:high`; reviewer `openai/gpt-6.1
 in plain words. Concise reports. Reviewers cannot run commands: prepare diff/test artifacts for them in /tmp.
 GLM workers sometimes stop mid-task or emit corrupted text: check the worktree and tests yourself, resume or re-spawn.
 
-## 10. Status at handoff
-(see bottom; updated by the A10 orchestrator)
+## 10. Status at handoff (2026-10-20, A10 orchestrator)
+- Branch `phase5-v3` @ `145cd2d` on the mount remote = **ready**:
+  - Phase 5 tooling (local model services with --fake modes, Study A/B code) — reviewed twice by gpt-6.1-sol, fixed.
+  - Harness v3 in segd (seg_locate, MedGemma checkpoints, adherence) — reviewed twice, fixed; v3-off byte-identical
+    to main's harness-v2.0.1 segd (cross-revision test `tests/test_v3_off_identity.py`).
+  - Phase 4 BEAMSTER changes — reviewed once (6 findings), all fixed with regression tests (no re-review; optional).
+  - Tests at 145cd2d: segd 187 passed / 2 skipped; local_models+study+adherence+multi-scorer 152 passed;
+    runner tsc + node tests pass. Nothing has run against real local models or real BEAMSTER agent runs yet.
+- Phase 4 specifics (CONTRACTS.md 'Phase 4'): `--dataset beamster` (prompts system_multi.md/task_multi.md, budgets
+  50 tool calls / 20 prompts / 12 min unless flags given, dense mark profile), `SEGD_DATA_ROOT`, multi-lesion scorer
+  `eval/v4/score_multi.py` (union Dice/HD95/NSD, lesion detection ≥ 10 % overlap, FP components, lesion F1, per-lesion
+  Dice, size buckets <0.5 / 0.5–2 / >2 mL, `none_detected` tag). Mark coverage (30 design cases, 72 lesions): full-view
+  fine marks hit <0.5 mL lesions 0.24, 0.5–2 mL 0.71, >2 mL 0.96; zoomed crop <0.5 mL 0.62; 10/72 lesions have no mark
+  even zoomed (a mark-generator change would need a decision). v3 + beamster is refused (no combined prompt) by design.
+- Known: pytest basename clash `eval/v2/test_score.py` vs `harness/study/tests/test_score.py` in a single combined run
+  (run them separately). Study B 'done' set has only ~10 positives.
+- Phase 3 model ranking so far (for the Phase 4 panel): Opus 5.5 xhigh 0.766, Opus medium 0.746, Opus high 0.745,
+  Sonnet xhigh 0.737, **Muse Spark 1.3 high 0.718 ($1.7 for 169 cases — strong non-Anthropic candidate)**, Sonnet high
+  0.688, Haiku max 0.686, Haiku xhigh 0.661, DeepSeek 0.63. GPT-6.1-sol / GPT-6-luna / Argon pending (A10).
+  Note: Muse is on opencode-go, which the A10 sweep is using; schedule a Muse Phase 4 run after the sweep's opencode-go
+  runs (Muse xhigh, then Argon at the very end) or accept slower progress.

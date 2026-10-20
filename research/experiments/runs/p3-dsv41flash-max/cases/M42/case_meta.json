@@ -1,0 +1,39 @@
+{
+  "case_id": "M42",
+  "shape": [
+    261,
+    261,
+    321
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5824314,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    321
+  ],
+  "created_at": "2026-10-19T19:51:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:56:27Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask follows one contiguous T2-hyperintense lobulated lesion in the deep posterior compartment; boundary checked in axial/coronal/sagittal, no continuation past the ends, candidates rejected as vessels.",
+  "tool_calls": 35,
+  "model_prompts": 3
+}

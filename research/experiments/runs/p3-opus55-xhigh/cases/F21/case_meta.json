@@ -1,0 +1,39 @@
+{
+  "case_id": "F21",
+  "shape": [
+    267,
+    267,
+    505
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34867657,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    267,
+    267,
+    505
+  ],
+  "created_at": "2026-10-19T17:44:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T17:50:04Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Heterogeneous posterior thigh mass outlined well in all planes; inferior pole cut where the signal turns into feathery intramuscular edema, so that boundary is uncertain.",
+  "tool_calls": 29,
+  "model_prompts": 2
+}

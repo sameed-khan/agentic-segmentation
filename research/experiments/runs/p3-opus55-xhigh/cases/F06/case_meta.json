@@ -1,0 +1,39 @@
+{
+  "case_id": "F06",
+  "shape": [
+    141,
+    141,
+    109
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2596595,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    109
+  ],
+  "created_at": "2026-10-19T17:40:35Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T17:43:10Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Mask covers the heterogeneous anterior soft-tissue mass in all three planes with no lesion past its ends; candidates were surrounding fat and muscle and were rejected. Margins at the tapering upper and lower ends are hard to see.",
+  "tool_calls": 23,
+  "model_prompts": 2
+}

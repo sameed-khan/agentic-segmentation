@@ -1,0 +1,39 @@
+{
+  "case_id": "N06",
+  "shape": [
+    201,
+    201,
+    71
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3070849,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    71
+  ],
+  "created_at": "2026-10-19T19:56:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:58:21Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Reviewed all planes: mask follows the fusiform T2-hyperintense tumor, no lesion at adjacent slices, and no extra components or missed candidates.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

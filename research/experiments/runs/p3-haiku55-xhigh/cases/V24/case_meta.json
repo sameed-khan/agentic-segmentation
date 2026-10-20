@@ -1,0 +1,39 @@
+{
+  "case_id": "V24",
+  "shape": [
+    161,
+    161,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4777770,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    156
+  ],
+  "created_at": "2026-10-19T21:59:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:05:18Z",
+  "final_version": "v5",
+  "confidence": "low",
+  "reason": "Lesion identity uncertain. Mask covers the brighter, mottled rounded region in the anterior-left compartment (axial ~6-60) bounded by fascia and femur; the straight inferior edge is from a painted polygon. The posterior bright band was judged subcutaneous fat. Candidates C1/C2 are rim-like tissue around the mask, judged normal muscle and rejected.",
+  "tool_calls": 37,
+  "model_prompts": 4
+}

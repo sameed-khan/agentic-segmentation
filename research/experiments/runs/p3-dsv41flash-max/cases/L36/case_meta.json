@@ -1,0 +1,39 @@
+{
+  "case_id": "L36",
+  "shape": [
+    235,
+    251,
+    221
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14210952,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    235,
+    251,
+    221
+  ],
+  "created_at": "2026-10-19T18:54:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:00:35Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask covers the large lipomatous mass of the anterolateral compartment over its full craniocaudal extent; boundary follows the fat/muscle and fat/subcutaneous interfaces in all three planes. Candidates C1-C3 were rejected as normal surrounding subcutaneous fat. Residual uncertainty at the medial notch (internal muscle band) and the distal tip near the knee.",
+  "tool_calls": 33,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F48",
+  "shape": [
+    161,
+    161,
+    117
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3292716,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    117
+  ],
+  "created_at": "2026-10-19T21:20:25Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:24:56Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single compact mask (51 mL) on the homogeneous low-T2 round lesion lateral to the tibia; past-the-mask panels show no further lesion tissue, and all candidates were bright fascia/vessel tissue, so rejected. Lesion identity is inferred from morphology, not confirmed by pathology.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

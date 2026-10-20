@@ -1,0 +1,39 @@
+{
+  "case_id": "N08",
+  "shape": [
+    241,
+    241,
+    267
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17143590,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    267
+  ],
+  "created_at": "2026-10-19T20:04:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:06:47Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The mask matches the elongated, bilobed T2-hyperintense nerve sheath tumor at all levels; the orange past-the-mask panels show no remaining lesion and all automatic candidates were fat or vessels, so none accepted.",
+  "tool_calls": 30,
+  "model_prompts": 1
+}

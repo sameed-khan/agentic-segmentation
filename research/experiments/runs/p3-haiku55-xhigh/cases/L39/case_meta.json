@@ -1,0 +1,39 @@
+{
+  "case_id": "L39",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33824056,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-19T21:32:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:38:22Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Large bright fat-signal thigh mass outlined over its full extent (about slices 130-343) in axial, coronal and sagittal reviews; superior edge at the level where the dark muscle replaces the mass, and no candidate corrections belong to the lesion (candidates were subcutaneous rim). Some uncertainty about whether the superior-posterior bright region and posterior lobe are all tumor.",
+  "tool_calls": 31,
+  "model_prompts": 4
+}

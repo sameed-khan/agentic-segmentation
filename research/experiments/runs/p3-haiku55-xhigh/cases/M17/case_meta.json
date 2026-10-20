@@ -1,0 +1,39 @@
+{
+  "case_id": "M17",
+  "shape": [
+    230,
+    230,
+    200
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 12336993,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    230,
+    230,
+    200
+  ],
+  "created_at": "2026-10-19T21:38:25Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:40:24Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single component following the bright homogeneous myxoid mass in axial, coronal and sagittal views. Remaining candidates are fragmented feathery muscle-like tissue or heterogeneous grey tissue at the ends, judged not clearly tumor, so rejected. Boundary of the grey periphery is uncertain.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

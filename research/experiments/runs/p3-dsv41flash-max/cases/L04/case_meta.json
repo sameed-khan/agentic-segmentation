@@ -1,0 +1,39 @@
+{
+  "case_id": "L04",
+  "shape": [
+    251,
+    251,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20630333,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    330
+  ],
+  "created_at": "2026-10-19T17:30:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T17:32:37Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask matches the lobulated T1-hyperintense thigh mass and its contiguous proximal/distal extensions; review panels show no lesion beyond the ends, and all listed intensity-only candidates were normal fat or muscle/vessel tissue.",
+  "tool_calls": 28,
+  "model_prompts": 1
+}

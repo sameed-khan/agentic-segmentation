@@ -1,0 +1,39 @@
+{
+  "case_id": "M06",
+  "shape": [
+    440,
+    440,
+    224
+  ],
+  "spacing": [
+    0.9999999403953552,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 49653907,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    440,
+    440,
+    224
+  ],
+  "created_at": "2026-10-19T21:35:56Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:37:47Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single posterior left gluteal/ischioanal T2-bright lobulated mass (about 67 mL); outline follows the bright mass in all three planes and the past-mask panels show no lesion. Candidates were surrounding halo/muscle rings and were rejected. Residual uncertainty: faint inferior tail (axial 126-134) and a thin vertical strip on the anteromedial edge.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

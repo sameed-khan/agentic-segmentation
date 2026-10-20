@@ -1,0 +1,39 @@
+{
+  "case_id": "F26",
+  "shape": [
+    271,
+    271,
+    265
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10113351,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    265
+  ],
+  "created_at": "2026-10-19T17:05:11Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T17:08:41Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask covers the entire T2-hyperintense soft-tissue mass in all three planes; extent 72-140 axial, follows the lobulated bright tumor boundary, no stray components. Boundary uncertain only at the feathery perilesional signal and skin/fat interface.",
+  "tool_calls": 35,
+  "model_prompts": 2
+}

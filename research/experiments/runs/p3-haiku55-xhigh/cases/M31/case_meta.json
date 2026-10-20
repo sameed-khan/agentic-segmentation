@@ -1,0 +1,39 @@
+{
+  "case_id": "M31",
+  "shape": [
+    200,
+    200,
+    380
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17896834,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    200,
+    200,
+    380
+  ],
+  "created_at": "2026-10-19T21:41:50Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:47:47Z",
+  "final_version": "v7",
+  "confidence": "medium",
+  "reason": "Review checked: all candidates (C1-C5) are inferior tail, fascial or vascular tissue outside the bright myxoid mass, so none accepted. Mask covers the bulk in all planes; uncertainty remains about the distal tubular band (excluded) and the upper-right grey periphery (included).",
+  "tool_calls": 35,
+  "model_prompts": 1
+}

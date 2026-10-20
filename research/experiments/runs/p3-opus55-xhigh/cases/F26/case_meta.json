@@ -1,0 +1,39 @@
+{
+  "case_id": "F26",
+  "shape": [
+    271,
+    271,
+    265
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10113351,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    265
+  ],
+  "created_at": "2026-10-19T17:45:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T17:48:48Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Bright lobulated mass well outlined in all planes; inferior end partly obscured by signal-void artifact; peritumoral edema/skin candidates rejected.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

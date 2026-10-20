@@ -1,0 +1,39 @@
+{
+  "case_id": "N39",
+  "shape": [
+    161,
+    161,
+    109
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3330178,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    109
+  ],
+  "created_at": "2026-10-19T21:53:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:54:54Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed, very T2-bright ~17 mm mass in the patient-right lateral leg; outline follows the bright edge in all three planes with no lesion tissue in the past-mask panels. Candidate C1 is an adjacent tubular vessel and was rejected. Uncertainty remains whether this homogeneous bright mass is the PNST versus a fluid-rich or vascular lesion.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

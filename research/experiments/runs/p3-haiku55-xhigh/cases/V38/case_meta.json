@@ -1,0 +1,39 @@
+{
+  "case_id": "V38",
+  "shape": [
+    201,
+    201,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6766635,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    163
+  ],
+  "created_at": "2026-10-19T22:02:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:05:01Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Final review consistent: mask follows the bright T2 vascular tumor around the femur in all planes; past-mask panels show no lesion; all candidates are fascial/muscle rings and were rejected. Some uncertainty in the lower-intensity periphery and thin superior tip.",
+  "tool_calls": 23,
+  "model_prompts": 4
+}

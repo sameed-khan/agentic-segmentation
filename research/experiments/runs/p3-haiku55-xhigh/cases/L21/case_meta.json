@@ -1,0 +1,39 @@
+{
+  "case_id": "L21",
+  "shape": [
+    241,
+    241,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20271361,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    330
+  ],
+  "created_at": "2026-10-19T21:27:46Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:30:15Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "One homogeneous T1-hypointense posterior-medial thigh mass segmented as a single body; past-the-end panels show no residual lesion. The three candidate shells lie on muscle and were rejected. Main uncertainty is that the lesion is darker than fat on T1, so the lipomatous identity rests on the case label, and the inferior tip is less certain.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N11",
+  "shape": [
+    101,
+    101,
+    121
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1612726,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    101,
+    101,
+    121
+  ],
+  "created_at": "2026-10-19T18:22:52Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:25:01Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Bright well-circumscribed digital soft-tissue mass segmented cleanly in all planes; separate oval structure on skin surface judged a marker and excluded",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

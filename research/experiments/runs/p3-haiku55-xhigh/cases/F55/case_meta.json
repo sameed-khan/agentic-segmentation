@@ -1,0 +1,39 @@
+{
+  "case_id": "F55",
+  "shape": [
+    181,
+    181,
+    306
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9944548,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    306
+  ],
+  "created_at": "2026-10-19T21:21:54Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:25:15Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the bright heterogeneous posterior-compartment mass across axial 31-112 in all planes; candidate C1 (grey shell including likely muscle) rejected; superior/inferior tails and grey periphery remain somewhat uncertain.",
+  "tool_calls": 25,
+  "model_prompts": 2
+}

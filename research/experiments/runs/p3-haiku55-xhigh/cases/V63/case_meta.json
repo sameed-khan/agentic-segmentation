@@ -1,0 +1,39 @@
+{
+  "case_id": "V63",
+  "shape": [
+    241,
+    241,
+    89
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6312968,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    89
+  ],
+  "created_at": "2026-10-19T22:06:51Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:09:34Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single bright mottled lobulated mass in the left upper abdomen, segmented with one model prompt; outline matches the bright lesion in axial and coronal views and the past-the-mask slices show no further lesion. Candidates C1-C5 are mostly band-like tissue outside the bright mass and were rejected. Residual uncertainty about the tapering inferior tail and grey medial-inferior margin, and about lesion identity from appearance alone.",
+  "tool_calls": 24,
+  "model_prompts": 1
+}

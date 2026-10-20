@@ -1,0 +1,39 @@
+{
+  "case_id": "N44",
+  "shape": [
+    141,
+    141,
+    82
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1863689,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    82
+  ],
+  "created_at": "2026-10-19T21:54:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:57:25Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Mask is one smooth oval soft-tissue mass (59 mL) following its dark rim in all planes; review panels show no lesion tissue past the ends, and candidates C1/C2 are muscle/fascia (rejected) and C3 is a peripheral band I judged not clearly lesion. Identity as PNST (vs bone/humeral head) is not confirmed.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

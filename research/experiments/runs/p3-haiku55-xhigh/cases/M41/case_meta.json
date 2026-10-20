@@ -1,0 +1,39 @@
+{
+  "case_id": "M41",
+  "shape": [
+    254,
+    350,
+    221
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23642656,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    254,
+    350,
+    221
+  ],
+  "created_at": "2026-10-19T21:44:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:47:39Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single ovoid, homogeneous-to-heterogeneous bright T2 mass (~94 mL) in the patient-right pelvis/ischioanal region; outline follows the lesion edge on zoomed axial slices and in sagittal/coronal views. No lesion tissue beyond the first/last slices; candidate shells (C1, C2) are peritumoral muscle-like tissue and C3 is unrelated, so rejected. Some uncertainty about whether the adjacent bladder-side structures are part of the tumor.",
+  "tool_calls": 30,
+  "model_prompts": 2
+}

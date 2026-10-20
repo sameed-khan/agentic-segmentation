@@ -1,0 +1,39 @@
+{
+  "case_id": "M44",
+  "shape": [
+    321,
+    321,
+    226
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22013279,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    321,
+    321,
+    226
+  ],
+  "created_at": "2026-10-19T15:38:33Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T15:46:39Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask covers the entire lobulated T2-hyperintense septated mass in all three planes; the 8 mm past-the-end panels (axial 29/137, coronal 108/262, sagittal 37/153) show no residual lesion tissue, and the boundary is crisp against dark muscle. Rejected all 5 candidates (thin boundary shells or tiny separate bright dots). Residual uncertainty: a very thin non-myxoid peripheral rim and 2 negligible stray voxel islands.",
+  "tool_calls": 17,
+  "model_prompts": 2
+}

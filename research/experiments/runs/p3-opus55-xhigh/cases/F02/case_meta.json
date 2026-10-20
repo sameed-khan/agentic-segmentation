@@ -1,0 +1,39 @@
+{
+  "case_id": "F02",
+  "shape": [
+    231,
+    231,
+    343
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 21508114,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    231,
+    231,
+    343
+  ],
+  "created_at": "2026-10-19T17:40:35Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T17:44:31Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Crescentic heterogeneous T2-bright mass along lateral femur outlined well in all planes; candidates were vessels; uncertainty on fascial tail extent and exact target identity.",
+  "tool_calls": 23,
+  "model_prompts": 2
+}

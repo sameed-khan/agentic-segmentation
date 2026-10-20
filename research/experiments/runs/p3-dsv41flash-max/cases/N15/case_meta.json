@@ -1,0 +1,39 @@
+{
+  "case_id": "N15",
+  "shape": [
+    141,
+    141,
+    133
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3468591,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    133
+  ],
+  "created_at": "2026-10-19T20:04:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:07:42Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the lobulated T2-hyperintense mass in axial, coronal and sagittal planes; past-the-mask review panels show no clear missed tumor. Candidates were judged edema/vessels/fat and rejected.",
+  "tool_calls": 28,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M36",
+  "shape": [
+    380,
+    380,
+    180
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 28368823,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    380,
+    380,
+    180
+  ],
+  "created_at": "2026-10-19T18:17:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:19:12Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed bright T2 lesion; mask follows boundary in all three planes, no lesion past ends; candidates are rim/fascia/vessels.",
+  "tool_calls": 10,
+  "model_prompts": 1
+}

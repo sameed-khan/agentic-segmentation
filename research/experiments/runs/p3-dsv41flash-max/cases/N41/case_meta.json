@@ -1,0 +1,39 @@
+{
+  "case_id": "N41",
+  "shape": [
+    141,
+    141,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3396197,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    141
+  ],
+  "created_at": "2026-10-19T20:32:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:41:41Z",
+  "final_version": "v6",
+  "confidence": "low",
+  "reason": "Final mask v6 is a single ovoid T2-hyperintense mass (~10 mm) with a contiguous tapering extension along the limb periphery; the review shows the bright nodule covered in all three planes and no lesion tissue beyond the mask ends.",
+  "tool_calls": 39,
+  "model_prompts": 4
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F39",
+  "shape": [
+    241,
+    241,
+    216
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14530011,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    216
+  ],
+  "created_at": "2026-10-19T21:17:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:19:59Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask follows the outer boundary of the large heterogeneous thigh mass on axial, coronal and sagittal views; past-mask panels show no clear lesion tissue. None of the candidates is accepted since they are muscle/fascia shell or small outside tissue. Uncertainty remains at the proximal tip near the bright oval structure and the anterior-medial margin.",
+  "tool_calls": 19,
+  "model_prompts": 3
+}

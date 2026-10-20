@@ -1,0 +1,39 @@
+{
+  "case_id": "F36",
+  "shape": [
+    201,
+    201,
+    175
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 8606667,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    175
+  ],
+  "created_at": "2026-10-19T21:16:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:19:26Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Mask follows the homogeneous bright medial/posterior mass next to the femur in all planes, with no lesion visible in the past-end panels and candidates rejected as subcutaneous or normal tissue. Still unsure the bright signal is the fibrous tumor rather than edema or normal tissue, and the knee-level extension is ambiguous.",
+  "tool_calls": 21,
+  "model_prompts": 1
+}

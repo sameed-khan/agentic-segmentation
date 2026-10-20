@@ -1,0 +1,39 @@
+{
+  "case_id": "M26",
+  "shape": [
+    261,
+    261,
+    510
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 38931683,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    510
+  ],
+  "created_at": "2026-10-19T21:40:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:41:39Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Single homogeneous, very T2-bright lobulated mass in the lateral right thigh (about 107 mL). The mask follows its bright boundary in all three planes, past-mask panels show no residual tumor, and no candidates were found.",
+  "tool_calls": 12,
+  "model_prompts": 1
+}

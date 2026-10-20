@@ -1,0 +1,39 @@
+{
+  "case_id": "F51",
+  "shape": [
+    221,
+    221,
+    116
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6590528,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    116
+  ],
+  "created_at": "2026-10-19T21:21:05Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:22:38Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single connected mass (about 120 mL) anterior to the humeral head, outlined from a box prompt. The final review shows no lesion tissue past the mask ends. The outline follows the dark fascial rim in all three planes. Candidates were rim-like shells outside the rim and were rejected. Remaining uncertainty is whether the grey posterior-inferior part is tumor or muscle.",
+  "tool_calls": 16,
+  "model_prompts": 2
+}

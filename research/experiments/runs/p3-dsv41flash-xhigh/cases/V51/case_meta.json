@@ -1,0 +1,39 @@
+{
+  "case_id": "V51",
+  "shape": [
+    96,
+    96,
+    58
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 466680,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    96,
+    96,
+    58
+  ],
+  "created_at": "2026-10-19T16:34:36Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T16:39:46Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Mask follows the lobulated T2-hyperintense soft-tissue mass on the right lateral limb in all three planes; extent ax14-43, cor31-61, sag43-74, single component ~10 mL, no missed tissue in past-the-mask panels or candidates.",
+  "tool_calls": 29,
+  "model_prompts": 2
+}

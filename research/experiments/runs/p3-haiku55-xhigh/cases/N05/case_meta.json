@@ -1,0 +1,39 @@
+{
+  "case_id": "N05",
+  "shape": [
+    441,
+    441,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20644293,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    156
+  ],
+  "created_at": "2026-10-19T21:46:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:50:13Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single component covering the solid heterogeneous intermediate-signal mass; outline follows the tumour in axial, coronal and sagittal planes and past-the-mask panels show no missed lesion. Candidates are mostly rings of muscle/fat around the mask, rejected. Fluid-bright collection superior/anterior excluded as vascular/fluid rather than nerve sheath tumour; identity and full extent remain somewhat uncertain.",
+  "tool_calls": 22,
+  "model_prompts": 2
+}

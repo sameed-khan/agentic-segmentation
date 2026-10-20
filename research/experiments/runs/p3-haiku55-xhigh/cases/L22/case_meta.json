@@ -1,0 +1,39 @@
+{
+  "case_id": "L22",
+  "shape": [
+    421,
+    421,
+    153
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23923831,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    153
+  ],
+  "created_at": "2026-10-19T21:27:53Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:32:30Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask covers the large homogeneous fat-intensity anteromedial mass (axial 0-60, about 389 mL), outline follows the bright tissue against muscle in the checked planes. Candidates C1-C4 are subcutaneous fat shells or tiny specks, so rejected. Lesion identity and inferior/superior limits are not fully certain given weak T1 contrast.",
+  "tool_calls": 32,
+  "model_prompts": 3
+}

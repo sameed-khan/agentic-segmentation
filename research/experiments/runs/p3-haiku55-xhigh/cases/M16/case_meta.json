@@ -1,0 +1,39 @@
+{
+  "case_id": "M16",
+  "shape": [
+    400,
+    400,
+    270
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30488115,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    400,
+    400,
+    270
+  ],
+  "created_at": "2026-10-19T21:38:12Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:40:00Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed, homogeneously very bright (fluid-like, myxoid) mass in the right ischioanal/gluteal region; no other soft-tissue mass found on sheets of the thighs, pelvis or abdomen. Outline matches the bright mass in axial, coronal and sagittal views, and past-end panels show no residual lesion. Uncertain whether the bright mass is the whole tumor versus a cystic component.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

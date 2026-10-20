@@ -1,0 +1,5 @@
+{
+  "source": "results/p3-dsv41flash-xhigh",
+  "kind": "phase1_agent",
+  "note": "text-only export; heavy artifacts (renders, masks, versions, full sessions) are in results/ (DVC). Transcript image payloads are replaced by sha256 stubs."
+}

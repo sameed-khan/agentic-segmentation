@@ -1,0 +1,39 @@
+{
+  "case_id": "V51",
+  "shape": [
+    96,
+    96,
+    58
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 466680,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    96,
+    96,
+    58
+  ],
+  "created_at": "2026-10-19T22:04:01Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:04:58Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single bright lobulated vascular tumor on patient right, mask follows the hyperintense mass in all planes (axial 14-43); no lesion tissue in past-the-mask panels, no candidates; boundary slightly tight at blurred periphery and inferior tip.",
+  "tool_calls": 17,
+  "model_prompts": 3
+}

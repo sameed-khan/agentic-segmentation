@@ -1,0 +1,39 @@
+{
+  "case_id": "V41",
+  "shape": [
+    141,
+    141,
+    256
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5006167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    256
+  ],
+  "created_at": "2026-10-19T22:02:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:03:38Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single bright T2 mass in the posterolateral limb (axial 102-123); outline follows the bright core in all three planes, no lesion tissue in past-mask panels, candidate C1 rejected as a vessel. Some uncertainty about the hazy periphery.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

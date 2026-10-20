@@ -1,0 +1,39 @@
+{
+  "case_id": "M30",
+  "shape": [
+    180,
+    180,
+    160
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6091141,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    180,
+    180,
+    160
+  ],
+  "created_at": "2026-10-19T19:28:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:30:18Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Review shows the outline matching the T2-hyperintense mass in all planes; no lesion in the past-the-end slices and no missed candidates.",
+  "tool_calls": 36,
+  "model_prompts": 2
+}

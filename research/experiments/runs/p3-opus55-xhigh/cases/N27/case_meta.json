@@ -1,0 +1,39 @@
+{
+  "case_id": "N27",
+  "shape": [
+    201,
+    201,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3598259,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    137
+  ],
+  "created_at": "2026-10-19T18:25:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:28:52Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Main lobulated mass well covered in all planes, no lesion past mask ends; posterior lobulated extension and thin nerve tail included, their tumor status somewhat uncertain. Shell candidates rejected.",
+  "tool_calls": 21,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V18",
+  "shape": [
+    121,
+    121,
+    94
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 900900,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    94
+  ],
+  "created_at": "2026-10-19T21:59:23Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:02:11Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Mask outlines the homogeneous posterior-medial mass bounded by septa (15 mL, one component). The lesion identity is uncertain because the T2 signal is only mildly brighter than muscle and no clearly bright vascular tissue was found. Candidates C1-C4 looked like peripheral or subcutaneous tissue, so none were accepted.",
+  "tool_calls": 22,
+  "model_prompts": 1
+}

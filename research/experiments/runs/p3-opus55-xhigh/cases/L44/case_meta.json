@@ -1,0 +1,39 @@
+{
+  "case_id": "L44",
+  "shape": [
+    251,
+    251,
+    274
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18413572,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    274
+  ],
+  "created_at": "2026-10-19T18:10:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:15:52Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Large encapsulated ovoid lipomatous mass in the medial thigh segmented as one component including both lobes; outline follows the capsule in all planes, with some uncertainty at the posterior-inferior lobe boundary and superior pole.",
+  "tool_calls": 29,
+  "model_prompts": 3
+}

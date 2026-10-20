@@ -1,0 +1,39 @@
+{
+  "case_id": "L02",
+  "shape": [
+    251,
+    251,
+    477
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 37712221,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    477
+  ],
+  "created_at": "2026-10-19T14:14:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T14:18:26Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the bright lipomatous mass on all planes: small tail at the volume edge, bulky mid-portion displacing muscle, tapering at the superior pole; subcutaneous fat excluded (candidates C1\u2013C3 rejected as normal fat, C4 tiny unrelated speck).",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

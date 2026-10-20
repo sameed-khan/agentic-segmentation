@@ -1,0 +1,39 @@
+{
+  "case_id": "V01",
+  "shape": [
+    131,
+    131,
+    139
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 797745,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    139
+  ],
+  "created_at": "2026-10-19T20:38:00Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:41:27Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Well-circumscribed T2-intermediate mass in the soft tissues at the metacarpal level (ulnar/dorsal aspect), ~3.4x1.9x3.3 cm; outline follows the capsule in all three planes. Candidates C1/C2 cover surrounding normal bone, muscle and fat and were rejected.",
+  "tool_calls": 37,
+  "model_prompts": 2
+}

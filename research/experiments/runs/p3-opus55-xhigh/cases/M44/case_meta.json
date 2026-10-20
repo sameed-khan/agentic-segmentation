@@ -1,0 +1,39 @@
+{
+  "case_id": "M44",
+  "shape": [
+    321,
+    321,
+    226
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22013279,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    321,
+    321,
+    226
+  ],
+  "created_at": "2026-10-19T18:20:53Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:22:46Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Mask follows the lobulated hyperintense mass boundary in all three planes; no lesion in past-the-mask panels; candidates are rim/normal tissue.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

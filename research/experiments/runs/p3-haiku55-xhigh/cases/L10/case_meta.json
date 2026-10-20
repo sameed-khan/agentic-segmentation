@@ -1,0 +1,39 @@
+{
+  "case_id": "L10",
+  "shape": [
+    351,
+    351,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 40766992,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    351,
+    351,
+    372
+  ],
+  "created_at": "2026-10-19T21:25:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:28:24Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Large homogeneous fat-signal thigh mass captured in all planes with single component; past-mask panels show no additional lesion. Remaining candidates (thin peripheral/posterior bands, ~200 mL) judged as likely normal intermuscular fat, so rejected; the lateral rim inclusion and superior tip remain uncertain.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

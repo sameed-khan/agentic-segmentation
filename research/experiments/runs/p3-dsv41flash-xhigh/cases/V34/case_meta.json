@@ -1,0 +1,39 @@
+{
+  "case_id": "V34",
+  "shape": [
+    241,
+    241,
+    264
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17635470,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    264
+  ],
+  "created_at": "2026-10-19T16:22:31Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T16:30:09Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Green outline follows the lobulated hyperintense vascular mass in axial, coronal and sagittal planes; upper pole at k~95 and lower pole at k~212 match the lesion, no lesion tissue visible in the past-the-mask panels, and the remaining candidate proposals were normal muscle, fat or fascial/vascular signal rather than tumor.",
+  "tool_calls": 33,
+  "model_prompts": 2
+}

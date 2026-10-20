@@ -1,0 +1,39 @@
+{
+  "case_id": "M18",
+  "shape": [
+    260,
+    260,
+    290
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 19786001,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    260,
+    260,
+    290
+  ],
+  "created_at": "2026-10-19T21:38:46Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:39:55Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single bright, homogeneous T2-hyperintense fusiform mass in the posterior thigh; mask follows its saturated edge in all planes, past-mask panels are clear, and no candidate tissue was found. Some uncertainty whether the whole tumor is the bright core versus a fluid-like cyst.",
+  "tool_calls": 12,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N38",
+  "shape": [
+    261,
+    261,
+    396
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7163027,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    396
+  ],
+  "created_at": "2026-10-19T20:32:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:37:53Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask follows the long multinodular T2-hyperintense nerve sheath tumor along the tibial nerve course from the popliteal region to the distal calf; review panels show no lesion beyond the ends and the outline tracks the bright tumor tissue. Residual uncertainty at the heterogeneous proximal segment and small caliber distal tail.",
+  "tool_calls": 39,
+  "model_prompts": 3
+}

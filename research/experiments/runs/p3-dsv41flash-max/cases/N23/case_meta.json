@@ -1,0 +1,39 @@
+{
+  "case_id": "N23",
+  "shape": [
+    221,
+    221,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18753494,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    330
+  ],
+  "created_at": "2026-10-19T20:06:44Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:08:22Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask follows the well-circumscribed, homogeneously T2-hyperintense ovoid mass (schwannoma-like) in the anteromedial thigh on axial, coronal and sagittal planes; the past-the-mask review slices show no residual lesion and the automatic candidates are adjacent bright fat/fascia, which were not included.",
+  "tool_calls": 23,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N48",
+  "shape": [
+    176,
+    176,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2892438,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    176,
+    176,
+    165
+  ],
+  "created_at": "2026-10-19T16:10:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T16:16:15Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the T2-hyperintense fusiform nerve-sheath mass with its heterogeneous periphery in axial, coronal and sagittal planes; past-the-mask slices show no residual lesion, no stray components, and the only candidate (C1) is a separate vascular/fascial structure not contiguous with the mass.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

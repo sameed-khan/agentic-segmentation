@@ -1,0 +1,39 @@
+{
+  "case_id": "L13",
+  "shape": [
+    361,
+    361,
+    266
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 28023782,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    361,
+    361,
+    266
+  ],
+  "created_at": "2026-10-19T21:25:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:27:33Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single encapsulated fat-signal mass in one thigh; outline follows the bright oval closely on axial 152-186 and in coronal/sagittal planes. Past-the-mask panels show no lesion. Uncertain taper at superior (~122-128) and inferior (~198) ends and a grayer posterior-medial lobule near 140. Candidates C1-C5 judged as fascia/muscle/neurovascular tissue, not added.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

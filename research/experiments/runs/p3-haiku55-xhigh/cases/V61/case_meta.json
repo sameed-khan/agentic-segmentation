@@ -1,0 +1,39 @@
+{
+  "case_id": "V61",
+  "shape": [
+    161,
+    161,
+    177
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5368925,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    177
+  ],
+  "created_at": "2026-10-19T22:06:20Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:08:47Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Bright heterogeneous T2 vascular lesion in the hand, segmented from one point prompt and checked in all three planes. Past-the-end panels show no missed lesion. The candidates were rejected as normal tissue or thin rim. The diffuse lateral periphery near axial 38 is the least certain part.",
+  "tool_calls": 26,
+  "model_prompts": 1
+}

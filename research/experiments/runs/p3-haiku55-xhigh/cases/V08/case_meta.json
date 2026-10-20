@@ -1,0 +1,39 @@
+{
+  "case_id": "V08",
+  "shape": [
+    231,
+    231,
+    121
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4005501,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    231,
+    231,
+    121
+  ],
+  "created_at": "2026-10-19T21:57:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:00:26Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Mask follows the large heterogeneous T2-bright vascular mass across axial 0-66 in all planes; past-end panels show no residual lesion. Candidates C1-C5 are peripheral shells of fat/muscle or tiny fragments and were rejected. Uncertain whether the grey periphery and the inferior/posterior margin match the annotated extent.",
+  "tool_calls": 25,
+  "model_prompts": 3
+}

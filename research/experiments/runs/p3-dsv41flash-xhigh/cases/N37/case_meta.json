@@ -1,0 +1,39 @@
+{
+  "case_id": "N37",
+  "shape": [
+    201,
+    201,
+    201
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9106306,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    201
+  ],
+  "created_at": "2026-10-19T16:01:23Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T16:07:04Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Mask follows the fusiform T2-hyperintense nerve sheath tumor in all three planes (axial 71-113, coronal 91-112, sagittal 110-134); adjacent bright femoral vessels and the long vascular stripe are excluded; no missed tissue in past-the-mask panels.",
+  "tool_calls": 26,
+  "model_prompts": 1
+}

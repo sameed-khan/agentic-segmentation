@@ -1,0 +1,39 @@
+{
+  "case_id": "F35",
+  "shape": [
+    211,
+    211,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7250503,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    141
+  ],
+  "created_at": "2026-10-19T21:16:06Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:19:41Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Single positive prompt gave a smooth, well-circumscribed ~28 mL oval of homogeneous intermediate T2 signal; outline looks consistent across axial, coronal and sagittal planes and no candidate tissue was judged to belong to it. Anatomy is hard to confirm in this volume, so it is uncertain whether this oval is the fibrous tumor.",
+  "tool_calls": 23,
+  "model_prompts": 1
+}

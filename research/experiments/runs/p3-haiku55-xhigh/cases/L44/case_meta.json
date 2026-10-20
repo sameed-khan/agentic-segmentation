@@ -1,0 +1,39 @@
+{
+  "case_id": "L44",
+  "shape": [
+    251,
+    251,
+    274
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18413572,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    274
+  ],
+  "created_at": "2026-10-19T21:34:52Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:38:09Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Past-mask panels show no lesion tissue; candidate C1-C3 are rim-shaped halos around the mask edge (partial-volume/normal muscle), so rejected. Mask follows the grey oval mass in all planes; boundary is low-contrast, and the inferior tip and superior hip tail are less certain.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

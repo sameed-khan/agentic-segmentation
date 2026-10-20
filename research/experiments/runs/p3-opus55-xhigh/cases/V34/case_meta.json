@@ -1,0 +1,39 @@
+{
+  "case_id": "V34",
+  "shape": [
+    241,
+    241,
+    264
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17635470,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    264
+  ],
+  "created_at": "2026-10-19T19:42:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:43:59Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Lobulated mass fits well in all three planes. Candidates were nearby vessels or tissue around the tumor and were rejected. The edge of the upper end of the mass is ill-defined.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

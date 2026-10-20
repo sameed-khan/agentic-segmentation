@@ -1,0 +1,39 @@
+{
+  "case_id": "M36",
+  "shape": [
+    380,
+    380,
+    180
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 28368823,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    380,
+    380,
+    180
+  ],
+  "created_at": "2026-10-19T21:42:19Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:44:01Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single well-defined bright T2 myxoid mass in the right gluteal region; outline matches the lesion in all three planes, past-the-mask panels are clear, and the remaining candidates are thin fascial/vascular or surrounding muscle tissue, so rejected. Superior tapering tail (axial ~145-154) is somewhat ambiguous.",
+  "tool_calls": 13,
+  "model_prompts": 1
+}

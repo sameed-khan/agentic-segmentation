@@ -1,0 +1,39 @@
+{
+  "case_id": "N03",
+  "shape": [
+    151,
+    151,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4420543,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    165
+  ],
+  "created_at": "2026-10-19T19:53:08Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:56:31Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Reviewed all five slices per plane: mask follows the lobulated T2-hyperintense mass, no lesion tissue in past-the-mask panels, single component. Superior thin bright streak (C1/C2) judged nerve/edema, not tumor, so rejected.",
+  "tool_calls": 30,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M19",
+  "shape": [
+    260,
+    260,
+    360
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22242620,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    260,
+    260,
+    360
+  ],
+  "created_at": "2026-10-19T18:14:46Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:16:06Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed bright T2 mass; outline matches boundary in all planes, past-end panels clear, candidates are vessels/fascia/rim.",
+  "tool_calls": 11,
+  "model_prompts": 1
+}

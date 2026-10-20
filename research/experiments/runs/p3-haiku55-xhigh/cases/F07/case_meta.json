@@ -1,0 +1,39 @@
+{
+  "case_id": "F07",
+  "shape": [
+    251,
+    251,
+    694
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 50497977,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    694
+  ],
+  "created_at": "2026-10-19T21:09:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:12:51Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Heterogeneous posterolateral thigh tumor lateral to femur (k~20-177) is covered in all planes; past-the-mask slices show no lesion; candidates are dilation rings or vessels and were rejected. Some uncertainty about the dark anterior crescent and medial septated margin.",
+  "tool_calls": 28,
+  "model_prompts": 2
+}

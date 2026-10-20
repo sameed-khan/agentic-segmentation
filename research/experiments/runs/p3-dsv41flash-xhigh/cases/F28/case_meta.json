@@ -1,0 +1,39 @@
+{
+  "case_id": "F28",
+  "shape": [
+    211,
+    211,
+    355
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18449384,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    355
+  ],
+  "created_at": "2026-10-19T13:47:45Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:53:48Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask covers the well-defined T2-hypointense intramuscular fibrous mass with a coherent encapsulated boundary in all three planes; surrounding fat/normal muscle (candidate proposals) rejected.",
+  "tool_calls": 40,
+  "model_prompts": 4
+}

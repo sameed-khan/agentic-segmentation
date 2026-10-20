@@ -1,0 +1,39 @@
+{
+  "case_id": "M13",
+  "shape": [
+    480,
+    480,
+    294
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 46712041,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    480,
+    480,
+    294
+  ],
+  "created_at": "2026-10-19T21:36:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:39:38Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Multilobulated bright T2 cystic myxoid mass in the right gluteal/ischioanal region; outline follows the cyst boundaries in axial, coronal and sagittal views, past-the-mask panels are clear, and both candidates are surrounding ring-like normal tissue (rejected). Residual uncertainty about the thin superior streak and small fragments.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

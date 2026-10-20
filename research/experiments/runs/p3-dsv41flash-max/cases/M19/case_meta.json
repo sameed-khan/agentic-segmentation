@@ -1,0 +1,39 @@
+{
+  "case_id": "M19",
+  "shape": [
+    260,
+    260,
+    360
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22242620,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    260,
+    260,
+    360
+  ],
+  "created_at": "2026-10-19T19:20:50Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:23:38Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Outline matches the hyperintense intramuscular mass and its tapering poles in axial, coronal and sagittal planes; past-the-mask slices show no residual lesion; candidate rinds were normal muscle/fat. Some subjectivity remains at the ill-defined hazy poles.",
+  "tool_calls": 35,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L04",
+  "shape": [
+    251,
+    251,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20630333,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    330
+  ],
+  "created_at": "2026-10-19T17:57:35Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:01:43Z",
+  "final_version": "v5",
+  "confidence": "high",
+  "reason": "Mask follows the lobulated fatty posterior-thigh mass across axial 45-169 in all planes; slices past each end are clear; candidates are subcutaneous/intermuscular fat and were rejected.",
+  "tool_calls": 27,
+  "model_prompts": 2
+}

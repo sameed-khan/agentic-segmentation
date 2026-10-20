@@ -1,0 +1,39 @@
+{
+  "case_id": "N08",
+  "shape": [
+    241,
+    241,
+    267
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17143590,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    267
+  ],
+  "created_at": "2026-10-19T21:47:48Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:48:59Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single lateral thigh mass with bright heterogeneous T2 signal, segmented with one positive prompt (32 mL). Final review shows no lesion tissue beyond the mask ends, and the outline follows the lesion in all three planes. Candidates were rejected as subcutaneous fat, vessel or halo. Tapering superior and inferior ends are less certain.",
+  "tool_calls": 12,
+  "model_prompts": 1
+}

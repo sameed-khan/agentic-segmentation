@@ -1,0 +1,39 @@
+{
+  "case_id": "M24",
+  "shape": [
+    280,
+    280,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 26522223,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    330
+  ],
+  "created_at": "2026-10-19T21:39:57Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:42:10Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "One connected lesion mask following the bright T2 mass in all planes; past-the-mask panels contain no lesion tissue. Candidate rims C1-C5 look like surrounding muscle/fascia and were rejected. Moderate confidence because the anterior oval lobe and superior tip are intermediate intensity.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

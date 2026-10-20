@@ -1,0 +1,39 @@
+{
+  "case_id": "L08",
+  "shape": [
+    301,
+    301,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31748091,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    301,
+    301,
+    372
+  ],
+  "created_at": "2026-10-19T21:24:57Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:27:43Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Final review: the mask covers the single homogeneous mass in the anteromedial thigh across its full extent. Past-the-mask panels show no lesion tissue, and the candidates were subcutaneous fat or muscle rim, so none were accepted. Tip boundaries are less distinct and the T1 signal is below subcutaneous fat, so lipomatous identity is not fully certain.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

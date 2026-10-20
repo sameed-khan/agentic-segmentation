@@ -1,0 +1,39 @@
+{
+  "case_id": "N32",
+  "shape": [
+    181,
+    181,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3020002,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    137
+  ],
+  "created_at": "2026-10-19T20:29:38Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:32:49Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Review shows the main tumor outlined through axial, coronal and sagittal planes with no definite lesion beyond the ends; rejected candidate edema and normal neurovascular structures. Small residual superior speck is negligible.",
+  "tool_calls": 40,
+  "model_prompts": 3
+}

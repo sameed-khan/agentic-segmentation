@@ -1,0 +1,39 @@
+{
+  "case_id": "V15",
+  "shape": [
+    161,
+    161,
+    97
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3253814,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    97
+  ],
+  "created_at": "2026-10-19T21:58:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:03:54Z",
+  "final_version": "v6",
+  "confidence": "low",
+  "reason": "Lesion not clearly identified. The large homogeneous dark mass (134 mL) looked like bone or muscle, so I excluded it. The saved mask is only small bright, heterogeneous vascular-like foci near the posterior-medial margin of that mass, so it is probably incomplete or misses the true tumor.",
+  "tool_calls": 30,
+  "model_prompts": 5
+}

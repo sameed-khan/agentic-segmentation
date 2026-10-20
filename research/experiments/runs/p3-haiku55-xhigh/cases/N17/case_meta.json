@@ -1,0 +1,39 @@
+{
+  "case_id": "N17",
+  "shape": [
+    131,
+    131,
+    110
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2467269,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    110
+  ],
+  "created_at": "2026-10-19T21:49:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:50:50Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Single homogeneous, very bright well-circumscribed mass in the posterior compartment; the outline follows its bright edge in axial, coronal and sagittal views, past-mask slices show no residual lesion, and nearby bright dots are vessels outside the mask.",
+  "tool_calls": 12,
+  "model_prompts": 1
+}

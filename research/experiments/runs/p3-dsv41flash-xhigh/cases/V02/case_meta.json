@@ -1,0 +1,39 @@
+{
+  "case_id": "V02",
+  "shape": [
+    181,
+    181,
+    246
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9633781,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    246
+  ],
+  "created_at": "2026-10-19T16:10:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T16:14:02Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Hyperintense lobulated vascular mass between tibia/fibula outlined; both candidates are long tubular bright structures (peroneal/tibial vessels), not tumor, so rejected. Boundary follows the bright lesion in axial, coronal and sagittal; ends taper within clean slices.",
+  "tool_calls": 33,
+  "model_prompts": 4
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F11",
+  "shape": [
+    249,
+    249,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7994496,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    249,
+    249,
+    163
+  ],
+  "created_at": "2026-10-19T21:09:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:13:41Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Bright heterogeneous anterior chest-wall mass (~16 mL) segmented from a point prompt plus lasso and accepted anterior extension. Outline follows the bright lesion in all three planes; no lesion in the past-the-mask panels. Candidates C1-C5 were rejected as surrounding muscle, fat or vessels. Uncertain: whether the lesion's less bright periphery and a lateral bright band belong to it.",
+  "tool_calls": 28,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M16",
+  "shape": [
+    400,
+    400,
+    270
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30488115,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    400,
+    400,
+    270
+  ],
+  "created_at": "2026-10-19T18:14:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:14:40Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed T2-bright mass; mask follows boundary in all planes, no lesion past ends",
+  "tool_calls": 9,
+  "model_prompts": 1
+}

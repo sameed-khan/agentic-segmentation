@@ -1,0 +1,39 @@
+{
+  "case_id": "L23",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34341828,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-19T14:45:28Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T14:55:00Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the large marbled T1-bright lipomatous mass in all three planes (k 0\u2013344, wrapping the femur, sparing dark muscle bellies); ends verified \u2014 k=0 is the volume edge and k=352 shows no lesion tissue. Proximal thin fat-plane extension kept as contiguous lesion; candidate additions rejected as normal deep fat.",
+  "tool_calls": 32,
+  "model_prompts": 2
+}

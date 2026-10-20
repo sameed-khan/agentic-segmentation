@@ -1,0 +1,39 @@
+{
+  "case_id": "V49",
+  "shape": [
+    131,
+    131,
+    97
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2180061,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    97
+  ],
+  "created_at": "2026-10-19T20:51:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:54:05Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask follows the lobulated hyperintense soft-tissue mass in all three planes (axial 34-57 core, coronal 50-67, sagittal 55-71); the bright peripheral structure at sag 39-42 was confirmed as non-lesional limb edge, and candidate C1 lies outside the limb and was rejected.",
+  "tool_calls": 25,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L25",
+  "shape": [
+    421,
+    421,
+    196
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 24093049,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    196
+  ],
+  "created_at": "2026-10-19T21:29:22Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:31:21Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single mass (about 91 mL) in the posterolateral left gluteal/thigh region, outline follows the heterogeneous T2-bright lesion in all three planes; past-mask panels show no residual lesion; both candidate shells are peripheral muscle and were rejected. Medium because the choice of this mass over the separate homogeneous bright oval medially (judged fluid-like) rests on appearance alone.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

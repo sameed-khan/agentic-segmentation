@@ -1,0 +1,39 @@
+{
+  "case_id": "V48",
+  "shape": [
+    221,
+    221,
+    351
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14386343,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    351
+  ],
+  "created_at": "2026-10-19T22:03:40Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:05:20Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Mask follows the bright T2 crescent around the posterolateral femoral shaft in axial, coronal and sagittal views; past-mask slices are clean; remaining candidates (C1-C5) are large grey muscle rings or small isolated bits outside the bright lesion and were rejected.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

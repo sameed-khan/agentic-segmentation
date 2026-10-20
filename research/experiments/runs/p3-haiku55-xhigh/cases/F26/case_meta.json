@@ -1,0 +1,39 @@
+{
+  "case_id": "F26",
+  "shape": [
+    271,
+    271,
+    265
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10113351,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    265
+  ],
+  "created_at": "2026-10-19T21:13:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:14:48Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Final review: outline follows the bright T2 mass in axial, coronal and sagittal views; no lesion tissue beyond the mask ends; the candidate proposals are peripheral muscle, fascia or vessel strands and were rejected. Medium rather than high because the less intense lateral periphery (axial ~115-130) is only partly included.",
+  "tool_calls": 12,
+  "model_prompts": 1
+}

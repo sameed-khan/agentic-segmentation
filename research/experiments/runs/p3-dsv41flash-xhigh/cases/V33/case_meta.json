@@ -1,0 +1,39 @@
+{
+  "case_id": "V33",
+  "shape": [
+    441,
+    441,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 45880593,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    372
+  ],
+  "created_at": "2026-10-19T16:22:00Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T16:25:38Z",
+  "final_version": "v7",
+  "confidence": "medium",
+  "reason": "Mask follows the full heterogeneous T2-hyperintense intramuscular vascular tumor, including its lobulated periphery and internal cystic/necrotic spaces; no lesion extends beyond the axial ends.",
+  "tool_calls": 38,
+  "model_prompts": 6
+}

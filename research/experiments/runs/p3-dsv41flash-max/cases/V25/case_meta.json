@@ -1,0 +1,39 @@
+{
+  "case_id": "V25",
+  "shape": [
+    501,
+    501,
+    283
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 59963673,
+  "crop_offset": [
+    37,
+    22,
+    0
+  ],
+  "crop_shape": [
+    379,
+    479,
+    283
+  ],
+  "created_at": "2026-10-19T20:43:36Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:49:17Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Mask follows the large intramuscular vascular tumor in all three planes; no lesion tissue beyond the ends; adjacent intensity-only candidates are normal peripheral tissue/rim, not tumor.",
+  "tool_calls": 40,
+  "model_prompts": 3
+}

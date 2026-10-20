@@ -1,0 +1,39 @@
+{
+  "case_id": "L17",
+  "shape": [
+    271,
+    271,
+    400
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31207624,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    400
+  ],
+  "created_at": "2026-10-19T21:26:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:30:17Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Large lipomatous-appearing mass in the lateral/anterior thigh wrapping the femur; outline follows the surrounding fascia on axial, coronal and sagittal views, and no lesion tissue is visible past the mask ends. Candidates were rims of subcutaneous fat or tiny specks, so rejected. Moderate uncertainty about the grey anterior and superior-medial extensions.",
+  "tool_calls": 23,
+  "model_prompts": 2
+}

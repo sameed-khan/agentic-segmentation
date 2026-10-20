@@ -1,0 +1,39 @@
+{
+  "case_id": "F38",
+  "shape": [
+    321,
+    321,
+    470
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30294147,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    321,
+    321,
+    470
+  ],
+  "created_at": "2026-10-19T14:04:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T14:10:53Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Green outline follows the T2-hyperintense posterolateral thigh mass on all reviewed slices (axial 174-239, coronal 105-139, sagittal 113-139). The small bright taper at the superior end (k>272) was left out because extending it leaked into the adjacent fascia/fat; candidate C1 was rejected as surrounding normal fat/muscle.",
+  "tool_calls": 41,
+  "model_prompts": 4
+}

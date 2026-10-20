@@ -1,0 +1,39 @@
+{
+  "case_id": "F20",
+  "shape": [
+    147,
+    147,
+    213
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5558962,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    147,
+    147,
+    213
+  ],
+  "created_at": "2026-10-19T21:12:37Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:15:46Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Single oval heterogeneous low-intermediate T2 mass in patient-right posterior compartment; outline follows it in axial, coronal and sagittal planes after removing thin tails; superior/inferior extent somewhat uncertain.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V07",
+  "shape": [
+    151,
+    151,
+    177
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1319949,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    177
+  ],
+  "created_at": "2026-10-19T19:38:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:43:59Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask fits the well-circumscribed homogeneous oval palmar/thenar mass in all planes; candidates were normal deep muscles/thumb. Some uncertainty about lesion identity given fat-sat failure brightness in the thumb.",
+  "tool_calls": 24,
+  "model_prompts": 1
+}

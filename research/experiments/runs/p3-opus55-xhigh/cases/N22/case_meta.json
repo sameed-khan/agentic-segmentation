@@ -1,0 +1,39 @@
+{
+  "case_id": "N22",
+  "shape": [
+    271,
+    271,
+    441
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 28168072,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    441
+  ],
+  "created_at": "2026-10-19T18:25:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:27:00Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Ovoid heterogeneous T2-bright mass anterolateral to femur well outlined in all planes; streaky inferior/posterior hyperintensity (likely edema) excluded, inferior tail extent somewhat uncertain.",
+  "tool_calls": 13,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L42",
+  "shape": [
+    251,
+    251,
+    265
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17997460,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    265
+  ],
+  "created_at": "2026-10-19T18:58:48Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:02:01Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the encapsulated lipomatous mass on all three planes (axial 40-232, coronal 62-180, sagittal 48-130); candidates C1-C3 are the normal subcutaneous fat ring and C4/C5 are tiny fat lobules, so all rejected. Unsure only about a separate anterior subcutaneous honeycomb-fat area superiorly, which appears as a distinct structure outside the tumor capsule.",
+  "tool_calls": 33,
+  "model_prompts": 2
+}

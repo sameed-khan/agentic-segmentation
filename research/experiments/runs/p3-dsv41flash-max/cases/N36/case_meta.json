@@ -1,0 +1,39 @@
+{
+  "case_id": "N36",
+  "shape": [
+    241,
+    241,
+    306
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20636991,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    306
+  ],
+  "created_at": "2026-10-19T20:29:38Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:32:47Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Green outline follows the T2-hyperintense lobulated mass (approx. 5.5x5.5x7.8 cm, bilobed inferiorly) tightly in axial, coronal and sagittal planes; slices beyond both ends show only normal muscle/vessels. Candidate proposals were thin fascial/vascular rims and small distant vessel dots, not tumor, so rejected.",
+  "tool_calls": 31,
+  "model_prompts": 1
+}

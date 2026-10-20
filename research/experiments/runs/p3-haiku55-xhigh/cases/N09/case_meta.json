@@ -1,0 +1,39 @@
+{
+  "case_id": "N09",
+  "shape": [
+    280,
+    280,
+    231
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10780745,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    231
+  ],
+  "created_at": "2026-10-19T21:47:52Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:49:22Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single large bright T2 mass in the lateral thigh is well outlined in all three planes and the past-mask panels show no residual lesion. Candidates C1 and C3 are subcutaneous fat, and C2 is a thin rim, so none were added. The inferior posterolateral tail is only partly captured.",
+  "tool_calls": 21,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M43",
+  "shape": [
+    201,
+    201,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6853843,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    141
+  ],
+  "created_at": "2026-10-19T21:44:44Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:48:37Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Bright T2 myxoid mass in posterolateral compartment, outlined in axial/coronal/sagittal and checked on final review; past-mask panels show no lesion; candidates C1-C4 judged to be fascia/normal tissue and rejected; uncertainty about posterior gray periphery and distal tapering band.",
+  "tool_calls": 33,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F28",
+  "shape": [
+    211,
+    211,
+    355
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18449384,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    355
+  ],
+  "created_at": "2026-10-19T17:45:46Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T17:47:13Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "A well-defined oval subcutaneous mass under the skin marker. The outline follows its edge in all planes, the panels past the mask show no lesion, and the candidates were fat or vessels.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

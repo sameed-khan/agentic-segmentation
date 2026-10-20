@@ -1,0 +1,39 @@
+{
+  "case_id": "N20",
+  "shape": [
+    301,
+    301,
+    442
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 32054679,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    301,
+    301,
+    442
+  ],
+  "created_at": "2026-10-19T20:04:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:08:14Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask covers the full elongated, T2-hyperintense fusiform nerve sheath tumor of the posterior thigh with its peripheral rim; boundary follows the lesion in axial, coronal and sagittal planes. Residual uncertainty about the very distal tapering end of the structure.",
+  "tool_calls": 38,
+  "model_prompts": 1
+}

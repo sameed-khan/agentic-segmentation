@@ -1,0 +1,39 @@
+{
+  "case_id": "L37",
+  "shape": [
+    441,
+    441,
+    216
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31509963,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    216
+  ],
+  "created_at": "2026-10-19T21:32:33Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:35:12Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single encapsulated oval lipomatous-appearing mass (~560 mL); outline follows its boundary on all planes and past-the-mask slices show no residual lesion. Candidates C1, C2, C4, C5 are skin/fascia or other structures; C3 is a thin partial-volume rim, rejected. Residual doubt about lipoma vs well-differentiated liposarcoma because T1 signal is slightly below subcutaneous fat.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

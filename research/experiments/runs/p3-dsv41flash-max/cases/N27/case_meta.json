@@ -1,0 +1,39 @@
+{
+  "case_id": "N27",
+  "shape": [
+    201,
+    201,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3598259,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    137
+  ],
+  "created_at": "2026-10-19T20:29:38Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T20:32:22Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Mask follows the lobulated T2-hyperintense mass including its capsule rim, its anterior wedge and the distal satellite nodule; superior/inferior ends verified as ending before normal tissue. Residual uncertainty only at the mildly hyperintense periphery where tumor capsule versus peritumoral edema is ambiguous.",
+  "tool_calls": 30,
+  "model_prompts": 3
+}

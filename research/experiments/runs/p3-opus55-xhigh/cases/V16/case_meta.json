@@ -1,0 +1,39 @@
+{
+  "case_id": "V16",
+  "shape": [
+    91,
+    91,
+    51
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 564554,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    91,
+    91,
+    51
+  ],
+  "created_at": "2026-10-19T19:39:26Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:42:00Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Lobulated T2-bright mass outlined well in all three planes; the thin bright fascial bands nearby were left out because it is unclear whether they are tumor.",
+  "tool_calls": 23,
+  "model_prompts": 2
+}

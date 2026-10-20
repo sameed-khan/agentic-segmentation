@@ -1,0 +1,39 @@
+{
+  "case_id": "L13",
+  "shape": [
+    361,
+    361,
+    266
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 28023782,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    361,
+    361,
+    266
+  ],
+  "created_at": "2026-10-19T18:31:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:41:38Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "forced: wall time exceeded",
+  "tool_calls": 24,
+  "model_prompts": 3
+}

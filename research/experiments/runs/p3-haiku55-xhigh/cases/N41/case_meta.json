@@ -1,0 +1,39 @@
+{
+  "case_id": "N41",
+  "shape": [
+    141,
+    141,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3396197,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    141
+  ],
+  "created_at": "2026-10-19T21:53:48Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:01:25Z",
+  "final_version": "v6",
+  "confidence": "low",
+  "reason": "Outline fits the fusiform lateral mass in all three planes and the past-the-mask panels show no residual lesion; candidates C1/C2 are thin vessel-like or small isolated structures and were rejected. Lesion identity as PNST is uncertain because no marks could be placed inside it, so it was seeded by a box prompt.",
+  "tool_calls": 36,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V25",
+  "shape": [
+    501,
+    501,
+    283
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 59963673,
+  "crop_offset": [
+    37,
+    22,
+    0
+  ],
+  "crop_shape": [
+    379,
+    479,
+    283
+  ],
+  "created_at": "2026-10-19T16:21:46Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T16:31:50Z",
+  "final_version": "v2",
+  "confidence": "low",
+  "reason": "forced: wall time exceeded",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

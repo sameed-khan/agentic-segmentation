@@ -1,0 +1,39 @@
+{
+  "case_id": "N03",
+  "shape": [
+    151,
+    151,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4420543,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    165
+  ],
+  "created_at": "2026-10-19T18:21:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:22:15Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed T2-bright oval mass fully captured; boundary matches in all planes, no lesion past the ends; candidates are thin normal fascial/neurovascular strips.",
+  "tool_calls": 10,
+  "model_prompts": 1
+}

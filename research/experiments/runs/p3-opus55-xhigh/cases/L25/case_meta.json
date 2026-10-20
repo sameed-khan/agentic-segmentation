@@ -1,0 +1,39 @@
+{
+  "case_id": "L25",
+  "shape": [
+    421,
+    421,
+    196
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 24093049,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    196
+  ],
+  "created_at": "2026-10-19T18:04:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:06:01Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Well-demarcated oval mass; mask follows boundary in all three planes, single component; candidates are surrounding shells of normal tissue.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N37",
+  "shape": [
+    201,
+    201,
+    201
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9106306,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    201
+  ],
+  "created_at": "2026-10-19T19:36:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:38:11Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Well-defined bright T2 mass in medial thigh; mask follows its boundary in all planes; candidates were the adjacent vein and other vessels and were rejected",
+  "tool_calls": 16,
+  "model_prompts": 2
+}

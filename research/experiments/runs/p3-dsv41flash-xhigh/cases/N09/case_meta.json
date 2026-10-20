@@ -1,0 +1,39 @@
+{
+  "case_id": "N09",
+  "shape": [
+    280,
+    280,
+    231
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10780745,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    231
+  ],
+  "created_at": "2026-10-19T15:46:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T15:53:39Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Outline follows the T2-hyperintense mass with its heterogeneous core and thin capsule on axial, coronal and sagittal planes; past-the-mask panels show no residual lesion. Residual uncertainty is only the thin fascial/nerve extension inferiorly, which is partially included.",
+  "tool_calls": 28,
+  "model_prompts": 2
+}

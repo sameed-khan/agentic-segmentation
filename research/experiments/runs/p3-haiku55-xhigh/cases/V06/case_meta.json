@@ -1,0 +1,39 @@
+{
+  "case_id": "V06",
+  "shape": [
+    121,
+    121,
+    68
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 413966,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    68
+  ],
+  "created_at": "2026-10-19T21:56:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:59:10Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask covers the very bright T2 vascular component (7.2 mL), outline follows the bright edge in axial, coronal and sagittal views and no lesion is visible past the ends. Uncertain whether the adjacent intermediate-grey ovals are tumour or displaced muscle; excluded them as they are separate from the bright core.",
+  "tool_calls": 20,
+  "model_prompts": 2
+}

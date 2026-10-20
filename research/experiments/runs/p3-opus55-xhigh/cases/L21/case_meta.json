@@ -1,0 +1,39 @@
+{
+  "case_id": "L21",
+  "shape": [
+    241,
+    241,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20271361,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    330
+  ],
+  "created_at": "2026-10-19T18:02:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:08:56Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Segmented the conspicuous lobulated posterior hip/proximal thigh mass; boundaries follow it in all planes, but its muscle-like T1 signal makes lipomatous identity and distal tail extent uncertain.",
+  "tool_calls": 23,
+  "model_prompts": 1
+}

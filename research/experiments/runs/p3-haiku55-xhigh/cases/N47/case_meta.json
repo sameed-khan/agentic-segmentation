@@ -1,0 +1,39 @@
+{
+  "case_id": "N47",
+  "shape": [
+    141,
+    141,
+    117
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2769434,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    117
+  ],
+  "created_at": "2026-10-19T21:55:28Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:56:50Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single bright T2 mass in the thigh with well-defined margins; outline follows the lesion in all three planes and no lesion tissue is visible past the mask ends. Candidate C1 was judged to be vessel and rejected. Tapering tips are less certain.",
+  "tool_calls": 17,
+  "model_prompts": 2
+}

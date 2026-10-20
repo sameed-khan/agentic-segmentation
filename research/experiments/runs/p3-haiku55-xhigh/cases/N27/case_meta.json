@@ -1,0 +1,39 @@
+{
+  "case_id": "N27",
+  "shape": [
+    201,
+    201,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3598259,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    137
+  ],
+  "created_at": "2026-10-19T21:50:53Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:52:09Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Review panels show no lesion tissue beyond the mask ends; outline follows the bright lobulated mass in all planes. Candidate C1 (intermediate-intensity rim, +66 mL) and the other candidates were judged to be adjacent muscle or unrelated tissue and rejected, so the outer margin may be slightly conservative.",
+  "tool_calls": 11,
+  "model_prompts": 1
+}

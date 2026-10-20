@@ -1,0 +1,39 @@
+{
+  "case_id": "L21",
+  "shape": [
+    241,
+    241,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20271361,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    330
+  ],
+  "created_at": "2026-10-19T14:45:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T14:51:58Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the large posterior-thigh lipomatous mass along visible fascial/tissue boundaries in all three planes; tapered ends kept as they track real tissue edges; no missed tissue in past-the-end panels; all candidates judged normal tissue and rejected.",
+  "tool_calls": 34,
+  "model_prompts": 2
+}

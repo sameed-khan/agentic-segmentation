@@ -1,0 +1,39 @@
+{
+  "case_id": "L41",
+  "shape": [
+    281,
+    281,
+    386
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31418269,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    386
+  ],
+  "created_at": "2026-10-19T21:33:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:35:48Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single bright fat-signal mass in the posterior thigh wrapping the femur, outlined with one positive point; boundary matched on axial, coronal and sagittal views and no lesion tissue is visible past either end. Uncertain only at the faint superior tip (~axial 156-161) and the grey inferior tail (~axial 306-316), both left out.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N44",
+  "shape": [
+    141,
+    141,
+    82
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1863689,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    82
+  ],
+  "created_at": "2026-10-19T19:36:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:44:33Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Only discrete fusiform T2-bright mass found (lateral to proximal humerus); mask follows its boundary in all planes, but target identity is not certain given small size and adjacent bursa/tendon-sheath differential.",
+  "tool_calls": 21,
+  "model_prompts": 1
+}

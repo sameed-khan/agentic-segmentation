@@ -1,0 +1,39 @@
+{
+  "case_id": "F31",
+  "shape": [
+    241,
+    241,
+    161
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10893952,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    161
+  ],
+  "created_at": "2026-10-19T21:14:51Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:17:05Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Large lobulated T2-bright mass traced in 3D with 4 positive prompts; outline follows the mass in axial, coronal and sagittal checks, and past-the-mask panels show no missed lesion. Uncertain whether the bright medial lobules and the inferior tail (axial 135-150) belong to the same tumor; a few tiny disconnected specks remain.",
+  "tool_calls": 19,
+  "model_prompts": 4
+}

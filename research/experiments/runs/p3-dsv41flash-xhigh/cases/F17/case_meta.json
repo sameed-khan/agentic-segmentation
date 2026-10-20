@@ -1,0 +1,39 @@
+{
+  "case_id": "F17",
+  "shape": [
+    333,
+    381,
+    115
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17224601,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    333,
+    381,
+    115
+  ],
+  "created_at": "2026-10-19T13:47:45Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T13:50:45Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Mask covers the whole bright lobulated soft-tissue mass in the right lateral compartment on axial, coronal and sagittal planes; upper/lower ends verified with past-the-mask slices showing no residual lesion tissue. Remaining candidates are thin partial-volume rims and vessels/fascial planes, not tumor.",
+  "tool_calls": 34,
+  "model_prompts": 2
+}

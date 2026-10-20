@@ -1,0 +1,39 @@
+{
+  "case_id": "M06",
+  "shape": [
+    440,
+    440,
+    224
+  ],
+  "spacing": [
+    0.9999999403953552,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 49653907,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    440,
+    440,
+    224
+  ],
+  "created_at": "2026-10-19T19:08:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:11:17Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Mask follows the T2-hyperintense gluteal mass with its thin peripheral rim in all planes; adjacent diffuse fascial edema and small separate intensity spots were excluded.",
+  "tool_calls": 31,
+  "model_prompts": 5
+}

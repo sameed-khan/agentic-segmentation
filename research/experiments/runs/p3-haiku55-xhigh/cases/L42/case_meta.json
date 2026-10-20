@@ -1,0 +1,39 @@
+{
+  "case_id": "L42",
+  "shape": [
+    251,
+    251,
+    265
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17997460,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    265
+  ],
+  "created_at": "2026-10-19T21:34:11Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:36:15Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "One large homogeneous lipomatous mass (~665 mL) outlined consistently in axial, coronal and sagittal views; the final review shows no lesion tissue past the mask ends and all candidates were peripheral fat/fascia rings or tiny islands, so they were rejected. Residual uncertainty: a thin dark septal notch on axial ~180 and the posterior lobe boundary.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

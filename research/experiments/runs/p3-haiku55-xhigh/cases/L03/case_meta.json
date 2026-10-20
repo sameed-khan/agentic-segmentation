@@ -1,0 +1,39 @@
+{
+  "case_id": "L03",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33957821,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-19T21:22:40Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:25:36Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single component covers the large fat-signal lipomatous mass; final review shows no lesion tissue beyond the mask ends, outline follows the mass edge in all planes. Candidates C1-C5 are thin fascial/muscle rims, rejected. Residual uncertainty about whether the lobulated lateral and posterior lobes (grey interior) belong to the same tumor.",
+  "tool_calls": 23,
+  "model_prompts": 1
+}

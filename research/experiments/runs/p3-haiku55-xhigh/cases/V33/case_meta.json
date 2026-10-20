@@ -1,0 +1,39 @@
+{
+  "case_id": "V33",
+  "shape": [
+    441,
+    441,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 45880593,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    372
+  ],
+  "created_at": "2026-10-19T22:00:33Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:02:18Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single positive prompt captured the large heterogeneous bright vascular mass; the outline follows its edge in axial, coronal and sagittal views and the past-the-mask slices show no residual lesion. Uncertainty at the superior tip and thin inferior tail; peripheral halo candidates judged normal/edema and not added.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

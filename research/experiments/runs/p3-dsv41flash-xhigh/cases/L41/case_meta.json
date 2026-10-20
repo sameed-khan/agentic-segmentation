@@ -1,0 +1,39 @@
+{
+  "case_id": "L41",
+  "shape": [
+    281,
+    281,
+    386
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31418269,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    386
+  ],
+  "created_at": "2026-10-19T15:01:00Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T15:10:09Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Outline follows the encapsulated fat-isointense mass on all inside slices in three planes; ends checked (axial 148/195 and 277/319, coronal 47/169, sagittal 77/202) and no definite tumor beyond them; small posterior-fat lobule at 319 left out as likely normal fat.",
+  "tool_calls": 37,
+  "model_prompts": 2
+}

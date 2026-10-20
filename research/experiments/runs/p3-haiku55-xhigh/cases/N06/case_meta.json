@@ -1,0 +1,39 @@
+{
+  "case_id": "N06",
+  "shape": [
+    201,
+    201,
+    71
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3070849,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    71
+  ],
+  "created_at": "2026-10-19T21:47:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:51:47Z",
+  "final_version": "v2",
+  "confidence": "low",
+  "reason": "Segmented a homogeneous oval compartment medial-posterior to the femur spanning the full FOV; plausibly an enlarged nerve/PNST but its signal is not clearly hyperintense, so identity is uncertain. Candidate corrections were surrounding muscle and were rejected.",
+  "tool_calls": 26,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L21",
+  "shape": [
+    241,
+    241,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20271361,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    330
+  ],
+  "created_at": "2026-10-19T18:47:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T18:50:08Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Mask follows the large hypointense posterior-thigh mass on axial, coronal and sagittal planes, with appropriate upper/lower extent and no convincing missed tissue; candidates C1-C4 represent adjacent normal muscle/fat or tiny nonlesional structures.",
+  "tool_calls": 30,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M37",
+  "shape": [
+    350,
+    350,
+    220
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 21537452,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    350,
+    350,
+    220
+  ],
+  "created_at": "2026-10-19T21:42:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T21:46:19Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask follows the homogeneous gray myxoid mass closely on axial 158/188, coronal 175/187/199 and sagittal 174/187/200. Small protrusions onto an adjacent bright tubular structure (axial 127, 158) remain and the lower tapered tail is only partly included; no missed candidates were proposed.",
+  "tool_calls": 24,
+  "model_prompts": 1
+}

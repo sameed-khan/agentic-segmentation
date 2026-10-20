@@ -1,0 +1,39 @@
+{
+  "case_id": "M24",
+  "shape": [
+    280,
+    280,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 26522223,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    330
+  ],
+  "created_at": "2026-10-19T19:23:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T19:27:17Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Mask follows the large T2-hyperintense myxoid mass with lobulated bright core and its tapering fascial extension over the full limb length; boundaries match the lesion in axial, coronal and sagittal planes, past-the-mask slices show no missed lesion, candidate rim proposals rejected as subcuticular/fascial fat.",
+  "tool_calls": 32,
+  "model_prompts": 1
+}

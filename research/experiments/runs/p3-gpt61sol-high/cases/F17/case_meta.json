@@ -1,0 +1,39 @@
+{
+  "case_id": "F17",
+  "shape": [
+    333,
+    381,
+    115
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17224601,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    333,
+    381,
+    115
+  ],
+  "created_at": "2026-10-20T03:23:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:24:55Z",
+  "final_version": "v4",
+  "confidence": "high",
+  "reason": "Reviewed all planes and end slices. The mask includes the heterogeneous mass, peripheral rim and contiguous tail; remaining proposals extend into surrounding muscle or nonspecific signal rather than the tumor.",
+  "tool_calls": 19,
+  "model_prompts": 3
+}

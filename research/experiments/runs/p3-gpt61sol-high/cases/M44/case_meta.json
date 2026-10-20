@@ -1,0 +1,39 @@
+{
+  "case_id": "M44",
+  "shape": [
+    321,
+    321,
+    226
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22013279,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    321,
+    321,
+    226
+  ],
+  "created_at": "2026-10-20T04:22:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:24:42Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Reviewed all three planes and both ends: the full lobulated tumor and less-intense inferior portion are covered. Candidate additions represent surrounding edema or normal tissue rather than discrete tumor; excluded.",
+  "tool_calls": 18,
+  "model_prompts": 2
+}

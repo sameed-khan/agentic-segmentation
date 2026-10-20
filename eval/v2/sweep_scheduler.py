@@ -281,6 +281,18 @@ def main() -> None:
             else:
                 log(f"score failed for {run}: {r.stderr[-500:]}")
                 time.sleep(300)
+        elif code == 3 and (run in PROBES or run in GATED):
+            # Sameed 2026-10-20: if the GPT-6.1-sol xhigh probe (or its full run) hits the quota limit, do NOT wait
+            # for the window to reset: stop the sweep here (no full xhigh run); the next study phase runs instead.
+            for r in [run] + [k for k, v in GATED.items() if v == run] + [v for k, v in GATED.items() if k == run]:
+                f = ST / f"sweep_{r}.done"
+                if not f.exists():
+                    f.write_text("stopped: provider quota limit hit; not resumed by design (Sameed)\n")
+            gp = ST / f"gate_{run if run in PROBES else GATED[run]}.json"
+            if not gp.exists():
+                gp.write_text(json.dumps({"probe": run, "pass": False, "stopped": "quota limit, not resumed",
+                                          "at": datetime.now(timezone.utc).isoformat()}, indent=1))
+            log(f"{run}: quota limit -> stopped by design (no waiting); sweep ends")
         elif code == 3:
             n = s.setdefault("limit_streak", {}).get(prov, 0) + 1
             s["limit_streak"][prov] = n

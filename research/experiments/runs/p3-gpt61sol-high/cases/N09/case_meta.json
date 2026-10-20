@@ -1,0 +1,39 @@
+{
+  "case_id": "N09",
+  "shape": [
+    280,
+    280,
+    231
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10780745,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    231
+  ],
+  "created_at": "2026-10-20T04:25:28Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:27:56Z",
+  "final_version": "v9",
+  "confidence": "medium",
+  "reason": "Three-plane review shows the mass and heterogeneous periphery covered without stray components. Remaining candidate proposals involve adjacent fat/fascial tissue rather than the tumor.",
+  "tool_calls": 26,
+  "model_prompts": 8
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N36",
+  "shape": [
+    241,
+    241,
+    306
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20636991,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    306
+  ],
+  "created_at": "2026-10-20T04:29:33Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:31:39Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Reviewed all final orthogonal panels and end slices. The lobulated tumor and contiguous tapering extension are covered; proposed additions mainly follow adjacent normal neurovascular or fascial structures.",
+  "tool_calls": 21,
+  "model_prompts": 2
+}

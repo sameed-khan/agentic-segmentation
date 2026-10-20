@@ -1,0 +1,39 @@
+{
+  "case_id": "F18",
+  "shape": [
+    281,
+    281,
+    235
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 19847774,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    235
+  ],
+  "created_at": "2026-10-20T03:23:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:29:37Z",
+  "final_version": "v10",
+  "confidence": "medium",
+  "reason": "Three-plane review completed. Heterogeneous tumor and contiguous fascial extensions retained; large candidate proposals rejected because they include surrounding normal fat, muscle, and viscera. Some low-signal margins remain indistinct.",
+  "tool_calls": 39,
+  "model_prompts": 8
+}

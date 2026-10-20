@@ -1,0 +1,39 @@
+{
+  "case_id": "L22",
+  "shape": [
+    421,
+    421,
+    153
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23923831,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    153
+  ],
+  "created_at": "2026-10-20T04:00:12Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:04:49Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "The outlined encapsulated fatty mass is consistent across all three planes and includes its peripheral rim. It extends to the acquisition edge; surrounding candidate regions appear to be non-lesional tissue.",
+  "tool_calls": 31,
+  "model_prompts": 5
+}

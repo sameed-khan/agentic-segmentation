@@ -424,6 +424,8 @@ L37 L41 M06 M11 M13 M22 M26 M37 N03 N09 N13 N17 N32 N46 V33 V38 V50 V51 V53 V64)
 GPT-6.1-sol xhigh run happens only if, on these 30 cases, mean Dice − Opus 5.5 xhigh ≥ +0.03 **and** paired Wilcoxon
 two-sided p < 0.05 (Opus 5.5 xhigh is the best run; its mean on the 30 cases is 0.732). The probe cases stay in the
 full run if it proceeds. Decision recorded in `results/phase3_state/gate_p3-gpt61sol-xhigh-probe.json`.
+If the probe (or the full run) hits the provider quota limit, the sweep stops there without waiting for a reset
+(Sameed): no full GPT-6.1-sol xhigh run; the segmenter-swap study (SAM-Med3D) runs instead.
 
 ## 7. Next experiments (planned)
 

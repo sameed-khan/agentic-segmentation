@@ -1,0 +1,39 @@
+{
+  "case_id": "F46",
+  "shape": [
+    251,
+    251,
+    498
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 38159341,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    498
+  ],
+  "created_at": "2026-10-20T03:30:05Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:35:27Z",
+  "final_version": "v12",
+  "confidence": "medium",
+  "reason": "Reviewed all three planes and lesion endpoints. Mask includes the fibrous core and contiguous heterogeneous extensions; excluded candidate regions are surrounding normal muscle and soft tissue. Some infiltrative margins remain indistinct.",
+  "tool_calls": 34,
+  "model_prompts": 8
+}

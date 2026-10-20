@@ -1,0 +1,39 @@
+{
+  "case_id": "F45",
+  "shape": [
+    261,
+    261,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34505661,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    435
+  ],
+  "created_at": "2026-10-20T03:29:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:36:56Z",
+  "final_version": "v14",
+  "confidence": "medium",
+  "reason": "Reviewed in all three planes: the heterogeneous mass and contiguous extensions are covered, with no separate stray components. Adjacent edema and compressed muscle make portions of the peripheral boundary uncertain; candidate halos and vascular tissue were excluded.",
+  "tool_calls": 40,
+  "model_prompts": 11
+}

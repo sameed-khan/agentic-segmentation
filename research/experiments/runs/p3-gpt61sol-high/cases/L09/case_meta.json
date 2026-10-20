@@ -1,0 +1,39 @@
+{
+  "case_id": "L09",
+  "shape": [
+    250,
+    250,
+    331
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 19231299,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    250,
+    250,
+    331
+  ],
+  "created_at": "2026-10-20T03:58:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:01:28Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Reviewed all planes and end slices. The intermuscular fatty tumor is covered, with preserved muscle and subcutaneous fat excluded. All proposed additions represent normal surrounding tissue; thin extensions remain less sharply defined.",
+  "tool_calls": 21,
+  "model_prompts": 3
+}

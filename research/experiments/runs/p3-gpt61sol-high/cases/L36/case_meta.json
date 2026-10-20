@@ -1,0 +1,39 @@
+{
+  "case_id": "L36",
+  "shape": [
+    235,
+    251,
+    221
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14210952,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    235,
+    251,
+    221
+  ],
+  "created_at": "2026-10-20T04:04:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:06:15Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Reviewed all three planes: mask covers the visible fatty mass and heterogeneous contiguous extension, excluding surrounding muscle, bone, and subcutaneous fat. Candidate shells are normal tissue and rejected. Tumor reaches both axial acquisition limits.",
+  "tool_calls": 20,
+  "model_prompts": 5
+}

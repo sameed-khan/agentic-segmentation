@@ -1,0 +1,39 @@
+{
+  "case_id": "V39",
+  "shape": [
+    161,
+    161,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3875052,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    126
+  ],
+  "created_at": "2026-10-20T04:37:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:38:16Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Reviewed all three planes and lesion ends. The mask covers the heterogeneous mass and superior taper to the volume boundary inferiorly; proposed additions are surrounding tissue or vessels rather than tumor.",
+  "tool_calls": 12,
+  "model_prompts": 2
+}

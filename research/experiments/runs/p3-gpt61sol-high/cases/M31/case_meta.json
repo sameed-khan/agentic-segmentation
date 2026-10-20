@@ -1,0 +1,39 @@
+{
+  "case_id": "M31",
+  "shape": [
+    200,
+    200,
+    380
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17896834,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    200,
+    200,
+    380
+  ],
+  "created_at": "2026-10-20T04:13:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:15:21Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Reviewed all three planes and endpoint panels. Mass and contiguous central extensions are covered; candidate additions represent peripheral edema, subcutaneous tissue, or vessels rather than definite tumor. Distal tumor\u2013edema interface remains indistinct.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

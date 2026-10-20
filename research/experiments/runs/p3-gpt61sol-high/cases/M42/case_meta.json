@@ -1,0 +1,39 @@
+{
+  "case_id": "M42",
+  "shape": [
+    261,
+    261,
+    321
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5824314,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    321
+  ],
+  "created_at": "2026-10-20T04:22:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:23:42Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "The mask follows the small posterior intramuscular mass in all three planes, includes its tapering superior extension, and excludes adjacent vessels and the skin marker. Review slices beyond the mask show no remaining tumor.",
+  "tool_calls": 11,
+  "model_prompts": 2
+}

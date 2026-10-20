@@ -1,0 +1,39 @@
+{
+  "case_id": "N32",
+  "shape": [
+    181,
+    181,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3020002,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    137
+  ],
+  "created_at": "2026-10-20T04:28:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:30:08Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Reviewed all planes and end slices. Mass and capsule are covered; subtle tapering ends are less distinct. Candidate regions represent adjacent vessels, muscle, or perilesional signal rather than additional tumor.",
+  "tool_calls": 18,
+  "model_prompts": 2
+}

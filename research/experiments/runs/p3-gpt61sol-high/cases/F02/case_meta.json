@@ -1,0 +1,39 @@
+{
+  "case_id": "F02",
+  "shape": [
+    231,
+    231,
+    343
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 21508114,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    231,
+    231,
+    343
+  ],
+  "created_at": "2026-10-20T03:22:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:24:51Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Reviewed all three planes and adjacent slices. Mask includes the heterogeneous mass, low-signal fibrous tissue, and tapering extension while excluding femoral cortex, marrow, and surrounding muscle; some peripheral margins are indistinct.",
+  "tool_calls": 24,
+  "model_prompts": 5
+}

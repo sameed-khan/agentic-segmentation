@@ -1,0 +1,39 @@
+{
+  "case_id": "F35",
+  "shape": [
+    211,
+    211,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7250503,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    141
+  ],
+  "created_at": "2026-10-20T03:26:51Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:33:30Z",
+  "final_version": "v7",
+  "confidence": "low",
+  "reason": "Low tissue contrast prevents confident tumor identification and peripheral boundary assessment; final mask requires expert review. Candidate regions were not clearly tumor and were not added.",
+  "tool_calls": 41,
+  "model_prompts": 6
+}

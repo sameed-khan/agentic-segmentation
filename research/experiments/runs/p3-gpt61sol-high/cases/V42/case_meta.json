@@ -1,0 +1,39 @@
+{
+  "case_id": "V42",
+  "shape": [
+    111,
+    111,
+    85
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 961420,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    111,
+    111,
+    85
+  ],
+  "created_at": "2026-10-20T04:43:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:44:53Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Reviewed all three planes and both ends. The mask includes the heterogeneous mass and its lower-signal periphery without adjacent vessels or normal muscle; peripheral margins are mildly indistinct.",
+  "tool_calls": 18,
+  "model_prompts": 3
+}

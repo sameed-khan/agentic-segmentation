@@ -1,0 +1,39 @@
+{
+  "case_id": "N46",
+  "shape": [
+    381,
+    381,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 26890318,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    381,
+    381,
+    163
+  ],
+  "created_at": "2026-10-20T04:30:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:33:08Z",
+  "final_version": "v6",
+  "confidence": "high",
+  "reason": "Final orthogonal review confirms full encapsulated tumor coverage with clear boundaries and no stray components or lesion beyond mask endpoints.",
+  "tool_calls": 19,
+  "model_prompts": 2
+}

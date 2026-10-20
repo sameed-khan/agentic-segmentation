@@ -1,0 +1,39 @@
+{
+  "case_id": "V34",
+  "shape": [
+    241,
+    241,
+    264
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17635470,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    264
+  ],
+  "created_at": "2026-10-20T04:34:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:36:42Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Reviewed all three planes and both ends: the heterogeneous mass and contiguous tapering extension are covered, with adjacent bone, vessels and non-mass fascial signal excluded. Candidate additions represent surrounding normal tissue or vessels.",
+  "tool_calls": 18,
+  "model_prompts": 2
+}

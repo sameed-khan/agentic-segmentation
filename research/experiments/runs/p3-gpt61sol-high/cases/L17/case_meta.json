@@ -1,0 +1,39 @@
+{
+  "case_id": "L17",
+  "shape": [
+    271,
+    271,
+    400
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31207624,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    400
+  ],
+  "created_at": "2026-10-20T03:58:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T04:01:19Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Reviewed full mass in all three planes and beyond its extents. Candidate additions represent surrounding muscle, subcutaneous tissue or a small perivascular focus rather than tumor. Motion and susceptibility artifact limit end-boundary precision.",
+  "tool_calls": 21,
+  "model_prompts": 4
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F33",
+  "shape": [
+    191,
+    191,
+    121
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4973196,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    191,
+    191,
+    121
+  ],
+  "created_at": "2026-10-20T03:26:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:28:14Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Reviewed full mass in three planes, with heterogeneous peripheral tissue and tapered ends included. Rejected candidate C1 as surrounding normal subcutaneous tissue/fascia rather than tumor.",
+  "tool_calls": 15,
+  "model_prompts": 2
+}

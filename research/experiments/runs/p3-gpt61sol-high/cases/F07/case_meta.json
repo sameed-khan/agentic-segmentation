@@ -1,0 +1,39 @@
+{
+  "case_id": "F07",
+  "shape": [
+    251,
+    251,
+    694
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 50497977,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    694
+  ],
+  "created_at": "2026-10-20T03:22:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T03:26:59Z",
+  "final_version": "v10",
+  "confidence": "medium",
+  "reason": "Reviewed both masses in all three planes, including their heterogeneous fibrous cores and tapered extensions. Distal vascular leakage was removed; proposed additions were normal surrounding tissue. Infiltrative margins remain mildly indistinct.",
+  "tool_calls": 34,
+  "model_prompts": 6
+}

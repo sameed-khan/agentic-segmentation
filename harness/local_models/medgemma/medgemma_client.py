@@ -69,6 +69,62 @@ class ChatResult:
     extra: dict = field(default_factory=dict)
 
 
+THOUGHT_END = "<unused95>"
+_THOUGHT_START_RE = None
+
+
+def split_thought(text: str) -> tuple[str, bool, bool]:
+    """MedGemma 1.5 may answer in its thinking mode: ``<unused94>thought ... <unused95>``
+    followed by the final answer (observed on the A100 for longer prompts, BF16 and Q4;
+    llama-server strips the special tokens, leaving a bare leading ``thought\n`` and no
+    visible end marker). Returns ``(answer_text, thinking, end_marker_seen)``:
+    - end marker visible -> the text after the LAST ``<unused95>`` (the thought is never
+      parsed);
+    - thinking without a visible end marker -> the whole text, and the caller takes the
+      LAST JSON object (the final answer comes after the reasoning);
+    - no thinking -> the text unchanged."""
+    import re
+
+    global _THOUGHT_START_RE
+    if _THOUGHT_START_RE is None:
+        _THOUGHT_START_RE = re.compile(r"^\s*(<unused94>)?thought\s*\n")
+    if text is None:
+        return "", False, False
+    if THOUGHT_END in text:
+        return text.rsplit(THOUGHT_END, 1)[1], True, True
+    if _THOUGHT_START_RE.match(text):
+        return text, True, False
+    return text, False, False
+
+
+def _last_json_object(text: str) -> dict:
+    """The LAST parseable JSON object in ``text`` (fenced blocks first, then balanced
+    {...} blocks scanned from the end)."""
+    import re
+
+    fences = re.findall(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    for cand in reversed(fences):
+        try:
+            return _load_object(cand, "fenced block")
+        except (ValueError, json.JSONDecodeError):
+            continue
+    ends = [i for i, ch in enumerate(text) if ch == "}"]
+    for end in reversed(ends):
+        depth = 0
+        for start in range(end, -1, -1):
+            ch = text[start]
+            if ch == "}":
+                depth += 1
+            elif ch == "{":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return _load_object(text[start:end + 1], "balanced block")
+                    except (ValueError, json.JSONDecodeError):
+                        break
+    raise ValueError("no JSON object found after thinking")
+
+
 def extract_json_object(text: str) -> dict:
     """Strictly extract a JSON object from a model reply.
 
@@ -173,7 +229,7 @@ class MedGemmaClient:
 
     # -- raw chat -----------------------------------------------------------
     def chat(self, prompt: str, images=None, *, temperature: float = 0.0,
-             max_tokens: int = 256, deadline: float | None = None) -> ChatResult:
+             max_tokens: int = 2048, deadline: float | None = None) -> ChatResult:
         """One user turn: prompt text + optional images (paths/bytes/PIL Images).
 
         ``deadline``: optional ABSOLUTE wall-clock deadline (``time.monotonic()``
@@ -233,7 +289,7 @@ class MedGemmaClient:
         return min(self.timeout_s, remaining)
 
     def chat_json(self, prompt: str, images=None, *, temperature: float = 0.0,
-                  max_tokens: int = 256, allow_uncertain: bool = True,
+                  max_tokens: int = 2048, allow_uncertain: bool = True,
                   uncertain_value: str = "uncertain",
                   deadline: float | None = None) -> ChatResult:
         """chat + strict JSON parse with the explicit `uncertain` option.
@@ -245,8 +301,22 @@ class MedGemmaClient:
         """
         result = self.chat(prompt, images, temperature=temperature, max_tokens=max_tokens,
                            deadline=deadline)
+        answer_text, thinking, end_seen = split_thought(result.text)
+        result.extra["thinking"] = thinking
+        result.extra["thought_end_seen"] = end_seen
+        finish = None
         try:
-            data = extract_json_object(result.text)
+            finish = (json.loads(result.raw_body).get("choices") or [{}])[0].get("finish_reason")
+        except (ValueError, AttributeError):
+            pass
+        result.extra["finish_reason"] = finish
+        try:
+            if thinking and not end_seen:
+                if finish == "length":
+                    raise ValueError("truncated while thinking (max_tokens reached)")
+                data = _last_json_object(answer_text)
+            else:
+                data = extract_json_object(answer_text)
         except (ValueError, json.JSONDecodeError) as exc:
             result.parse_error = str(exc)
             return result

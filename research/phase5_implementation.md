@@ -174,6 +174,18 @@ uv run --project harness/server python harness/study/score_local_point.py \
   `wall_ms` (client wall clock, queue wait included). The scorer's latency mean/median report
   the service latency (legacy rows fall back to `latency_ms` — chat rows there are client wall
   time, not comparable across models; the report says so).
+  Caveat (review 2, P1-a): llama-server's `prompt_ms` excludes prompt-cache hits and request
+  decoding/image preprocessing, so Q4 vs BF16 service latencies are not strictly comparable;
+  the cross-model latency table uses `wall_ms` from `--concurrency 1` runs.
+- MedGemma 1.5 thinking mode (A100, 2026-10-20): on longer prompts MedGemma answers in its
+  thinking mode (`<unused94>thought … <unused95>` + answer; llama-server strips the markers and
+  leaves a leading `thought\n`). With the original 256-token cap almost every Study B reply and
+  every Q4 box reply was truncated mid-thought (parse failures). Fix: `max_tokens` default 2048
+  (study runners) and `medgemma_client.split_thought`: parse only the text after the last
+  `<unused95>`; with a thought but no visible end marker, take the LAST JSON object; a thought
+  truncated at max_tokens (`finish_reason` "length", now reported by the BF16 server 1.0.2) is a
+  parse failure. Rows record `thinking`/`finish_reason` in the client result `extra`.
+  Study B / Study A MedGemma runs made before this fix are invalid and re-run.
 - Service-version resume check: /healthz is fetched once per selected model at run start;
   resuming refuses when an existing ok row's `service_version` differs from the live version
   (servers 1.0.1 serialise inference; responses collected before that lock under

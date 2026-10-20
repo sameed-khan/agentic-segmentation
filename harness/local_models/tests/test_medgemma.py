@@ -180,7 +180,7 @@ def test_bf16_server_healthz(medgemma_client_fixture):
     body = medgemma_client_fixture.get("/healthz").json()
     assert body["status"] == "ok" and body["backend"] == "fake"
     assert body["model"] == "google/medgemma-1.5-4b-it"
-    assert body["version"] == "1.0.1"  # inference lock added (review M4)
+    assert body["version"] == "1.0.2"  # 1.0.1 inference lock (M4); 1.0.2 real usage + finish_reason "length"
 
 
 # ----------------------------------------------------------------- latency semantics (M3)
@@ -273,3 +273,39 @@ def test_inference_lock_serializes_concurrent_requests(medgemma_server_mod):
     statuses = asyncio.run(fire())
     assert statuses == [200, 200, 200]
     assert backend.max_active == 1  # never two generations inside the critical section
+
+
+# ---- MedGemma 1.5 thinking mode (A100, 2026-10-20) ---------------------------------
+def test_split_thought_end_marker_bf16():
+    from medgemma_client import split_thought
+    text = '<unused94>thought\nreasoning {"answer": "x"} more<unused95>```json\n{"answer": "lesion", "confidence": 0.95}\n```'
+    ans, thinking, end_seen = split_thought(text)
+    assert thinking and end_seen and "reasoning" not in ans
+    from medgemma_client import extract_json_object
+    assert extract_json_object(ans) == {"answer": "lesion", "confidence": 0.95}
+
+
+def test_split_thought_no_marker_llama_takes_last_json():
+    from medgemma_client import split_thought, _last_json_object
+    text = 'thought\nI could answer {"answer": "normal"} but finally:\n```json\n{"answer": "lesion", "confidence": 0.8}\n```'
+    ans, thinking, end_seen = split_thought(text)
+    assert thinking and not end_seen
+    assert _last_json_object(ans) == {"answer": "lesion", "confidence": 0.8}
+
+
+def test_split_thought_plain_reply_untouched():
+    from medgemma_client import split_thought
+    assert split_thought('{"answer": "done"}') == ('{"answer": "done"}', False, False)
+
+
+def test_chat_json_truncated_thinking_is_parse_failure(monkeypatch):
+    import json as _json
+    from medgemma_client import MedGemmaClient, ChatResult
+    c = MedGemmaClient("http://127.0.0.1:1")
+    body = {"choices": [{"message": {"content": "thought\nlong reasoning {\"answer\": \"normal\"}"},
+                         "finish_reason": "length"}]}
+    monkeypatch.setattr(c, "chat", lambda *a, **k: ChatResult(
+        text=body["choices"][0]["message"]["content"], raw_body=_json.dumps(body), wall_ms=1.0, model="m"))
+    res = c.chat_json("p")
+    assert res.parsed is None and "truncated while thinking" in res.parse_error
+    assert res.extra["thinking"] is True and res.extra["finish_reason"] == "length"

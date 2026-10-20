@@ -119,7 +119,7 @@ def parse_args(argv=None):
     ap.add_argument("--url", default=None, help="service URL (default: port 8091 for q4, 8094 for bf16)")
     ap.add_argument("--keys", default="", help="comma-separated manifest keys (default: all)")
     ap.add_argument("--reps", type=int, default=1)
-    ap.add_argument("--max-tokens", type=int, default=256)
+    ap.add_argument("--max-tokens", type=int, default=2048)
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--timeout", type=float, default=900.0)
     ap.add_argument("--images-root", default=None)

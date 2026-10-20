@@ -285,9 +285,7 @@ function extractSystemText(payload: unknown): string | undefined {
  * hash, the only prompt that could have been sent.
  */
 function rowSystemPromptHash(capture: { seen: boolean; system?: string }): string {
-	return capture.seen && typeof capture.system === "string"
-		? sha256Text(capture.system)
-		: sha256Text(MINIMAL_NEUTRAL_SYSTEM_PROMPT);
+	return capture.seen ? sha256Text(capture.system ?? "") : sha256Text(MINIMAL_NEUTRAL_SYSTEM_PROMPT);
 }
 
 /** Best-effort reproduction of the shim's OAuth payload shaping (see replay_candidates.ts). */

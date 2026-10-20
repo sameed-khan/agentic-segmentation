@@ -948,6 +948,8 @@ def test_fetch_service_versions_healthz(monkeypatch):
             assert url.endswith("/healthz")
 
             class R:
+                status_code = 200
+
                 def raise_for_status(self):
                     pass
 
@@ -1087,3 +1089,39 @@ def test_runner_main_refuses_pre_lock_resume(row, tmp_path, monkeypatch):
     meta = json.loads((run_dir / "meta.json").read_text())
     assert meta["service_versions"] == {"gui_actor": "1.0.1"}
     assert meta["planned_calls"] == 2 and meta["resumed_from_lines"] == 2
+
+
+def test_fetch_service_versions_llama_server_health_fallback(monkeypatch):
+    """Review B1: llama-server (Q4 arm) answers /healthz with 404 and only has /health;
+    the runner must fall back to /health and record version None (check skipped)."""
+    seen = []
+
+    class FakeClient:
+        def __init__(self, timeout=None):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def get(self, url):
+            seen.append(url)
+
+            class R:
+                status_code = 404 if url.endswith("/healthz") else 200
+
+                def raise_for_status(self):
+                    if self.status_code >= 400:
+                        raise RuntimeError("HTTP %d" % self.status_code)
+
+                def json(self):
+                    return {"status": "ok"}
+
+            return R()
+
+    monkeypatch.setattr("httpx.Client", FakeClient)
+    assert runner.fetch_service_versions({"medgemma_q4": "http://x:8091"}, ["medgemma_q4"]) == \
+        {"medgemma_q4": None}
+    assert seen == ["http://x:8091/healthz", "http://x:8091/health"]

@@ -216,7 +216,16 @@ def fetch_service_versions(urls: dict[str, str], models: list[str]) -> dict[str,
     for model in models:
         try:
             with httpx.Client(timeout=10.0) as client:
-                r = client.get(urls[model].rstrip("/") + "/healthz")
+                base = urls[model].rstrip("/")
+                r = client.get(base + "/healthz")
+                if r.status_code == 404:
+                    # llama-server (Q4 arm) has no /healthz route, only /health; it exposes
+                    # no version and runs --parallel 1 (never had the concurrency hazard),
+                    # so the version check is skipped for it (version None). Review B1.
+                    r = client.get(base + "/health")
+                    r.raise_for_status()
+                    out[model] = None
+                    continue
                 r.raise_for_status()
                 payload = r.json()
             out[model] = payload.get("version") if isinstance(payload, dict) else None
@@ -329,7 +338,7 @@ def parse_args(argv=None):
     ap.add_argument("--reps", type=int, default=1, help="repeats per case×model×condition (default 1: "
                                                          "decoding is deterministic at temperature 0)")
     ap.add_argument("--k", type=int, default=3, help="points requested from pointer services (default 3)")
-    ap.add_argument("--max-tokens", type=int, default=256, help="max new tokens for MedGemma calls")
+    ap.add_argument("--max-tokens", type=int, default=2048, help="max new tokens for MedGemma calls (2048: room for MedGemma 1.5 thinking mode)")
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--timeout", type=float, default=900.0, help="per-call timeout seconds")
     ap.add_argument("--results-root", default=DEFAULT_RESULTS_ROOT)
@@ -397,7 +406,7 @@ def _normalise_legacy_prompt_keys(prompts) -> dict:
         out[key[len("local_point_"):] if key.startswith("local_point_") else key] = value
     return out
 
- 
+
 # Immutable run configuration (review P2-4): resuming must never mix variants.
 IMMUTABLE_META_KEYS = ("models", "conditions", "reps", "k", "max_tokens",
                        "prepare_manifest", "prepare_manifest_sha256", "selected_cases",

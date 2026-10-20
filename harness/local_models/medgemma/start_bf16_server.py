@@ -34,7 +34,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-SERVICE_VERSION = "1.0.1"   # 1.0.1: process-wide inference lock (see /v1/chat/completions below)
+SERVICE_VERSION = "1.0.2"   # 1.0.1: process-wide inference lock (see /v1/chat/completions below)
 DEFAULT_MODEL_ID = "google/medgemma-1.5-4b-it"
 
 import threading
@@ -116,8 +116,11 @@ class MedGemmaRealBackend:
         do_sample = bool(temperature and temperature > 0)
         with self._torch.inference_mode():
             out = self._model.generate(**inputs, max_new_tokens=max_tokens, do_sample=do_sample)
-        return self._processor.tokenizer.decode(out[0, inputs["input_ids"].shape[1]:],
-                                                skip_special_tokens=True)
+        new_tokens = out[0, inputs["input_ids"].shape[1]:]
+        # read under the server's inference lock by the endpoint (finish_reason/usage)
+        self.last_usage = {"prompt_tokens": int(inputs["input_ids"].shape[1]),
+                           "completion_tokens": int(new_tokens.shape[0])}
+        return self._processor.tokenizer.decode(new_tokens, skip_special_tokens=True)
 
 
 # --------------------------------------------------------------------------- app
@@ -181,10 +184,22 @@ def create_app(backend: FakeBackend | MedGemmaRealBackend, served_model_id: str)
             try:
                 out_text = backend.generate(prompt_text, all_images, req.temperature or 0.0,
                                             req.max_tokens or 256)
+                last_usage = getattr(backend, "last_usage", None)
             except Exception as exc:
                 log.exception("generation failed")
                 return JSONResponse(status_code=500, content={"error": {"message": f"generation failed: {exc}"}})
             latency_ms = (time.perf_counter() - t0) * 1000.0
+        # Real token counts when the backend reports them (finish_reason "length" when the
+        # max_tokens cap was hit, so clients can tell truncation from a finished answer);
+        # the fake backend keeps the old character-based estimate and "stop".
+        usage = {"prompt_tokens": len(prompt_text) // 4, "completion_tokens": len(out_text) // 4,
+                 "total_tokens": (len(prompt_text) + len(out_text)) // 4}
+        finish_reason = "stop"
+        if last_usage:
+            usage = {**last_usage,
+                     "total_tokens": last_usage["prompt_tokens"] + last_usage["completion_tokens"]}
+            if last_usage["completion_tokens"] >= (req.max_tokens or 256):
+                finish_reason = "length"
         completion_id = f"chatcmpl-{uuid.uuid4().hex[:24]}"
         payload = {
             "id": completion_id,
@@ -194,10 +209,9 @@ def create_app(backend: FakeBackend | MedGemmaRealBackend, served_model_id: str)
             "choices": [{
                 "index": 0,
                 "message": {"role": "assistant", "content": out_text},
-                "finish_reason": "stop",
+                "finish_reason": finish_reason,
             }],
-            "usage": {"prompt_tokens": len(prompt_text) // 4, "completion_tokens": len(out_text) // 4,
-                      "total_tokens": (len(prompt_text) + len(out_text)) // 4},
+            "usage": usage,
             "latency_ms": round(latency_ms, 3),   # extension field, logged by the client
         }
         return JSONResponse(content=payload)

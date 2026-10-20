@@ -32,7 +32,7 @@ import uuid
 from typing import Optional
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
 
 from sammed3d import client as _client
@@ -41,6 +41,7 @@ from sammed3d import geometry
 SERVICE_VERSION = "0.1.0"
 DEFAULT_PORT = 8095
 DEFAULT_URL = f"http://127.0.0.1:{DEFAULT_PORT}"
+DEFAULT_SESSION_TTL_S = 3600.0   # idle seconds before an abandoned session is reaped
 POINT_RADIUS_VOX = 64       # fake flood-growth cap from the seed (model vox)
 
 
@@ -137,8 +138,12 @@ class SamSession:
     mirroring the nnInteractive session.
     """
 
-    def __init__(self, session_id: str, predictor, model_lock: threading.Lock):
+    def __init__(self, session_id: str, predictor, model_lock: threading.Lock, clock=time.monotonic):
         self.session_id = session_id
+        self.clock = clock
+        self.created_at = clock()
+        self.last_active = self.created_at     # updated at the start and end of every request
+        self.busy = 0                          # requests in flight (never reaped while > 0)
         self.predictor = predictor
         self.model_lock = model_lock
         self.image: Optional[np.ndarray] = None          # float32 (I,J,K) session space
@@ -149,6 +154,15 @@ class SamSession:
         self.first_positive: Optional[np.ndarray] = None # first positive since last reset
         self.prev_state = None                           # (lo, prob f16 crop, lowres list)
         self.pending_log: list = []                      # mapping-log entries of queued prompts
+
+    # ------------------------------------------------------------- activity
+    def begin(self) -> None:
+        self.busy += 1
+        self.last_active = self.clock()
+
+    def end(self) -> None:
+        self.busy -= 1
+        self.last_active = self.clock()
 
     # ---------------------------------------------------------------- setup
     def set_image(self, image: np.ndarray, image_properties: Optional[dict]) -> dict:
@@ -237,22 +251,30 @@ class SamSession:
                                 detail=f"initial seg shape {tuple(mask.shape)} != image "
                                        f"{tuple(self.image.shape)}")
         mask = mask > 0
-        # the given mask becomes the previous-state mask prompt (mapped to model space,
-        # nearest like the official label resampling); the raw low-res logits of any
-        # earlier prediction are dropped — the given mask is authoritative now
+        # nnInteractive semantics ("WARNING THIS WILL RESET INTERACTIONS", inference_session.py
+        # add_initial_seg_interaction): earlier clicks and the first-positive anchor are
+        # dropped; the given mask is authoritative and becomes the previous-state mask
+        # prompt (mapped to model space, nearest like the official label resampling; the
+        # raw low-res logits of any earlier prediction are dropped too)
+        points_reset = len(self.points)
+        self.points = []
+        self.first_positive = None
         mask_model = geometry.map_mask_session_to_model(mask, self.spacing,
                                                         self.image_model.shape)
         self.prev_state = (np.zeros(3, dtype=int), mask_model.astype(np.float16), [])
         interior_added = False
         mapped = []
-        if not self.points:
+        if run_prediction and mask.any():
+            # a predicting initial seg (seg_refine) needs a positive prompt to seed the
+            # first window: the mask's interior-most voxel. The state-only call (sync rule)
+            # adds none, so a following click anchors the window like on a fresh session.
             interior = geometry.edt_max_voxel(mask)
             self._register_point(np.asarray(interior, dtype=np.float64), 1)
             interior_added = True
             mapped = _point_log([(np.asarray(interior, dtype=np.float64), 1)])
         return self._maybe_predict(run_prediction, "initial_seg",
                                    interior_point=interior_added, mapped_points=mapped,
-                                   mask_prompt_vox=int(mask.sum()))
+                                   mask_prompt_vox=int(mask.sum()), points_reset=points_reset)
 
     def reset_interactions(self) -> dict:
         self.points = []
@@ -305,7 +327,8 @@ class SamSession:
             local_pts, local_labels = geometry.points_inside_window(
                 pts_model, w_lo, w_hi, labels)
             mask_prompt = geometry.mask_prompt_for_window(self.prev_state, (w_lo, w_hi))
-            if local_pts.shape[0] == 0 and not (np.asarray(mask_prompt) > 0).any():
+            if local_pts.shape[0] == 0 and not geometry.prev_mask_in_window(
+                    self.prev_state, (w_lo, w_hi)):
                 per_patch.append({"idx": w_idx, "skipped": "no prompt inside"})
                 continue                      # nothing to condition on: log and skip
             patch_img = geometry.znorm_masked(geometry.crop_patch(self.image_model, w_lo, w_hi))
@@ -356,34 +379,74 @@ def _json_header(obj: dict) -> str:
     return json.dumps(_client._to_jsonable(obj), separators=(",", ":"))
 
 
-def create_app(predictor, max_sessions: int = 8, model_info: Optional[dict] = None) -> FastAPI:
-    """Build the FastAPI app around a predictor ('real' engine or 'fake' stand-in)."""
+def create_app(predictor, max_sessions: int = 8, model_info: Optional[dict] = None,
+               session_ttl_s: float = DEFAULT_SESSION_TTL_S, clock=time.monotonic) -> FastAPI:
+    """Build the FastAPI app around a predictor ('real' engine or 'fake' stand-in).
+
+    Sessions that were abandoned (segd crash/restart, no DELETE) are reaped after
+    ``session_ttl_s`` idle seconds, never while a request is in flight; reaping runs
+    whenever a session is created or /healthz is read, so capacity recovers without a
+    service restart. A reaped session answers 404 -> the client raises SessionExpiredError
+    and segd reconnects (CaseState.model_prompt)."""
     app = FastAPI(title="sammed3d", version=SERVICE_VERSION)
     st = {"sessions": {}, "glock": threading.Lock(),
           "model_lock": threading.Lock(), "max_sessions": max_sessions,
-          "predictor": predictor, "info": dict(model_info or {})}
+          "predictor": predictor, "info": dict(model_info or {}),
+          "session_ttl_s": float(session_ttl_s), "clock": clock, "reaped_total": 0}
     app.state.sammed3d = st
 
-    def _resolve(request: Request) -> SamSession:
+    def _reap_locked() -> int:
+        """Drop idle sessions; caller holds st['glock']. Returns the number reaped."""
+        now = st["clock"]()
+        dead = [sid for sid, sess in st["sessions"].items()
+                if sess.busy == 0 and now - sess.last_active > st["session_ttl_s"]]
+        for sid in dead:
+            del st["sessions"][sid]
+        st["reaped_total"] += len(dead)
+        return len(dead)
+
+    def _active_session(request: Request):
+        """Dependency: the request's session, marked in flight for the whole request
+        (looked up and marked under the same lock the reaper uses)."""
         sid = request.headers.get("x-sam-session")
         if not sid:
             raise HTTPException(status_code=400, detail="missing X-Sam-Session header")
-        sess = st["sessions"].get(sid)
-        if sess is None:
-            raise HTTPException(status_code=404, detail="unknown session")
-        return sess
+        with st["glock"]:
+            sess = st["sessions"].get(sid)
+            if sess is None:
+                raise HTTPException(status_code=404, detail="unknown session")
+            sess.begin()
+        try:
+            yield sess
+        finally:
+            with st["glock"]:
+                sess.end()
 
     @app.get("/healthz")
     def healthz() -> dict:
-        return {"ok": True, "service": "sammed3d", "version": SERVICE_VERSION, **st["info"]}
+        with st["glock"]:
+            _reap_locked()
+            now = st["clock"]()
+            ages = [now - s_.created_at for s_ in st["sessions"].values()]
+            idle = [now - s_.last_active for s_ in st["sessions"].values()]
+            sessions = {"count": len(ages), "max": st["max_sessions"],
+                        "busy": sum(1 for s_ in st["sessions"].values() if s_.busy > 0),
+                        "oldest_age_s": round(max(ages), 1) if ages else 0.0,
+                        "max_idle_s": round(max(idle), 1) if idle else 0.0,
+                        "ttl_s": st["session_ttl_s"], "reaped_total": st["reaped_total"]}
+        return {"ok": True, "service": "sammed3d", "version": SERVICE_VERSION,
+                "sessions": sessions, **st["info"]}
 
     @app.post("/sessions")
     def create_session() -> dict:
         with st["glock"]:
             if len(st["sessions"]) >= st["max_sessions"]:
+                _reap_locked()
+            if len(st["sessions"]) >= st["max_sessions"]:
                 raise HTTPException(status_code=503, detail="server is at capacity")
             sid = uuid.uuid4().hex
-            st["sessions"][sid] = SamSession(sid, st["predictor"], st["model_lock"])
+            st["sessions"][sid] = SamSession(sid, st["predictor"], st["model_lock"],
+                                             st["clock"])
         return {"session_id": sid}
 
     @app.delete("/sessions/{sid}")
@@ -414,37 +477,32 @@ def create_app(predictor, max_sessions: int = 8, model_info: Optional[dict] = No
         }
 
     @app.post("/set_image")
-    async def set_image(request: Request) -> dict:
-        sess = _resolve(request)
+    async def set_image(request: Request, sess: SamSession = Depends(_active_session)) -> dict:
         meta = json.loads(request.headers.get(_client.META_HEADER, "{}"))
         image = _client.decode_npy(await request.body())
         return await run_in_threadpool(sess.set_image, image, meta.get("image_properties") or {})
 
     @app.post("/set_target_buffer")
-    async def set_target_buffer(request: Request) -> dict:
-        sess = _resolve(request)
+    async def set_target_buffer(request: Request, sess: SamSession = Depends(_active_session)) -> dict:
         body = await request.json()
         return sess.set_target_buffer(body.get("shape") or (), body.get("dtype") or "uint8")
 
     @app.post("/set_do_autozoom")
-    async def set_do_autozoom(request: Request) -> dict:
-        _resolve(request)
+    async def set_do_autozoom(sess: SamSession = Depends(_active_session)) -> dict:
         return {"ok": True}          # the service always places its own patches
 
     @app.post("/reset_interactions")
-    def reset_interactions(request: Request) -> Response:
-        return _respond(_resolve(request).reset_interactions())
+    def reset_interactions(sess: SamSession = Depends(_active_session)) -> Response:
+        return _respond(sess.reset_interactions())
 
     @app.post("/predict")
-    def predict(request: Request) -> Response:
-        sess = _resolve(request)
+    def predict(request: Request, sess: SamSession = Depends(_active_session)) -> Response:
         with sess.model_lock:
             out = sess._predict("predict")
         return _respond(out)
 
     @app.post("/add_point_interaction")
-    async def add_point_interaction(request: Request) -> Response:
-        sess = _resolve(request)
+    async def add_point_interaction(request: Request, sess: SamSession = Depends(_active_session)) -> Response:
         body = await request.json()
         out = await run_in_threadpool(
             sess.add_point_interaction, body["coordinates"],
@@ -453,8 +511,7 @@ def create_app(predictor, max_sessions: int = 8, model_info: Optional[dict] = No
         return _respond(out)
 
     @app.post("/add_bbox_interaction")
-    async def add_bbox_interaction(request: Request) -> Response:
-        sess = _resolve(request)
+    async def add_bbox_interaction(request: Request, sess: SamSession = Depends(_active_session)) -> Response:
         body = await request.json()
         out = await run_in_threadpool(
             sess.add_bbox_interaction, body["bbox_coords"],
@@ -463,8 +520,7 @@ def create_app(predictor, max_sessions: int = 8, model_info: Optional[dict] = No
         return _respond(out)
 
     def _register_drawn(op_name: str, mode: Optional[str] = None) -> None:
-        async def handler(request: Request) -> Response:
-            sess = _resolve(request)
+        async def handler(request: Request, sess: SamSession = Depends(_active_session)) -> Response:
             meta = json.loads(request.headers.get(_client.META_HEADER, "{}"))
             drawn = _client.decode_npy(await request.body()).astype(np.uint8)
             if op_name == "add_initial_seg_interaction":
@@ -508,6 +564,10 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--fake", action="store_true",
                         help="deterministic numpy stand-in (no torch); for offline tests")
+    parser.add_argument("--session-ttl", type=float, default=DEFAULT_SESSION_TTL_S,
+                        help="idle seconds after which an abandoned session is reaped "
+                             f"(default {DEFAULT_SESSION_TTL_S:.0f}); in-flight requests are never reaped")
+    parser.add_argument("--max-sessions", type=int, default=8)
     parser.add_argument("--checkpoint", default=None,
                         help="path to sam_med3d_turbo.pth (default: the project cache)")
     args = parser.parse_args()
@@ -521,7 +581,8 @@ def main() -> None:
         predictor = SamMed3DEngine(args.checkpoint)
         info = predictor.info
     import uvicorn
-    uvicorn.run(create_app(predictor, model_info=info), host=args.host,
+    uvicorn.run(create_app(predictor, max_sessions=args.max_sessions, model_info=info,
+                            session_ttl_s=args.session_ttl), host=args.host,
                 port=args.port, log_level="info")
 
 

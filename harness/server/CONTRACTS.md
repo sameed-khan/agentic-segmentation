@@ -263,22 +263,27 @@ segmenter behind `CaseState.nni` changes. Full write-up: `research/phase6_sammed
   call it recomputes the 3D mask from ALL accumulated points and the previous prediction's low-res
   mask (the official iterative-clicking semantics); prompts sent with `run_prediction=False` only
   accumulate. `reset_interactions` clears points and the previous mask; `add_initial_seg` makes the
-  given mask the previous-mask prompt (+ one EDT-max interior positive point if there are no points).
+  given mask the previous-mask prompt AND, like nnInteractive's `add_initial_seg_interaction` ("WARNING THIS
+  WILL RESET INTERACTIONS"), drops all earlier points and the first-positive anchor; a predicting initial seg
+  (`seg_refine`) adds one EDT-max interior positive point as the window seed (the state-only sync call adds none).
 - **Preprocessing / patches** (official `utils/infer_utils.py`, minus ground truth): resample to 1.5 mm
   (linear), per-patch `ZNormalization` over x>0, 128³ patches, logits upsampled trilinear, sigmoid>0.5,
   nearest-neighbour map back to the session grid. GT is NEVER used for patch placement: the first patch
   is centred on the first positive prompt; later patches cover bbox(positive points ∪ current mask);
   a box exceeding 128 model voxels (192 mm) on an axis is tiled (~25 % overlap, ±16-voxel margin, cap 27
   patches, the cap/coarsening is logged), each patch gets the prompt points inside it and its slice of
-  the previous mask as the 32³ low-res mask prompt; logits are averaged in overlaps.
+  the previous mask as the 32³ low-res mask prompt (a tile is skipped only when it has no point AND no
+  high-res previous-mask foreground; the pooled prompt's sign is irrelevant); logits are averaged in overlaps.
+  Mapping back to the session grid follows ITK/TorchIO nearest-neighbour rules (half-voxel support, round half
+  up; exact-half ties are floating-point dependent in ITK: ≤1 model voxel).
 - **Mapping** (logged per call in the response and stored in the trajectory record as
   `segmenter_interactions`: one entry per prompt call since the previous prediction with
   `mapped_points` = `[[i, j, k, label], ...]` in session voxels, then a summary entry with
   `patches_used`, `windows_model_vox`, `n_points_total`, `patch_note`): point → native point
-  (label 1/0); bbox → centre + 4 quarter points of the box slice (label per include flag; a 3D box →
+  (label 1/0); bbox → centre + 4 quarter points of the box slice (label per include flag; the singleton fixed axis of a 2D box is the slice voxel index itself; a 3D box →
   centre + 8); lasso → ≤5 deterministic farthest-point samples inside the filled contour (first = EDT
   max); scribble → ≤5 deterministic evenly spaced samples along the stroke; initial_seg/refine →
-  the mask as low-res mask prompt (+ EDT-max interior point if no points yet). Deterministic, no
+  the mask as low-res mask prompt (+ EDT-max interior point for the predicting call). Deterministic, no
   test-time tuning.
 - **Documented deviations from the official pipeline**: patch placement from prompts instead of the GT
   bbox centre (required: no GT); windows near the volume edge are zero-padded, not shifted (as the
@@ -288,3 +293,11 @@ segmenter behind `CaseState.nni` changes. Full write-up: `research/phase6_sammed
 - Not swapped: the candidate generator's optional `probe` method (unused; `config.CANDIDATE_METHOD`
   is `intensity`) still talks to nnInteractive; the system prompt text still says "nnInteractive"
   (kept verbatim for apples-to-apples).
+- **Service sessions (Phase 6 review fixes).** A session idle for `--session-ttl` seconds (default 3600) is
+  reaped — never while a request is in flight — whenever a session is created or `/healthz` is read, so
+  capacity recovers after a segd crash without restarting the service; an expired session answers 404 →
+  `SessionExpiredError` → segd's reconnect-once rule. `/healthz` reports `sessions: {count, max, busy,
+  oldest_age_s, max_idle_s, ttl_s, reaped_total}`.
+- **Identity test baseline.** `tests/test_p6_default_identity.py` compares the worktree's default segmenter with
+  a PINNED pre-Phase-6 segd (`tests/fixtures/segd_baseline`, `git archive 1dcc622`, sha256 manifest verified)
+  or `SEGD_BASELINE_SRC`; it skips explicitly (never self-compares) when neither exists.

@@ -57,18 +57,42 @@ def resampled_shape(session_shape, spacing, target: float = TARGET_SPACING_MM) -
     return tuple(int(n) for n in transform_params(session_shape, spacing, target)[1])
 
 
+def _axis_coords(n_out: int, n_in: int, scale: float, offset: float) -> np.ndarray:
+    """1-D continuous input index of every output voxel centre: ``i * scale + offset``."""
+    return np.arange(n_out, dtype=np.float64) * scale + offset
+
+
+def _support_mask(coords_1d, n_in: int) -> np.ndarray:
+    """ITK buffer support of a continuous index: [-0.5, n_in - 0.5) (a sample inside the
+    outer half voxel of the edge voxel is inside the image; anything else is outside)."""
+    return (coords_1d >= -0.5) & (coords_1d < n_in - 0.5)
+
+
+def _outer_and(masks) -> np.ndarray:
+    return masks[0][:, None, None] & masks[1][None, :, None] & masks[2][None, None, :]
+
+
 def resample_np(image: np.ndarray, spacing, target: float = TARGET_SPACING_MM) -> np.ndarray:
     """Resample to ``target`` mm isotropic, linear interpolation, centred grid.
 
-    Reimplements torchio ``Resample.get_reference_image`` (verified bit-identical for
-    identity-direction data by test_geometry.py); out-of-volume samples are 0.
+    Reimplements torchio ``Resample`` (SimpleITK linear resampling) for identity-direction
+    data, including ITK's edge rules (verified equal to torchio by test_geometry.py,
+    also for spacing > target): an output voxel whose centre falls in the outer half voxel
+    of the image is inside the image and takes the interpolation at the clamped edge;
+    centres beyond that are the default value 0.
     """
     image = np.ascontiguousarray(image, dtype=np.float32)
     new_origin, new_size = transform_params(image.shape, spacing, target)
-    coords = (np.indices(tuple(new_size), dtype=np.float64) * target
-              + new_origin[:, None, None, None]) / np.asarray(spacing, dtype=float)[:, None, None, None]
-    out = map_coordinates(image, coords.reshape(3, -1), order=1, mode="constant", cval=0.0)
-    return out.reshape(tuple(new_size)).astype(np.float32)
+    sp = np.asarray(spacing, dtype=float)
+    axes = [_axis_coords(int(new_size[a]), image.shape[a], target / sp[a],
+                         new_origin[a] / sp[a]) for a in range(3)]
+    valid = _outer_and([_support_mask(c, image.shape[a]) for a, c in enumerate(axes)])
+    clipped = [np.clip(c, 0.0, image.shape[a] - 1.0) for a, c in enumerate(axes)]
+    coords = np.stack(np.meshgrid(*clipped, indexing="ij"), axis=0)
+    out = map_coordinates(image, coords.reshape(3, -1), order=1, mode="nearest")
+    out = out.reshape(tuple(new_size)).astype(np.float32)
+    out[~valid] = 0.0
+    return out
 
 
 def session_to_model(p, session_shape, spacing, target: float = TARGET_SPACING_MM) -> np.ndarray:
@@ -322,6 +346,24 @@ def mask_prompt_for_window(prev_state, window) -> np.ndarray:
     return prob_to_logits(block_mean_to_32(patch))
 
 
+def prev_mask_in_window(prev_state, window) -> bool:
+    """True iff the HIGH-RES previous mask (prob > 0.5 in the previous state) has any
+    foreground voxel inside ``window``. Independent of the pooled/logit mask prompt: a
+    thin mask can pool to all-negative logits yet still be foreground that a tile must
+    condition on (and keep in the stitched output)."""
+    if prev_state is None:
+        return False
+    prev_lo = np.asarray(prev_state[0], dtype=int)
+    prev_prob = prev_state[1]
+    w_lo, w_hi = (np.asarray(w, dtype=int) for w in window)
+    lo = np.maximum(w_lo, prev_lo)
+    hi = np.minimum(w_hi, prev_lo + np.asarray(prev_prob.shape, dtype=int))
+    if np.any(lo >= hi):
+        return False
+    src = tuple(slice(int(l - prev_lo[i]), int(h - prev_lo[i])) for i, (l, h) in enumerate(zip(lo, hi)))
+    return bool((np.asarray(prev_prob[src]) > 0.5).any())
+
+
 # ------------------------------------------------------------------ stitching
 def stitch_logits(patch_logits: list, model_shape) -> tuple:
     """Average the per-patch LOGITS in overlaps (spec); sigmoid/threshold happens on
@@ -349,59 +391,63 @@ def stitch_logits(patch_logits: list, model_shape) -> tuple:
 
 
 # ------------------------------------------------------- grid mapping (back)
-def _grid_session_to_model(session_shape, spacing, target: float = TARGET_SPACING_MM) -> np.ndarray:
-    """Coordinates (3, I, J, K) of every session voxel in model space (float)."""
-    new_origin, _size = transform_params(session_shape, spacing, target)
-    return (np.indices(tuple(session_shape), dtype=np.float64)
-            * np.asarray(spacing, dtype=np.float64)[:, None, None, None]
-            - new_origin[:, None, None, None]) / target
-
-
-def _grid_model_to_session(model_shape, session_shape, spacing,
-                           target: float = TARGET_SPACING_MM) -> np.ndarray:
-    """Coordinates (3, D, H, W) of every model voxel in session space (float)."""
-    new_origin, _size = transform_params(session_shape, spacing, target)
-    return (np.indices(tuple(model_shape), dtype=np.float64) * target
-            + new_origin[:, None, None, None]) \
-        / np.asarray(spacing, dtype=np.float64)[:, None, None, None]
+def _nearest_map(src: np.ndarray, out_shape, scale, offset) -> np.ndarray:
+    """Nearest-neighbour resampling of ``src`` onto a grid whose voxel ``i`` (per axis)
+    samples source continuous index ``i * scale + offset``; ITK/TorchIO rules: rounding
+    half up, support = the half-voxel extent of the source, zero outside. Separable, so
+    no dense coordinate grids are allocated."""
+    idx, ok = [], []
+    for a in range(3):
+        c = _axis_coords(int(out_shape[a]), src.shape[a], float(scale[a]), float(offset[a]))
+        ok.append(_support_mask(c, src.shape[a]))
+        idx.append(np.clip(np.floor(c + 0.5).astype(np.int64), 0, src.shape[a] - 1))
+    out = np.asarray(src)[np.ix_(*idx)]
+    out = out.copy() if out.base is not None else out
+    out[~_outer_and(ok)] = 0
+    return out
 
 
 def map_binary_model_to_session(binary_model: np.ndarray, spacing, session_shape) -> np.ndarray:
     """Binary model-space mask -> session-space uint8 mask (official
-    ``data_postprocess``: nearest-neighbour resampling of the binary mask)."""
-    m = np.asarray(binary_model, dtype=np.float32)
-    out = map_coordinates(m, _grid_session_to_model(session_shape, spacing),
-                          order=0, mode="constant", cval=0.0)
-    return (out > 0).astype(np.uint8).reshape(tuple(session_shape))
+    ``data_postprocess``: ITK nearest-neighbour resampling of the binary mask)."""
+    new_origin, _size = transform_params(session_shape, spacing)
+    sp = np.asarray(spacing, dtype=np.float64)
+    # session voxel i (mm i*sp) -> model continuous index (i*sp - origin) / target
+    out = _nearest_map(np.asarray(binary_model, dtype=np.uint8), session_shape,
+                       sp / TARGET_SPACING_MM, -new_origin / TARGET_SPACING_MM)
+    return (out > 0).astype(np.uint8)
 
 
 def map_mask_session_to_model(mask_session: np.ndarray, spacing, model_shape) -> np.ndarray:
     """Binary session-space mask -> model-space float mask (nearest, official label
     handling; a mask given by the harness becomes the previous-state probability map)."""
-    m = np.asarray(mask_session, dtype=np.float32)
-    out = map_coordinates(m, _grid_model_to_session(model_shape, m.shape, spacing),
-                          order=0, mode="constant", cval=0.0)
-    return out.reshape(tuple(model_shape))
+    m = np.asarray(mask_session, dtype=np.uint8)
+    new_origin, _size = transform_params(m.shape, spacing)
+    sp = np.asarray(spacing, dtype=np.float64)
+    out = _nearest_map(m, model_shape, TARGET_SPACING_MM / sp, new_origin / sp)
+    return out.astype(np.float32)
 
 
 # --------------------------------------------------------- prompt point maps
 def bbox_quarter_points(bbox_lohi, include: bool) -> list[tuple]:
     """A box prompt -> native SAM-Med3D points: the box centre plus one point at each
     quarter position (0.25/0.75 of the extent per axis with extent > 1; a size-1 axis
-    of a 2D box contributes its single voxel centre). All points carry the box's
+    of a 2D box contributes its slice voxel index itself). All points carry the box's
     include label (spec: positive/negative per include flag). A 2D box -> 5 points,
     a 3D box -> 9. Coordinates are half-open-bbox space (callers translate)."""
     lo, hi = (np.asarray(v, dtype=np.float64) for v in bbox_lohi)
     ext = hi - lo
-    levels = []
-    for e in ext:
-        levels.append([0.5] if e <= 1.0 else [0.25, 0.75])
-    centre = lo + np.array([0.5, 0.5, 0.5]) * ext
+    # an axis of extent <= 1 voxel is the slice the box was drawn on (half-open [s, s+1)
+    # or a zero-width [s, s]): its points sit ON voxel s, like point/lasso/scribble prompts
+    flat = ext <= 1.0
+    levels = [[0.0] if f else [0.25, 0.75] for f in flat]
+    centre = lo + np.where(flat, 0.0, 0.5) * ext
     pts = [centre]
     for fracs in product(*levels):
-        if all(f == 0.5 for f in fracs):
+        p = lo + np.asarray(fracs) * ext
+        if np.allclose(p, centre):
             continue                                     # that is the centre point
-        pts.append(lo + np.asarray(fracs) * ext)
+        pts.append(p)
     return [(tuple(float(v) for v in p), 1 if include else 0) for p in pts]
 
 

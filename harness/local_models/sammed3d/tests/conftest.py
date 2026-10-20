@@ -33,8 +33,8 @@ def lesion_centre(lesion: np.ndarray) -> tuple:
 class _FakeService:
     """A fake-mode sammed3d service on a random localhost port (real HTTP, no torch)."""
 
-    def __init__(self):
-        self.app = service.create_app(service.FakePatchPredictor())
+    def __init__(self, predictor=None, **app_kwargs):
+        self.app = service.create_app(predictor or service.FakePatchPredictor(), **app_kwargs)
         config = uvicorn.Config(self.app, host="127.0.0.1", port=0, log_level="error")
         self.server = uvicorn.Server(config)
         self.thread = threading.Thread(target=self.server.run, daemon=True)
@@ -58,11 +58,12 @@ class _FakeService:
         return f"http://127.0.0.1:{self.port}"
 
 
-def make_fake_session(monkeypatch, img, spacing=(1.0, 1.0, 1.0), shape=None):
+def make_fake_session(monkeypatch, img, spacing=(1.0, 1.0, 1.0), shape=None, predictor=None,
+                      **app_kwargs):
     """A SamMed3DSession against a fresh fake service on a random port; set_image /
     set_target_buffer done, ready for interactions. Caller must close() it (which only
     closes the session; the server thread is a daemon and dies with the process)."""
-    svc = _FakeService()
+    svc = _FakeService(predictor, **app_kwargs)
     svc.__enter__()
     sess = client.SamMed3DSession(svc.url)
     sess._fake_service = svc        # keep the server thread referenced (daemon anyway)

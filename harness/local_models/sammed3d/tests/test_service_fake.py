@@ -4,10 +4,12 @@ endpoint, full-mask responses, mapping log, determinism, accumulation, reset, cl
 and session-expiry behaviour."""
 from __future__ import annotations
 
+import threading
+
 import numpy as np
 import pytest
 
-from sammed3d import client
+from sammed3d import client, service
 from conftest import lesion_centre, make_fake_session, make_phantom
 
 
@@ -259,3 +261,89 @@ def test_first_patch_is_centred_on_the_first_positive_in_model_space(sess_factor
     seed_model = [c / 1.5 - 0.0 for c in p]                         # ~ (100, 66.7, 40)
     for a in range(3):
         assert abs((lo[a] + hi[a]) / 2.0 - seed_model[a]) < 1.5
+
+
+def test_box_on_a_slice_registers_points_on_that_slice(sess_factory, phantom):
+    img, lesion, _body = phantom
+    c = lesion_centre(lesion)
+    sess = sess_factory(img)
+    sess.add_bbox_interaction([(c[0] - 6, c[0] + 7), (c[1] - 6, c[1] + 7), (c[2], c[2] + 1)], True)
+    mapped = sess.last_interactions[0]["mapped_points"]
+    assert len(mapped) == 5 and all(m[2] == float(c[2]) for m in mapped)
+
+
+class _SpyPredictor(service.FakePatchPredictor):
+    """FakePatchPredictor that records every patch call (points, labels, mask prompt)."""
+
+    def __init__(self, logit: float = None):
+        self.calls = []
+        self.logit = logit
+
+    def predict_patch(self, patch_img, points_local, labels, mask_prompt):
+        self.calls.append({"points": np.asarray(points_local).copy(),
+                           "labels": np.asarray(labels).copy(),
+                           "prompt": np.asarray(mask_prompt).copy()})
+        if self.logit is not None:
+            lo = np.full((32, 32, 32), self.logit, dtype=np.float32)
+            return np.repeat(np.repeat(np.repeat(lo, 4, 0), 4, 1), 4, 2), lo
+        return super().predict_patch(patch_img, points_local, labels, mask_prompt)
+
+
+def test_initial_seg_resets_clicks_like_nninteractive(monkeypatch, phantom):
+    """seg_refine = add_initial_seg(mask, run_prediction=True): earlier clicks and the
+    first-positive anchor are dropped (nnInteractive 'WARNING THIS WILL RESET
+    INTERACTIONS'); a session with a click history and a fresh session given the same
+    mask must refine from identical inputs."""
+    img, lesion, _body = phantom
+    c = lesion_centre(lesion)
+    seg = lesion.astype(np.uint8)
+    spy_a, spy_b = _SpyPredictor(), _SpyPredictor()
+    a, _ = make_fake_session(monkeypatch, img, predictor=spy_a)
+    a.add_point_interaction((c[0] + 20, c[1] + 15, c[2]), True)       # clicks the refine must forget
+    a.add_point_interaction((c[0] - 20, c[1], c[2]), True)
+    a.add_point_interaction((c[0], c[1] - 15, c[2]), False)
+    a.add_initial_seg_interaction(seg, run_prediction=True)
+    b, _ = make_fake_session(monkeypatch, img, predictor=spy_b)
+    b.add_initial_seg_interaction(seg, run_prediction=True)
+    sa, sb = a.last_interactions[-1], b.last_interactions[-1]
+    assert sa["n_points_total"] == sb["n_points_total"] == 1          # only the interior seed
+    assert sa["windows_model_vox"] == sb["windows_model_vox"]
+    ca, cb = spy_a.calls[-1], spy_b.calls[-1]
+    assert np.array_equal(ca["points"], cb["points"]) and np.array_equal(ca["labels"], cb["labels"])
+    assert np.array_equal(ca["prompt"], cb["prompt"])
+    assert (a.target_buffer == b.target_buffer).all()
+    log = [e for e in a.last_interactions if e.get("op") == "initial_seg"][0]
+    assert log["points_reset"] == 3
+    # the state-only call (sync rule) also resets, adds no seed, and a following click
+    # anchors the window exactly like on a fresh session
+    spy_c, spy_d = _SpyPredictor(), _SpyPredictor()
+    cc, _ = make_fake_session(monkeypatch, img, predictor=spy_c)
+    cc.add_point_interaction((c[0] + 20, c[1] + 15, c[2]), True)
+    cc.add_initial_seg_interaction(seg, run_prediction=False)
+    cc.add_point_interaction(c, True)
+    dd, _ = make_fake_session(monkeypatch, img, predictor=spy_d)
+    dd.add_initial_seg_interaction(seg, run_prediction=False)
+    dd.add_point_interaction(c, True)
+    assert cc.last_interactions[-1]["windows_model_vox"] == dd.last_interactions[-1]["windows_model_vox"]
+    assert (cc.target_buffer == dd.target_buffer).all()
+
+
+def test_thin_mask_only_tiles_are_not_skipped():
+    """A long 1-voxel-thick previous mask pools to all-negative logits in every 4^3 block;
+    every tile that contains foreground must still run (the skip test uses the high-res
+    mask), otherwise the stitched full-mask response silently drops those regions."""
+    spy = _SpyPredictor(logit=-1.0)                    # model says 'background' everywhere
+    sess = service.SamSession("t", spy, threading.Lock())
+    img = np.full((460, 40, 40), 300.0, dtype=np.float32)
+    sess.set_image(img[None].astype(np.float16), {"spacing": [1.0, 1.0, 1.0]})
+    sess.set_target_buffer(img.shape, "uint8")
+    tube = np.zeros(img.shape, dtype=np.uint8)
+    tube[30:430, 20, 20] = 1                           # 400 mm long, one voxel thick
+    out = sess.add_initial_seg_interaction(tube, True, False)
+    meta, _bytes = out
+    n_windows = len(meta["patches"]["tiles"] and meta["interactions"][-1]["windows_model_vox"])
+    assert n_windows >= 3
+    assert len(spy.calls) == n_windows                 # no tile skipped
+    assert meta["interactions"][-1]["patches_skipped"] == 0
+    # pooled prompts really are all-negative in the tiles away from the seed
+    assert any(not (c["prompt"] > 0).any() for c in spy.calls)

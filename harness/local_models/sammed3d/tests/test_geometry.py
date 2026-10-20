@@ -26,6 +26,93 @@ def test_resample_matches_torchio_exactly():
             f"torchio vs scipy mismatch for {shape} (maxdiff {np.abs(out_t - out_n).max()})"
 
 
+def _tio_label_resample(mask, src_affine, target_img_shape, target_affine):
+    torchio = pytest.importorskip("torchio")
+    import torch
+    src = torchio.LabelMap(tensor=torch.from_numpy(np.asarray(mask, dtype=np.float32))[None],
+                           affine=src_affine)
+    ref = torchio.ScalarImage(tensor=torch.zeros((1,) + tuple(target_img_shape)),
+                              affine=target_affine)
+    return torchio.Resample(target=ref, image_interpolation="nearest")(src).data[0].numpy()
+
+
+def _model_affine(session_shape, spacing):
+    origin, _size = geometry.transform_params(session_shape, spacing)
+    aff = np.diag([geometry.TARGET_SPACING_MM] * 3 + [1.0])
+    aff[:3, 3] = origin                       # session voxel 0 sits at 0 mm
+    return aff
+
+
+def _tie_voxels(sess, sp) -> np.ndarray:
+    """Session voxels whose model-grid continuous index is exactly x.5 on some axis: ITK's
+    rounding there depends on floating-point noise of its physical-point arithmetic (it
+    differs per axis), so equality with TorchIO is only asserted off these voxels (a
+    documented <= 1 model voxel tie-break difference; ours rounds half up)."""
+    origin, _ = geometry.transform_params(sess, sp)
+    ties = []
+    for a in range(3):
+        c = (np.arange(sess[a]) * sp[a] - origin[a]) / geometry.TARGET_SPACING_MM
+        ties.append(np.abs((c + 0.5) - np.round(c + 0.5)) < 1e-9)
+    return ties[0][:, None, None] | ties[1][None, :, None] | ties[2][None, None, :]
+
+
+def _model_tie_voxels(sess, sp, model_shape) -> np.ndarray:
+    origin, _ = geometry.transform_params(sess, sp)
+    ties = []
+    for a in range(3):
+        c = (np.arange(model_shape[a]) * geometry.TARGET_SPACING_MM + origin[a]) / sp[a]
+        ties.append(np.abs((c + 0.5) - np.round(c + 0.5)) < 1e-9)
+    return ties[0][:, None, None] | ties[1][None, :, None] | ties[2][None, None, :]
+
+
+def test_resample_matches_torchio_for_coarse_spacing_and_edge_voxels():
+    """Spacing > 1.5 mm puts the first/last model voxel centres in the OUTER half voxel of
+    the image: ITK treats them as inside (clamped edge value), not as zeros."""
+    torchio = pytest.importorskip("torchio")
+    import torch
+    rng = np.random.default_rng(3)
+    for shape, sp in [((10, 12, 9), (3.0, 3.0, 3.0)), ((10, 12, 9), (2.0, 2.5, 4.0)),
+                      ((7, 8, 6), (1.6, 1.6, 1.6))]:
+        img = rng.random(shape).astype(np.float32) + 1.0
+        s = torchio.ScalarImage(tensor=torch.from_numpy(img)[None],
+                                affine=np.diag(list(sp) + [1.0]))
+        ref = torchio.Resample(target=1.5)(s).data[0].numpy()
+        ours = geometry.resample_np(img, sp)
+        assert ours.shape == ref.shape
+        assert np.allclose(ours, ref, rtol=0, atol=1e-5), (shape, sp, np.abs(ours - ref).max())
+        assert (ours > 0).all()               # nothing at the border was zeroed
+
+
+def test_back_mapping_matches_torchio_nearest_including_boundary_voxels():
+    rng = np.random.default_rng(5)
+    # the reviewer's case: 6^3 session at 1 mm -> 4^3 model grid, origin 0.25 mm
+    for sess, sp in [((6, 6, 6), (1.0, 1.0, 1.0)), ((31, 40, 27), (1.0, 1.0, 1.0)),
+                     ((20, 17, 30), (1.0, 1.0, 2.0)), ((9, 11, 8), (3.0, 3.0, 3.0))]:
+        model_shape = geometry.resampled_shape(sess, sp)
+        for model in (np.ones(model_shape, dtype=bool),
+                      rng.random(model_shape) > 0.5):
+            ref = _tio_label_resample(model, _model_affine(sess, sp), sess, np.diag(list(sp) + [1.0]))
+            ours = geometry.map_binary_model_to_session(model, sp, sess)
+            assert ours.shape == tuple(sess)
+            tie = _tie_voxels(sess, sp)
+            assert (ours[~tie] == (ref > 0)[~tie]).all(), (sess, sp, int((ours != (ref > 0))[~tie].sum()))
+    ones = geometry.map_binary_model_to_session(
+        np.ones(geometry.resampled_shape((6, 6, 6), (1.0,) * 3), dtype=bool), (1.0,) * 3, (6, 6, 6))
+    assert ones.all()                         # an all-ones model mask loses no outer face
+
+
+def test_session_mask_to_model_matches_torchio_nearest():
+    rng = np.random.default_rng(6)
+    for sess, sp in [((31, 40, 27), (1.0, 1.0, 1.0)), ((9, 11, 8), (3.0, 3.0, 3.0))]:
+        mask = rng.random(sess) > 0.5
+        model_shape = geometry.resampled_shape(sess, sp)
+        ref = _tio_label_resample(mask, np.diag(list(sp) + [1.0]), model_shape,
+                                  _model_affine(sess, sp))
+        ours = geometry.map_mask_session_to_model(mask, sp, model_shape)
+        tie = _model_tie_voxels(sess, sp, model_shape)
+        assert ((ours > 0) == (ref > 0))[~tie].all()
+
+
 def test_znorm_matches_torchio_semantics():
     # official: tio.ZNormalization(masking_method=lambda x: x > 0) — mean/sample-std
     # over x>0, applied to ALL voxels
@@ -260,3 +347,13 @@ def test_tiled_windows_centre_short_axes_on_the_seed_and_pad_long_axes():
         assert abs((lo[1] + hi[1]) / 2 - 100.5) <= 1.0 and abs((lo[2] + hi[2]) / 2 - 60.5) <= 1.0
     assert min(int(w[0][0]) for w in windows) == 40 - geometry.TILE_MARGIN_VOX
     assert max(int(w[1][0]) for w in windows) >= 340 + geometry.TILE_MARGIN_VOX
+
+
+def test_bbox_points_of_a_size_one_slice_box_sit_on_the_slice_voxel():
+    # the harness sends the fixed axis as the half-open [slice, slice+1) (ops.op_box)
+    pts = geometry.bbox_quarter_points((np.array([10, 10, 7]), np.array([110, 110, 8])), True)
+    assert len(pts) == 5
+    assert all(p[2] == 7.0 for p, _lab in pts)                # not 7.5
+    pts3 = geometry.bbox_quarter_points((np.array([4, 10, 20]), np.array([5, 110, 120])), False)
+    assert len(pts3) == 5 and all(p[0] == 4.0 for p, _lab in pts3)
+    assert all(lab == 0 for _p, lab in pts3)

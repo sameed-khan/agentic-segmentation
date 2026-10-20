@@ -62,7 +62,7 @@ ROI by 5e-7 (resample 1e-4 before z-norm); the official click gives Dice 0.667 v
   overlap) before any tile is dropped; if even that exceeds 27, the tiles farthest from the first positive
   are dropped; both are written to `patch_note` in the log.
 * Each patch gets the prompt points inside it + its 32³ slice of the previous mask. A tile with neither
-  (no point inside, empty previous mask) is skipped and logged. Logits of overlapping patches are averaged;
+  (no point inside, no high-res previous-mask foreground in the window) is skipped and logged. Logits of overlapping patches are averaged;
   threshold at 0.5 after averaging.
 
 ## 4. Prompt mapping (harness → SAM-Med3D)
@@ -70,10 +70,10 @@ ROI by 5e-7 (resample 1e-4 before z-norm); the official click gives Dice 0.667 v
 | Harness call | SAM-Med3D prompt | Fidelity |
 |---|---|---|
 | `seg_point` add/erase (n marks) | n native points, label 1/0; one prediction after the last | native |
-| `seg_box` (2D box on the active slice, include flag) | centre + 4 quarter points (0.25/0.75 of each in-plane extent) on the slice, all with the include label (3D box would be centre + 8) | emulated, lossy |
+| `seg_box` (2D box on the active slice, include flag) | centre + 4 quarter points (0.25/0.75 of each in-plane extent) on the slice voxel, all with the include label (3D box would be centre + 8) | emulated, lossy |
 | `seg_lasso` | filled contour → ≤5 deterministic farthest-point samples (start at the EDT maximum), label per polarity | emulated, lossy |
 | `seg_scribble` | ≤5 deterministic evenly spaced samples along the 1-voxel stroke (BFS order from the lexicographically smallest endpoint) | emulated, lossy |
-| `seg_refine` / sync rule (initial seg) | the mask → low-res mask prompt for the patches; if there are no points yet, one positive point at the EDT maximum of the mask (refine only; the sync rule makes no prediction) | emulated |
+| `seg_refine` / sync rule (initial seg) | resets all earlier points and the first-positive anchor (nnInteractive semantics); the mask → low-res mask prompt for the patches; `seg_refine` (predicting) adds one positive point at the EDT maximum of the mask as window seed, the state-only sync call adds none | emulated |
 | `seg_paint`, `seg_edit`, undo/checkout, accept | no model call; mask changes set `nni_dirty`, the next prompt does `reset_interactions()` + initial seg as for nnInteractive | external |
 
 The service returns, and segd stores in the trajectory record (`segmenter_interactions`), the real
@@ -173,3 +173,20 @@ npx tsx run_cases.ts --cases F14,L20,M07,N26,V37 --run-id p6-sammed3d-pilot5 \
 
 For the nnInteractive control on the same 5 cases use the same command with `--segmenter nninteractive
 --nni-url http://127.0.0.1:1527 --run-id p6-nni-pilot5` (needs the nnInteractive server up).
+
+## 9. Review round 1 (commit b93e04d) — findings, fixes, tests
+
+| # | Finding | Fix | Regression test |
+|---|---|---|---|
+| 1 | `add_initial_seg` kept old clicks/first positive (nnInteractive resets: `inference_session.py` "WARNING THIS WILL RESET INTERACTIONS") | points + first_positive cleared; interior seed only for predicting calls; `points_reset` logged | `test_service_fake.py::test_initial_seg_resets_clicks_like_nninteractive` (history session ≡ fresh session: windows, points, prompt, mask) |
+| 2 | tile skipped when the pooled mask prompt had no positive logit (thin masks) | skip decided by `geometry.prev_mask_in_window` (high-res prob>0.5) | `test_thin_mask_only_tiles_are_not_skipped` (400 mm 1-voxel tube, spy predictor: every tile runs) |
+| 3 | back-mapping zeroed the outer half voxel (scipy centre-interval support); forward resample too for spacing>1.5 mm | ITK rules: support [-0.5, n-0.5), clamp inside, round half up; back-maps are separable (no dense coordinate grids) | `test_geometry.py::test_back_mapping_matches_torchio_nearest_*`, `test_session_mask_to_model_matches_torchio_nearest`, `test_resample_matches_torchio_for_coarse_spacing_and_edge_voxels` (TorchIO equality; exact-half tie voxels excluded: ITK's tie rounding is per-axis floating-point noise, ≤1 model voxel) |
+| 4 | 2D-box points at slice+0.5 | singleton axis → the slice voxel index | `test_bbox_points_of_a_size_one_slice_box_sit_on_the_slice_voxel`, `test_box_on_a_slice_registers_points_on_that_slice` |
+| 5 | identity test could self-compare / used a mutable path | pinned fixture (`git archive 1dcc622`, sha256 manifest) or `SEGD_BASELINE_SRC`; explicit skip; baseline asserted pre-Phase-6 | `test_p6_default_identity.py` |
+| 6 | abandoned sessions pinned capacity/memory | idle TTL reaper with in-flight protection; `/healthz` session count/age | `tests/test_session_expiry.py` (capacity recovery, activity refresh, in-flight survives, healthz) |
+
+**Host memory, 8 concurrent opens** (real service, 8 largest test-split images uploaded in full as float16, e.g.
+V33 441×441×372, V25 501×501×283; each opened concurrently + one point prediction; GPU process peak 2.2 GB):
+service peak RSS **8.6 GB** with the b93e04d code, **6.8 GB** after the fixes (idle 0.6–1.3 GB, 1.7 GB after the
+sessions are closed). Both far below 16 GB, so the dense-grid forward resampling was kept (back-mapping is
+already separable); segd uploads a body crop above 60 MB packed, so real sweeps are lighter still.

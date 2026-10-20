@@ -16,8 +16,15 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import score as S  # noqa: E402
+# loaded by path under a unique module name: harness/study/score.py is also importable as
+# `score`, and a single pytest session over eval/ and harness/study/ must not mix them up
+import importlib.util  # noqa: E402
+
+_spec = importlib.util.spec_from_file_location("eval_v2_score_under_test",
+                                               Path(__file__).resolve().parent / "score.py")
+S = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = S
+_spec.loader.exec_module(S)
 
 
 def sphere(shape, center, radius, spacing=(1.0, 1.0, 1.0)) -> np.ndarray:
@@ -203,6 +210,9 @@ def test_score_case_end_to_end(tmp_path=None):
     import tempfile
     tmp_path = Path(tmp_path) if tmp_path is not None else Path(tempfile.mkdtemp())
     row = S.get_case("V55")
+    if not Path(row.image_path).is_file():
+        import pytest
+        pytest.skip(f"MSTT-199 data not available at {row.image_path} (dvc pull / data symlink / SEGD_DATA_ROOT)")
     shape_ref, affine_ref, spacing = S._image_reference(row)
     gt = S.load_mask(row, affine_ref, shape_ref)
     assert gt.sum() > 0
@@ -293,5 +303,9 @@ if __name__ == "__main__":
         except Exception as e:                             # noqa: BLE001
             failed += 1
             print(f"ERROR {name}: {e!r}")
+        except BaseException as e:                         # noqa: BLE001  (pytest.skip is not an Exception)
+            if type(e).__name__ != "Skipped":
+                raise
+            print(f"SKIP {name}: {e}")
     print(f"{len(tests) - failed}/{len(tests)} passed")
     raise SystemExit(1 if failed else 0)

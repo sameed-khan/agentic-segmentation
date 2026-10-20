@@ -107,6 +107,11 @@ python harness/local_models/smoke_test.py \
 | 8094 | medgemma BF16 server (Transformers) | BF16 | ~10 GB | full-precision reference arm |
 | —    | nni (nnInteractive, untouched) | — | ~5 GB | keep running from the main tree |
 
+**Actual hardware (2026-10-20): A100 40 GB, not 80 GB** — measured idle VRAM: nni 1.0, Q4 4.3, BF16 8.9,
+GUI-Actor+verifier 10.0, Molmo2 BF16 20.6 GB (sum 44.8 GB). Services run in subsets (never GUI-Actor and Molmo2
+together); Study C = one pointer + one MedGemma + nni (Molmo2 BF16 + MedGemma BF16 + nni ≈ 35 GB fits, so no 8-bit
+arm is needed). See `research/experiment_log_p45.md` E30. The 80 GB text below is the original plan.
+
 All five coexist within 80 GB (~46 GB + activations/KV + CUDA context). Sequencing note from
 the methodology: Study A needs no nnInteractive; Study C (later, separate task) runs one local
 model at a time next to it. Measure actual `nvidia-smi` at first startup and record it.

@@ -8,7 +8,10 @@
 #     (google/medgemma-1.5-4b-it is gated; the unsloth GGUF mirror carries the same
 #     terms). Export HF_TOKEN with read access before running this script:
 #       export HF_TOKEN=hf_...
-#   - 80 GB VRAM plan (everything coexists; see research/phase5_implementation.md):
+#   - NOTE (2026-10-20): the real box is an A100 **40 GB**; all five services do NOT fit
+#     together (measured 44.8 GB idle). Use --weights-only, then start services in subsets
+#     (never pointd-gui and pointd-molmo together); see research/experiment_log_p45.md E30.
+#   - original 80 GB VRAM plan (everything coexists; see research/phase5_implementation.md):
 #       nni ~5 GB + Molmo2 BF16 ~19 GB + GUI-Actor BF16 ~7 GB
 #       + MedGemma BF16 ~10 GB + MedGemma Q4 ~5 GB
 #

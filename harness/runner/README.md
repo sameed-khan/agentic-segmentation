@@ -42,6 +42,11 @@ Options (`npx tsx run_cases.ts --help`):
 | `--max-model-prompts <n>` | 15 | sent to segd and substituted into the system prompt |
 | `--segd-url <url>` | `http://127.0.0.1:8765` | |
 | `--nni-url <url>` | `http://127.0.0.1:1527` | |
+| `--v3-pointer <mode>` | off | harness v3 pointer for `seg_locate`: `gui_actor\|molmo2`; sent as the case's `v3` flags, declares `seg_locate`, and (with any v3 flag) switches the default system prompt to `system_v3.md` |
+| `--v3-pointer-url <url>` | per mode | `:8092` gui_actor / `:8093` molmo2 |
+| `--v3-medgemma <mode>` | off | harness v3 MedGemma second reader: `q4\|bf16` (fixed checkpoints injected into tool observations) |
+| `--v3-medgemma-url <url>` | per mode | `:8091` q4 / `:8094` bf16 |
+| `--v3-checkpoints <list>` | all | comma list of `localize,review,candidates` |
 | `--extension <path>` | `harness/extension` | override for smoke tests (`harness/checks/ping_ext.ts`) |
 | `--dry-stub` | off | spawn `test/stub_segd.mjs` and use it as segd |
 | `--auth-shim <path>` | `~/.pi/agent/npm/node_modules/@gotgenes/pi-anthropic-auth` | |

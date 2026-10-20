@@ -22,7 +22,6 @@ import {
 	renameSync,
 	writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -38,24 +37,27 @@ import {
 	type ExtensionFactory,
 } from "@earendil-works/pi-coding-agent";
 import { createSegExtension, SEG_TOOL_NAMES } from "../extension/index.ts";
+import {
+	DATASETS,
+	DEFAULT_EXTENSION_DIR,
+	parseArgs,
+	type Options,
+	type V3Spec,
+} from "./cli_args.ts";
+import {
+	DEFAULT_SYSTEM_FILE,
+	DEFAULT_SYSTEM_MULTI_FILE,
+	DEFAULT_SYSTEM_V3_FILE,
+	selectSystemFile,
+} from "./system_prompt.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(HERE, "..", "..");
 const HARNESS_DIR = join(PROJECT_ROOT, "harness");
-const DEFAULT_EXTENSION_DIR = join(HARNESS_DIR, "extension");
-const DEFAULT_SYSTEM_FILE = join(HARNESS_DIR, "prompts", "system.md");
-const DEFAULT_TASK_FILE = join(HARNESS_DIR, "prompts", "task.md");
-const CASES_CSV = join(PROJECT_ROOT, "eval", "v2", "mstt_cases.csv");
+const MSTT_CASES_CSV = join(PROJECT_ROOT, "eval", "v2", "mstt_cases.csv");
+const phase4CasesCsv = (dataset: string): string =>
+	join(PROJECT_ROOT, "eval", "v4", `${dataset}_cases.csv`);
 const DESIGN_SHAPES = join(PROJECT_ROOT, "eval", "v2", "data_check", "design.jsonl");
-const DEFAULT_AUTH_SHIM = join(
-	homedir(),
-	".pi",
-	"agent",
-	"npm",
-	"node_modules",
-	"@gotgenes",
-	"pi-anthropic-auth",
-);
 const STUB_SERVER = join(HERE, "test", "stub_segd.mjs");
 
 const HISTOTYPE_TEXT: Record<string, string> = {
@@ -69,171 +71,22 @@ const HISTOTYPE_TEXT: Record<string, string> = {
 const NUDGE_MESSAGE =
 	"You have not called seg_finish yet. Continue segmenting; call seg_finish when you are satisfied.";
 
+// Harness v3 service options (local models; all off unless a --v3-* flag is given).
+const V3_POINTER_MODES = ["gui_actor", "molmo2"];
+const V3_MEDGEMMA_MODES = ["q4", "bf16"];
+const V3_CHECKPOINTS = ["localize", "review", "candidates"];
+const DEFAULT_V3_POINTER_URLS: Record<string, string> = {
+	gui_actor: "http://127.0.0.1:8092",
+	molmo2: "http://127.0.0.1:8093",
+};
+const DEFAULT_V3_MEDGEMMA_URLS: Record<string, string> = {
+	q4: "http://127.0.0.1:8091",
+	bf16: "http://127.0.0.1:8094",
+};
+
 // ---------------------------------------------------------------------------
-// Options
+// Options (parsing in ./cli_args.ts, unit-tested by test/cli_args.test.mts)
 // ---------------------------------------------------------------------------
-
-interface Options {
-	cases: string[];
-	split: string | null;
-	runId: string;
-	concurrency: number;
-	model: string;
-	thinking: string;
-	wallMin: number;
-	maxNudges: number;
-	maxToolCalls: number;
-	maxModelPrompts: number;
-	segdUrl: string;
-	nniUrl: string;
-	extension: string;
-	dryStub: boolean;
-	authShim: string;
-	resultsDir: string;
-	note: string;
-	examples: string;
-	systemFile: string;
-	taskFile: string;
-	resume: boolean;
-}
-
-function parseArgs(argv: string[]): Options {
-	const opts: Options = {
-		cases: [],
-		split: null,
-		runId: `run-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`,
-		concurrency: 4,
-		model: "anthropic/claude-sonnet-5-5",
-		thinking: "medium",
-		wallMin: 10,
-		maxNudges: 3,
-		maxToolCalls: 40,
-		maxModelPrompts: 15,
-		segdUrl: "http://127.0.0.1:8765",
-		nniUrl: "http://127.0.0.1:1527",
-		extension: DEFAULT_EXTENSION_DIR,
-		dryStub: false,
-		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
-		resultsDir: join(PROJECT_ROOT, "results"),
-		note: "",
-		resume: false,
-		examples: "",
-		systemFile: DEFAULT_SYSTEM_FILE,
-		taskFile: DEFAULT_TASK_FILE,
-	};
-
-	for (let i = 0; i < argv.length; i++) {
-		const arg = argv[i];
-		const next = (): string => {
-			const value = argv[++i];
-			if (value === undefined) throw new Error(`missing value for ${arg}`);
-			return value;
-		};
-		switch (arg) {
-			case "--cases":
-				opts.cases = next().split(",").map((c) => c.trim()).filter(Boolean);
-				break;
-			case "--split":
-				opts.split = next();
-				break;
-			case "--run-id":
-				opts.runId = next();
-				break;
-			case "--concurrency":
-				opts.concurrency = Number(next());
-				break;
-			case "--model":
-				opts.model = next();
-				break;
-			case "--thinking":
-				opts.thinking = next();
-				break;
-			case "--wall-min":
-				opts.wallMin = Number(next());
-				break;
-			case "--max-nudges":
-				opts.maxNudges = Number(next());
-				break;
-			case "--max-tool-calls":
-				opts.maxToolCalls = Number(next());
-				break;
-			case "--max-model-prompts":
-				opts.maxModelPrompts = Number(next());
-				break;
-			case "--segd-url":
-				opts.segdUrl = next();
-				break;
-			case "--nni-url":
-				opts.nniUrl = next();
-				break;
-			case "--extension":
-				opts.extension = resolve(next());
-				break;
-			case "--dry-stub":
-				opts.dryStub = true;
-				break;
-			case "--auth-shim":
-				opts.authShim = resolve(next());
-				break;
-			case "--examples":
-				opts.examples = resolve(next());
-				break;
-			case "--note":
-				opts.note = next();
-				break;
-			case "--resume":
-				opts.resume = true;
-				break;
-			case "--results-dir":
-				opts.resultsDir = resolve(next());
-				break;
-			case "--system-file":
-				opts.systemFile = resolve(next());
-				break;
-			case "--task-file":
-				opts.taskFile = resolve(next());
-				break;
-			case "--help":
-			case "-h":
-				printHelp();
-				process.exit(0);
-				break;
-			default:
-				throw new Error(`unknown option: ${arg}`);
-		}
-	}
-	return opts;
-}
-
-function printHelp(): void {
-	console.log(`Usage: npx tsx run_cases.ts [options]
-
-  --cases F14,M07           comma-separated case ids (or --split)
-  --split design|test|all   run every case in that split of eval/v2/mstt_cases.csv
-  --run-id <id>             run directory name under results/ (default: timestamp)
-  --concurrency <n>         parallel cases in this process (default 4)
-  --model <provider/id>     (default anthropic/claude-sonnet-5-5)
-  --thinking <level>        (default medium)
-  --wall-min <n>            per-case wall-time limit (default 10)
-  --max-nudges <n>          follow-up "call seg_finish" messages (default 3)
-  --max-tool-calls <n>      budget sent to segd (default 40)
-  --max-model-prompts <n>   budget sent to segd (default 15)
-  --segd-url <url>          (default http://127.0.0.1:8765)
-  --nni-url <url>           (default http://127.0.0.1:1527)
-  --extension <path>        default harness/extension (dir); checks/ping_ext.ts for smoke
-  --dry-stub                spawn the bundled stub segd and use it as --segd-url
-  --examples <manifest>     Phase 2 prepare manifest.jsonl: attach each case's leave-one-out example image
-                            (another case's GT outline, 3 planes) to the task message (E12)
-  --note <text>             free-text note stored in batch_summary.json (experiment log)
-  --resume                  skip cases already complete in this run (meta.json done, no API errors);
-                            move incomplete case dirs to <run>/_incomplete/. The runner stops pulling new
-                            cases after a case hits a provider/API error and exits with code 3.
-  --auth-shim <path>        auth shim package dir (default @gotgenes/pi-anthropic-auth)
-  --results-dir <path>      (default <project>/results)
-  --system-file <path>      (default harness/prompts/system.md)
-  --task-file <path>        (default harness/prompts/task.md)`);
-}
-
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
@@ -334,20 +187,32 @@ interface CaseRow {
 	histotype: string;
 	sequence: string;
 	split: string;
+	/** Full target phrase: the manifest column on Phase 4 rows, the histotype map on MSTT rows. */
+	target_text: string;
+	modality: string;
 }
 
-function loadCases(): CaseRow[] {
-	const raw = readFileSync(CASES_CSV, "utf8").trim().split(/\r?\n/);
+/** Rows of eval/v2/mstt_cases.csv (dataset "mstt") or eval/v4/<dataset>_cases.csv (Phase 4). */
+function loadCases(dataset: string): CaseRow[] {
+	const csv = dataset === "mstt" ? MSTT_CASES_CSV : phase4CasesCsv(dataset);
+	const raw = readFileSync(csv, "utf8").trim().split(/\r?\n/);
 	const header = raw[0].split(",");
-	const rows = raw.slice(1).map((line) => {
+	return raw.slice(1).map((line) => {
 		const cells = line.split(",");
 		const row: Record<string, string> = {};
 		header.forEach((name, index) => {
 			row[name] = cells[index];
 		});
-		return row as unknown as CaseRow;
+		const histotype = row.histotype ?? "";
+		return {
+			case: row.case,
+			histotype,
+			sequence: row.sequence,
+			split: row.split,
+			target_text: row.target_text ?? HISTOTYPE_TEXT[histotype] ?? histotype,
+			modality: row.modality ?? "",
+		} as CaseRow;
 	});
-	return rows;
 }
 
 function shapeForCase(caseId: string): string {
@@ -369,6 +234,40 @@ function shapeForCase(caseId: string): string {
 function authShimVersion(shimPath: string): string | undefined {
 	const pkg = readJsonIfExists(join(shimPath, "package.json"));
 	return pkg?.version;
+}
+
+/**
+ * Build the harness v3 flags from the --v3-* CLI options (null = v2 behaviour, byte
+ * identical). URLs default to the standard loopback ports per mode.
+ */
+function buildV3(opts: Options): V3Spec | null {
+	if (!opts.v3Pointer && !opts.v3Medgemma) {
+		if (opts.v3PointerUrl || opts.v3MedgemmaUrl) {
+			throw new Error("--v3-pointer-url/--v3-medgemma-url need --v3-pointer/--v3-medgemma");
+		}
+		return null;
+	}
+	if (opts.v3Pointer && !V3_POINTER_MODES.includes(opts.v3Pointer)) {
+		throw new Error(`--v3-pointer must be one of ${V3_POINTER_MODES.join("|")}`);
+	}
+	if (opts.v3Medgemma && !V3_MEDGEMMA_MODES.includes(opts.v3Medgemma)) {
+		throw new Error(`--v3-medgemma must be one of ${V3_MEDGEMMA_MODES.join("|")}`);
+	}
+	const checkpoints = opts.v3Checkpoints.length ? opts.v3Checkpoints : [...V3_CHECKPOINTS];
+	for (const c of checkpoints) {
+		if (!V3_CHECKPOINTS.includes(c)) {
+			throw new Error(`--v3-checkpoints entries must be one of ${V3_CHECKPOINTS.join(",")}`);
+		}
+	}
+	return {
+		pointer: opts.v3Pointer,
+		pointer_url:
+			opts.v3PointerUrl ?? (opts.v3Pointer ? DEFAULT_V3_POINTER_URLS[opts.v3Pointer] : null),
+		medgemma: opts.v3Medgemma,
+		medgemma_url:
+			opts.v3MedgemmaUrl ?? (opts.v3Medgemma ? DEFAULT_V3_MEDGEMMA_URLS[opts.v3Medgemma] : null),
+		checkpoints,
+	};
 }
 
 function extractSystemText(payload: unknown): string | undefined {
@@ -463,6 +362,7 @@ interface Shared {
 	harnessHash: string;
 	git: { commit: string | null; describe: string | null; dirty: string[] };
 	systemPrompt: string;
+	systemFileUsed: string;
 	systemPromptSha: string;
 	shimVersion?: string;
 }
@@ -505,6 +405,10 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 				max_tool_calls: opts.maxToolCalls,
 				max_model_prompts: opts.maxModelPrompts,
 			},
+			// Phase 4 dataset selection (omitted on mstt: identical v2 request)
+			...(opts.dataset !== "mstt" ? { dataset: opts.dataset } : {}),
+			// harness v3 flags (omitted entirely when off: identical v2 request)
+			...(opts.v3 ? { v3: opts.v3 } : {}),
 		});
 		if (opened?.ok === false) throw new Error(`POST /cases failed: ${opened.error ?? "unknown"}`);
 
@@ -514,7 +418,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		const taskTemplate = readFileSync(opts.taskFile, "utf8");
 		const taskMessage = renderTemplate(taskTemplate, {
 			case_id: caseId,
-			target_text: HISTOTYPE_TEXT[row.histotype] ?? row.histotype,
+			target_text: row.target_text,
 			sequence: row.sequence,
 			shape: shapeForCase(caseId),
 			budgets: `max ${opts.maxToolCalls} tool calls / ${opts.maxModelPrompts} model prompts / ${opts.wallMin} min wall time`,
@@ -532,7 +436,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			exampleImages = [{ type: "image", data: buf.toString("base64"), mimeType: "image/png" }];
 			exampleText =
 				`\n\nThe attached image is an example from a different patient (not this case): a ` +
-				`${HISTOTYPE_TEXT[row.histotype] ?? row.histotype} outlined in green in axial, coronal and sagittal slices. ` +
+				`${row.target_text} outlined in green in axial, coronal and sagittal slices. ` +
 				"Use it to recognize this tumor type and to judge how much tissue the outline should include.";
 			mkdirSync(caseDir, { recursive: true });
 			writeFileSync(
@@ -556,7 +460,12 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		const additionalExtensionPaths: string[] = [resolve(opts.authShim)];
 		if (isDefaultExtension) {
 			extensionFactories.unshift(
-				createSegExtension({ segdUrl: opts.segdUrl, caseHandle: handle }),
+				createSegExtension({
+					segdUrl: opts.segdUrl,
+					caseHandle: handle,
+					// v3: seg_locate declared only when the case has a v3 pointer
+					v3: opts.v3 ? { pointer: opts.v3.pointer } : null,
+				}),
 			);
 		} else {
 			additionalExtensionPaths.push(resolve(opts.extension));
@@ -767,6 +676,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		const meta = {
 			case_id: caseId,
 			run_id: opts.runId,
+			dataset: opts.dataset,
 			model: opts.model,
 			thinking_level: opts.thinking,
 			pi_version: VERSION,
@@ -778,7 +688,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			git_dirty_files: shared.git.dirty,
 			harness_hash_method:
 				"sha256 over sorted relative paths + bytes of every file under harness/ excluding node_modules/, __pycache__/, logs/, results/, .git/",
-			system_prompt_path: opts.systemFile,
+			system_prompt_path: shared.systemFileUsed,
 			system_prompt_sha256: shared.systemPromptSha,
 			system_prompt_sent_to_provider_captured: capture.seen,
 			system_prompt_sent_to_provider: providerSystemPrompt,
@@ -796,6 +706,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			tool_names_seen_by_model: declaredToolNames,
 			tool_calls_by_name: toolCallsByName,
 			session_file: sessionFileCopied ? "session.jsonl" : undefined,
+			v3: opts.v3,
 			wall_time_s: wallTimeS,
 			turns: result.turns,
 			nudges_used: result.nudges,
@@ -847,6 +758,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 
 async function main(): Promise<void> {
 	const opts = parseArgs(process.argv.slice(2));
+	opts.v3 = buildV3(opts);   // also validates the --v3-* combination
 
 	let stub: { proc: ChildProcess; url: string } | undefined;
 	if (opts.dryStub) {
@@ -855,7 +767,7 @@ async function main(): Promise<void> {
 		console.log(`[runner] dry-stub segd at ${stub.url}`);
 	}
 
-	const allRows = loadCases();
+	const allRows = loadCases(opts.dataset);
 	let rows: CaseRow[];
 	if (opts.cases.length > 0) {
 		rows = allRows.filter((row) => opts.cases.includes(row.case));
@@ -868,7 +780,16 @@ async function main(): Promise<void> {
 	}
 	if (rows.length === 0) throw new Error("no cases selected");
 
-	const systemTemplate = readFileSync(opts.systemFile, "utf8");
+	// System prompt: harness v3 adds a short seg_locate / second-reader paragraph; the
+	// v3 variant is used only when v3 is on. An explicit --system-file always wins, even
+	// when it resolves to the default path (see harness/runner/system_prompt.ts).
+	const systemFileUsed = selectSystemFile(
+		opts.systemFileSupplied,
+		opts.systemFile,
+		Boolean(opts.v3),
+		opts.dataset,
+	);
+	const systemTemplate = readFileSync(systemFileUsed, "utf8");
 	const systemPrompt = renderTemplate(systemTemplate, {
 		max_tool_calls: String(opts.maxToolCalls),
 		max_model_prompts: String(opts.maxModelPrompts),
@@ -888,13 +809,15 @@ async function main(): Promise<void> {
 		harnessHash: hashHarnessTree(),
 		git: gitInfo(),
 		systemPrompt,
+		systemFileUsed,
 		systemPromptSha: sha256(systemPrompt),
 		shimVersion: authShimVersion(opts.authShim),
 	};
 
 	console.log(
 		`[runner] run=${opts.runId} cases=${rows.map((r) => r.case).join(",")} concurrency=${opts.concurrency} ` +
-			`model=${opts.model} thinking=${opts.thinking} extension=${opts.extension} segd=${opts.segdUrl}`,
+			`model=${opts.model} thinking=${opts.thinking} extension=${opts.extension} segd=${opts.segdUrl}` +
+			(opts.v3 ? ` v3=${JSON.stringify(opts.v3)}` : " v3=off"),
 	);
 	console.log(`[runner] harness_sha256=${shared.harnessHash} git=${shared.git.describe} dirty_files=${shared.git.dirty.length}`);
 	console.log(`[runner] system_prompt_sha256=${shared.systemPromptSha} auth_shim=${shared.shimVersion}`);
@@ -967,6 +890,7 @@ async function main(): Promise<void> {
 
 	const summary = {
 		run_id: opts.runId,
+		dataset: opts.dataset,
 		model: opts.model,
 		thinking_level: opts.thinking,
 		extension: opts.extension,
@@ -979,6 +903,7 @@ async function main(): Promise<void> {
 		git_dirty_files: shared.git.dirty,
 		note: opts.note,
 		examples: opts.examples || null,
+		v3: opts.v3,
 		system_prompt_sha256: shared.systemPromptSha,
 		auth_shim_version: shared.shimVersion,
 		pi_version: VERSION,

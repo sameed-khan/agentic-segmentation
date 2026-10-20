@@ -1,0 +1,32 @@
+[project]
+name = "medgemma-bf16-server"
+version = "1.0.0"
+description = "OpenAI-compatible Transformers BF16 server + thin client for google/medgemma-1.5-4b-it"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    # BF16 reference runtime for the official google/medgemma-1.5-4b-it checkpoint
+    # (AutoModelForImageTextToText, 896 px / 256 tokens per image). The research notes
+    # pin no transformers version for MedGemma; 4.57.1 is the initial pin — VALIDATE on
+    # the A100 against the official card quickstart and re-pin if the checkpoint
+    # demands newer (the Q4 arm via llama.cpp is independent of this pin).
+    "transformers==4.57.1",
+    "torch==2.7.1",                        # CUDA 12.x Linux wheels on PyPI include sm_80 (A100)
+    "accelerate>=1.1.0",
+    "pillow>=11.0.0",
+    "numpy>=2.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "pydantic>=2.9.0",
+]
+# medgemma_client.py is standard-library only and can be imported from any venv.
+
+[dependency-groups]
+dev = ["pytest>=8.3.0", "httpx>=0.27.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Application-style uv project (no wheel to build/install); uv syncs the venv only.
+package = false

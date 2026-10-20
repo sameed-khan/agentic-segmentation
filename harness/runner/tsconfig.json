@@ -12,5 +12,5 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true
 	},
-	"include": ["run_cases.ts", "test/**/*.mts", "../extension/index.ts"]
+	"include": ["run_cases.ts", "system_prompt.ts", "test/**/*.mts", "../extension/index.ts"]
 }

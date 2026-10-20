@@ -1,0 +1,41 @@
+[project]
+name = "probe3d-sat"
+version = "0.1.0"
+description = "3D lesion-localizer probe: SAT-Nano (zhaoziheng/SAT, HF zzh99/SAT) on MSTT-199 design cases"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    # zhaoziheng/SAT requirements.txt (pinned); torch 2.1.2+cu121 (sm_80) replaces the open-ended torch>=1.10.0
+    "numpy==1.21.5",
+    "monai==1.1.0",
+    "transformers==4.21.3",
+    "nibabel==4.0.2",
+    "einops==0.6.1",
+    "positional-encodings==6.0.1",
+    "huggingface-hub==0.10.1",   # era-matched to transformers 4.21.3 (cached_download still exists)
+    "torch==2.1.2",
+    "torchvision==0.16.2",
+    # inference_engine.py imports pandas; gaussian_filter needs scipy
+    "pandas==1.5.3",
+    "scipy==1.10.1",
+    "tqdm>=4.64",
+    "pynvml>=11.5",
+    # customized U-Net backend (README S1): pip install -e model/dynamic-network-architectures-main
+    "dynamic-network-architectures",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }
+dynamic-network-architectures = { path = "/home/ubuntu/SAT/model/dynamic-network-architectures-main", editable = true }

@@ -109,6 +109,9 @@ class ActiveView:
     render_info: Any = None       # segd.render RenderInfo of the last `view` render
     marks_level: str = "none"
     box2d: Optional[tuple] = None  # in-plane (row, col) half-open box when crop == "marks"
+    image: Any = None              # the rendered PIL image, kept for v3 (seg_locate uses
+    #                                the CURRENT VIEW exactly as the agent saw it); None
+    #                                for views created before this field existed
 
 
 @dataclass
@@ -125,8 +128,10 @@ class CaseState:
     def __init__(self, case_id: str, image: np.ndarray, affine: np.ndarray,
                  spacing: tuple[float, float, float], target_text: str, sequence: str,
                  out_dir, nni_url: Optional[str] = None, budgets: Optional[dict] = None,
-                 orig_geometry: Optional[tuple] = None):
+                 orig_geometry: Optional[tuple] = None, v3: Optional[dict] = None,
+                 dataset: str = "mstt"):
         self.case_id = case_id
+        self.dataset = dataset          # "mstt" (default, unchanged behaviour) or "beamster"
         self.image = np.ascontiguousarray(image, dtype=np.float32)
         self.affine = np.asarray(affine, dtype=np.float64)
         self.spacing = tuple(float(s) for s in spacing)
@@ -138,6 +143,14 @@ class CaseState:
         # (source-file affine, canonical->source orientation transform) when the source
         # NIfTI needed canonicalisation at load (finding #14); None for RAS sources.
         self.orig_geometry = orig_geometry
+        # Harness v3 flags (segd.v3): normalized dict or None (v2 behaviour). Local
+        # import: segd.v3 imports case_state helpers at module level.
+        from segd.v3 import normalize_v3
+        self.v3 = normalize_v3(v3)
+        self.v3_fired: set[str] = set()   # checkpoints/injections already delivered
+        # ("localize", f"review:{vid}", f"candidates:{vid}:{cid}"; snapshotted and
+        # restored by run_op for EVERY op so a failed op can deliver its note on the
+        # retry — the note never reached the agent when the op failed)
 
         self.shape: tuple = self.image.shape
         self.done = False
@@ -166,6 +179,7 @@ class CaseState:
         self.accept_rounds = 0                       # successful seg_accept calls (review cap)
         self._timings_candidates: float | None = None   # seconds spent computing candidates in this op
         self._log_extra: dict = {}                   # op-specific fields for the trajectory record
+        self._last_render_info: Any = None           # RenderInfo of the last op's render (v3 hooks)
         self.created_at = time.time()
 
     # ----------------------------------------------------------------- setup
@@ -191,6 +205,8 @@ class CaseState:
             "case_id": self.case_id, "shape": list(self.shape), "spacing": list(self.spacing),
             "sequence": self.sequence, "target_text": self.target_text, "budgets": self.budgets,
             "nni": "remote" if self.nni_url else "fake",
+            "v3": self.v3,
+            "dataset": self.dataset,
             "upload_packed_bytes": self.upload_packed_bytes,
             "crop_offset": list(self.crop_offset), "crop_shape": list(self.crop_shape),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self.created_at)),
@@ -214,11 +230,15 @@ class CaseState:
         if cache_path.exists():
             try:
                 ms = MarkSet.load(str(cache_path))
-                if cache_matches(ms, self.shape):   # version + full params + shape
+                # fingerprint includes the density profile of THIS dataset (decision 5)
+                if cache_matches(ms, self.shape,
+                                 profile=config.MARKS_PROFILE.get(self.dataset, "default")):
                     return ms
             except Exception:
                 pass  # corrupt/incompatible cache file: recompute
-        ms = compute_marks(self.image, self.spacing)
+        # dataset-level marks density (Phase 4 decision 5): "mstt" keeps the default profile
+        ms = compute_marks(self.image, self.spacing,
+                           profile=config.MARKS_PROFILE.get(self.dataset, "default"))
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             ms.save(str(cache_path))   # atomic (tmp + os.replace)
@@ -493,6 +513,8 @@ class CaseState:
             "case_id": self.case_id, "shape": list(self.shape), "spacing": list(self.spacing),
             "sequence": self.sequence, "target_text": self.target_text, "budgets": self.budgets,
             "nni": "remote" if self.nni_url else "fake",
+            "v3": self.v3,
+            "dataset": self.dataset,
             "upload_packed_bytes": self.upload_packed_bytes,
             "crop_offset": list(self.crop_offset), "crop_shape": list(self.crop_shape),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self.created_at)),

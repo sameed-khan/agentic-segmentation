@@ -64,6 +64,16 @@ def create_app() -> FastAPI:
         out_dir = Path(body["out_dir"]) / str(body["run_id"]) / case_id
         nni_url = body.get("nni_url") or None
         budgets = body.get("budgets") or None
+        # Phase 4 dataset selection (decision 1): "mstt" (default, unchanged behaviour)
+        # or a manifest dataset name ("beamster") — selects eval/v4/<dataset>_cases.csv.
+        dataset = str(body.get("dataset") or "mstt")
+        # Harness v3 flags (optional local-model components, all off by default): invalid
+        # specs are runner misconfiguration -> 400 like other missing/invalid fields.
+        try:
+            from segd.v3 import normalize_v3
+            v3 = normalize_v3(body.get("v3"))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"invalid v3 flags: {e}")
         # Hold the case lock for the whole open (finding #11: two concurrent POSTs for
         # the same id used to leak one nnInteractive session; also prevents an op from
         # running against a half-initialized case).
@@ -74,14 +84,19 @@ def create_app() -> FastAPI:
                 st["cases"].pop(case_id, None)
             try:
                 from segd import data
-                row = data.get_case(case_id)
+                try:
+                    row = data.get_case(case_id, dataset)
+                except FileNotFoundError as e:
+                    # unknown dataset (no manifest): runner misconfiguration -> 400
+                    raise HTTPException(status_code=400, detail=str(e))
                 geom = data.load_case_geometry(row)
             except KeyError:
                 raise HTTPException(status_code=404, detail=f"unknown case {case_id!r}")
             cs = CaseState(case_id, geom.image, geom.affine, geom.spacing, row.target_text,
                            row.sequence, out_dir, nni_url=nni_url, budgets=budgets,
                            orig_geometry=(geom.orig_affine, geom.inv_ornt)
-                           if geom.orig_affine is not None else None)
+                           if geom.orig_affine is not None else None,
+                           v3=v3, dataset=dataset)
             try:
                 cs.initialize()   # marks + nnInteractive upload; runs in the request's worker thread
             except Exception:

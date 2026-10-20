@@ -34,7 +34,8 @@ from segd.case_state import (
     CaseState, OpError, parse_version, project_to_slice, vid_label, voxel_to_inplane,
 )
 from segd.observe import (
-    _fmt_extent, budget_line, components_text, mask_stats, observation_after_mutation, observation_after_restore,
+    _fmt_extent, budget_line, components_text_for, mask_stats, is_multi_lesion,
+    observation_after_mutation, observation_after_restore,
     observation_for_view,
 )
 
@@ -276,6 +277,16 @@ def op_open(cs: CaseState) -> OpOutput:
     return OpOutput("\n".join(card), [img])
 
 
+def op_locate(cs: CaseState, query: str | None = None) -> OpOutput:
+    """seg_locate (harness v3, only when a v3 pointer is configured): propose candidate
+    marks for the target on the CURRENT VIEW image exactly as the agent saw it. A tool
+    call, not a model prompt; failures (service down/timeout) are OpErrors like other
+    failed calls. The body lives in segd.v3 (op_locate returns text + image)."""
+    from segd import v3 as v3_mod
+    text, images = v3_mod.op_locate(cs, query=query)
+    return OpOutput(text, images)
+
+
 def op_sheet(cs: CaseState, axis: str, start: int, stop: int, n: int = 5) -> OpOutput:
     axis = _axis(axis)
     n_slices = cs.shape[config.FIXED_AXIS[axis]]
@@ -287,8 +298,9 @@ def op_sheet(cs: CaseState, axis: str, start: int, stop: int, n: int = 5) -> OpO
         raise OpError(f"sheet range [{start},{stop}] out of bounds for {axis} (n={n_slices})")
     n = max(1, min(n, 20))
     render = _render()
-    img, _ri = render.render_sheet(cs.image, axis, start, stop, n, mask=cs.current_mask(),
-                                   spacing=cs.spacing, body=cs.body)
+    img, ri = render.render_sheet(cs.image, axis, start, stop, n, mask=cs.current_mask(),
+                                  spacing=cs.spacing, body=cs.body)
+    cs._last_render_info = ri
     text = f"sheet {axis} {start}\u2013{stop}/{n_slices} ({n} slices) | {vid_label(cs.current)} | {budget_line(cs)}"
     return OpOutput(text, [img])
 
@@ -319,7 +331,8 @@ def op_view(cs: CaseState, axis: str, slice=None, crop: str = "full", overlay: s
     img, ri = render.render_view(cs.image, axis, s, crop_spec, overlay, marks, cs.markset,
                                  mask=cs.current_mask(), spacing=cs.spacing, body=cs.body)
     from segd.case_state import ActiveView, primary_view_geom
-    cs.active_view = ActiveView(axis, s, primary_view_geom(ri), ri, marks, box2d)
+    cs.active_view = ActiveView(axis, s, primary_view_geom(ri), ri, marks, box2d, img)
+    cs._last_render_info = ri
     text = observation_for_view(cs, axis, s, crop, overlay, marks)
     if crop == "full" and marks == "fine" and cs.markset is not None:
         shown = [mid for mid, *_ in ri.marks]
@@ -646,10 +659,12 @@ def _candidate_lines(cs: CaseState, cands: list) -> str:
 
 
 def _candidate_image(cs: CaseState, cands: list):
+    """The candidate sheet + its RenderInfo (v3 uses the row paste rects for the
+    per-candidate second-reader checkpoint)."""
     t0 = time.time()
-    img, _ri = _render().render_candidates(cs.image, cs.current_mask(), cands, cs.spacing)
+    img, ri = _render().render_candidates(cs.image, cs.current_mask(), cands, cs.spacing)
     cs._timings["render"] = round((cs._timings.get("render") or 0.0) + (time.time() - t0), 3)
-    return img
+    return img, ri
 
 
 def op_candidates(cs: CaseState) -> OpOutput:
@@ -667,7 +682,7 @@ def op_candidates(cs: CaseState) -> OpOutput:
             "inside its outline).\n"
             f"{_candidate_lines(cs, cands)}\n{CANDIDATE_IMAGE_TEXT}. "
             f"Accept the ones that belong with seg_accept | {budget_line(cs)}")
-    img = _candidate_image(cs, cands)     # render BEFORE anything is authorized
+    img, _ri = _candidate_image(cs, cands)   # render BEFORE anything is authorized
     cs.candidates_shown = cs.current      # visibility only after the sheet rendered; if saving
     return OpOutput(text, [img])          # or logging fails, run_op's transaction revokes it again
 
@@ -745,6 +760,25 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
         cs._timings = {"render": round(time.time() - t0, 3), "nni": 0.0}
         images = [img]
         cand_text = ""
+        cands: list = []
+        cand_row_rects: list = []
+        cand_img = None
+        comp_text = ""
+        # Phase 4 (non-MSTT datasets): with several separated lesions the union-extent
+        # grid's fraction columns can fall between them — add the per-component sheet(s)
+        # (rows through each component's centre, 5 components per image, as many images
+        # as needed) so every detected lesion's outline is reviewable.
+        if is_multi_lesion(cs) and st["n_components"] >= 2:
+            rd = _render()
+            for comp_start in range(0, st["n_components"], rd.REVIEW_COMPONENT_MAX):
+                img_comp, _rc = rd.render_review_components(cs.image, mask, cs.spacing,
+                                                            start=comp_start)
+                images.append(img_comp)
+            comp_text = (f"The next {len(images) - 1} image(s) after the union grid are component "
+                         f"sheets: one row per detected component (largest first, "
+                         f"{rd.REVIEW_COMPONENT_MAX} components per image, one image after another "
+                         "until all components are shown), axial/coronal/sagittal through its "
+                         "centre. Check each lesion's outline separately. ")
         if st["n_components"] > 0:
             # required candidate round: every first review for a version also proposes
             # candidates (capped after CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS accepted rounds)
@@ -754,14 +788,17 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
             else:
                 cands = _candidates_for_current(cs)
                 if cands:
-                    img_c = _candidate_image(cs, cands)   # render BEFORE anything is authorized
+                    img_c, ri_c = _candidate_image(cs, cands)   # render BEFORE anything is authorized
                     images.append(img_c)
+                    cand_img = img_c
                     cs.candidates_shown = cs.current      # after the sheet rendered; a later
                     # save_render/logging failure rolls the authorization back (run_op transaction)
-                    cand_text = ("Candidates (second image): automatic proposals of possibly missed lesion "
+                    nth = "third" if comp_text else "second"
+                    cand_text = (f"Candidates ({nth} image): automatic proposals of possibly missed lesion "
                                  "tissue next to the mask, computed from image intensity only (often wrong).\n"
                                  f"{_candidate_lines(cs, cands)}\n{CANDIDATE_IMAGE_TEXT}. "
                                  f"{CANDIDATE_JUDGE_TEXT} ")
+                    cand_row_rects = list(getattr(ri_c, "panel_rects", None) or [])
                 else:
                     cand_text = "Candidates: none found. "
         cs.reviewed_version = cs.current
@@ -775,18 +812,40 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
                     " Otherwise keep editing.")
         else:
             text = (f"Final review of {label}: volume {st['volume_ml']:.1f} mL | "
-                    f"{components_text(st)} | {_fmt_extent(st['extent'])} | {budget_line(cs)}. "
+                    f"{components_text_for(cs, st)} | {_fmt_extent(st['extent'])} | {budget_line(cs)}. "
                     "The image shows five slices per plane (three inside the mask extent + one "
                     "just past each end; past-the-mask panels are orange). "
-                    "Check: (1) Is lesion tissue visible in the past-the-mask panels (orange)? "
+                    + comp_text
+                    + "Check: (1) Is lesion tissue visible in the past-the-mask panels (orange)? "
                     "Then the mask stops too early: seg_view that slice and add positive points "
                     "on the lesion there. (2) Does the outline cut through lesion or include "
                     "normal tissue on any panel? (3) Stray components? If any answer shows a "
                     "problem, fix it before finishing. " + cand_text + confirm)
+        # harness v3 second-reader checkpoints (review grid + per candidate), once per
+        # version; appended to the observation, never able to fail the review
+        v3_note = ""
+        if cs.v3 is not None:
+            from segd import v3 as v3_mod
+            try:
+                v3_note = v3_mod.finish_review_notes(cs, img, cand_img,
+                                                     cand_row_rects, cands, cs.current)
+            except Exception as e:                          # noqa: BLE001 (by design)
+                # last resort so a hook crash cannot fail the review either — but it must
+                # stay honest: record the failure and append the standard unavailable note
+                # (the checkpoints above already convert their own failures to notes; the
+                # old empty-string fallback silently dropped mandatory checkpoints)
+                try:
+                    v3_mod.record_call(cs, call="checkpoint", checkpoint="finish", ok=False,
+                                       error=f"hook: {type(e).__name__}: {e}"[:300])
+                    v3_note = v3_mod.MEDGEMMA_UNAVAILABLE
+                except Exception:                           # noqa: BLE001
+                    v3_note = ""
+        if v3_note:
+            text += "\n" + v3_note
         return OpOutput(text, images)
     st = mask_stats(cs.current_mask(), cs.spacing)
     text = cs.finish(confidence, reason)
-    text += (f" | final volume {st['volume_ml']:.1f} mL, {components_text(st)} "
+    text += (f" | final volume {st['volume_ml']:.1f} mL, {components_text_for(cs, st)} "
              f"| {budget_line(cs)}")
     return OpOutput(text, [], done=True)
 
@@ -795,6 +854,7 @@ OPS = {
     "open": op_open,
     "sheet": op_sheet,
     "view": op_view,
+    "locate": op_locate,
     "point": op_point,
     "lasso": op_lasso,
     "scribble": op_scribble,
@@ -813,6 +873,7 @@ ARG_SPECS = {
     "open": set(),
     "sheet": {"axis", "start", "stop", "n"},
     "view": {"axis", "slice", "crop", "overlay", "marks", "ids"},
+    "locate": {"query"},
     "point": {"ids", "polarity"},
     "lasso": {"ids", "polarity"},
     "scribble": {"ids", "polarity"},
@@ -849,6 +910,7 @@ def _transaction_snapshot(cs: CaseState) -> dict:
         "review_code": cs.review_code,
         "done": cs.done,
         "flushed_through": cs._versions_flushed_through,
+        "v3_fired": set(cs.v3_fired),
     }
 
 
@@ -864,6 +926,7 @@ def _transaction_rollback(cs: CaseState, snap: dict | None) -> None:
     cs.review_code = snap["review_code"]
     cs.done = snap["done"]
     cs._versions_flushed_through = snap["flushed_through"]
+    cs.v3_fired = snap["v3_fired"]
     for vid in [v for v in cs.candidate_cache if v not in snap["versions"]]:
         cs.candidate_cache.pop(vid, None)
 
@@ -901,12 +964,25 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
     cs._timings_candidates = None
     cs._log_extra = {}
     cs._last_resolved = []
+    cs._last_render_info = None
+    # v3 MedGemma ABSOLUTE per-op deadline (finding #1): starts at op ENTRY (not at the
+    # first call), so pre-hook work (renders, candidate generation) counts against the
+    # same budget the extension's HTTP deadline sees; None when MedGemma is off.
+    from segd.v3 import medgemma_on
+    cs._v3_group_deadline = (time.perf_counter() + config.V3_MEDGEMMA_GROUP_TIMEOUT_S
+                             if medgemma_on(cs) else None)
     cs.tool_calls += 1   # every call counts, including the ones that fail below
     if op_name in config.MODEL_PROMPT_OPS and cs.model_prompts >= cs.budgets["max_model_prompts"]:
         raise reject("model prompt budget used; edit with seg_paint/seg_edit or call seg_finish",
                      "budget")
     parent_vid = cs.current
     snap = _transaction_snapshot(cs) if op_name in TRANSACTIONAL_OPS else None
+    # checkpoint-delivery state is snapshotted for EVERY op, independently of the durable-
+    # mask transaction: the v3 localize hook also fires after non-transactional ops
+    # (open/sheet/view), so a failed render save / trajectory record there must restore it
+    # just the same — otherwise a failure permanently consumes the checkpoint and the
+    # retry never delivers the advice
+    v3_fired_snap = set(cs.v3_fired)
     try:
         # an unknown op / malformed args still count as a tool call and are logged below
         if bad_args:
@@ -917,19 +993,30 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
         if unknown:
             raise OpError(f"unknown argument(s) for op {op_name}: {sorted(unknown)}")
         out = OPS[op_name](cs, **args)
+        # harness v3 localize checkpoint injection (first sheet / open overview fallback);
+        # no-op when the case has no v3 flags. Never raises (v3.after_op_hook catches).
+        if cs.v3 is not None:
+            from segd import v3 as v3_mod
+            out = v3_mod.after_op_hook(cs, op_name, out)
     except OpError as e:
+        # v3 request/response records (seg_locate, second-reader calls) are diagnostics
+        # and are logged even when the op failed; the op's own success fields (e.g.
+        # candidates/accepted) never appear on an error record (candidate-flow contract).
+        v3_extra = {"v3": cs._log_extra["v3"]} if "v3" in cs._log_extra else None
         cs.log.record(op=op_name, args=args, resolved=cs._last_resolved, error=str(e),
                       error_kind="op", timings={"total": round(time.time() - t0, 3)},
-                      parent=vid_label(parent_vid))
+                      parent=vid_label(parent_vid), extra=v3_extra)
         raise OpError(_with_budget(cs, str(e))) from e
     except Exception:
         # unexpected error: undo the op's state changes, then log the full traceback with
         # error_kind 'internal' so scoring can tag `harness` (finding #2)
         _transaction_rollback(cs, snap)
+        cs.v3_fired = v3_fired_snap   # checkpoint-delivery state back to pre-op (all ops)
+        v3_extra = {"v3": cs._log_extra["v3"]} if "v3" in cs._log_extra else None
         cs.log.record(op=op_name, args=args, resolved=cs._last_resolved,
                       error=traceback.format_exc(), error_kind="internal",
                       timings={"total": round(time.time() - t0, 3)},
-                      parent=vid_label(parent_vid))
+                      parent=vid_label(parent_vid), extra=v3_extra)
         raise
     try:
         # render saving + trajectory logging stay INSIDE the transaction: the op is not
@@ -948,11 +1035,15 @@ def run_op(cs: CaseState, op_name: str, args: dict | None = None) -> OpOutput:
                       observation=out.text, renders=render_files, extra=cs._log_extra)
     except Exception:
         _transaction_rollback(cs, snap)
+        cs.v3_fired = v3_fired_snap   # checkpoint-delivery state back to pre-op (all ops):
+        # the note was never delivered (the agent gets the error reply), so the retry must
+        # still fire the checkpoint instead of seeing it as already consumed
         try:   # best effort: persistence itself may be what failed
+            v3_extra = {"v3": cs._log_extra["v3"]} if "v3" in cs._log_extra else None
             cs.log.record(op=op_name, args=args, resolved=cs._last_resolved,
                           error=traceback.format_exc(), error_kind="internal",
                           timings={"total": round(time.time() - t0, 3)},
-                          parent=vid_label(parent_vid))
+                          parent=vid_label(parent_vid), extra=v3_extra)
         except Exception:
             pass
         raise

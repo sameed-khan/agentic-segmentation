@@ -31,8 +31,10 @@ __all__ = [
     "render_outline_change",
     "render_change_3plane",
     "render_review_grid",
+    "render_review_components",
     "render_candidates",
     "render_raw_pointing",
+    "draw_proposed_points",
     "voxel_to_panel",
     "panel_to_voxel",
 ]
@@ -104,6 +106,12 @@ class RenderInfo:
     ``(mark_id, panel_idx, x_px, y_px)`` with the glyph-centre position;
     ``edge_marks`` entries are ``("E1", panel_idx, row, col)`` with in-plane
     display coordinates of the 2D slice array.
+
+    ``panel_rects`` (optional, added for harness v3): the paste rectangle
+    ``(x0, y0, x1, y1)`` of every recorded panel in the combined image — per panel
+    for overview/sheet/view, per candidate ROW for render_candidates — so offline
+    components (seg_locate clean-panel crop, MedGemma second-reader checkpoints) can
+    map combined-image pixels back to a panel/voxel. None when not recorded.
     """
     kind: str
     views: list[ViewGeom]
@@ -111,6 +119,7 @@ class RenderInfo:
     edge_marks: list[tuple[str, int, int, int]] = field(default_factory=list)
     window: tuple[float, float] | None = None
     note: str = ""                # render_change_3plane: what the slices pass through
+    panel_rects: list[tuple[int, int, int, int]] | None = None
 
     def geom(self, panel_idx: int = 0) -> ViewGeom:
         return self.views[panel_idx]
@@ -577,12 +586,15 @@ def render_view(image: np.ndarray, axis: str, slice_idx: int, crop="full",
     if single_panel:
         out = marked
         views: list[ViewGeom] = [geom]
+        rects: list[tuple[int, int, int, int]] = [(0, 0, panel_w, panel_h)]
     else:
         clean = _panel_from_slice(slice2d, window, crop_box, scale, panel_w, panel_h)
         _draw_frame(clean, geom, spacing, f"{axis} {slice_idx}")
         out = _combine([clean, marked])
         views = [geom, geom]
-    info = RenderInfo("view", views, info_marks, edge_list, window)
+        rects = [(0, 0, panel_w, panel_h),
+                 (panel_w + PANEL_GAP_PX, 0, 2 * panel_w + PANEL_GAP_PX, panel_h)]
+    info = RenderInfo("view", views, info_marks, edge_list, window, panel_rects=rects)
     return out, info
 
 
@@ -634,7 +646,13 @@ def render_overview(image: np.ndarray, spacing, mask: np.ndarray | None = None,
                            for mid, x, y in _draw_marks(panel, vis, geom, occupied)]
         views.append(geom)
         panels.append(panel)
-    return _combine(panels), RenderInfo("overview", views, info_marks, [], window)
+    combined = _combine(panels)
+    rects: list[tuple[int, int, int, int]] = []
+    x = 0
+    for p in panels:
+        rects.append((x, 0, x + p.width, p.height))
+        x += p.width + PANEL_GAP_PX
+    return combined, RenderInfo("overview", views, info_marks, [], window, panel_rects=rects)
 
 
 def _body_crop_box(image: np.ndarray, axis: str, body: np.ndarray | None,
@@ -685,6 +703,7 @@ def render_sheet(image: np.ndarray, axis: str, start: int, stop: int, n: int,
     out = Image.new("RGB", (ncols * cw + (ncols - 1) * pad, nrows * ch + (nrows - 1) * pad),
                     (24, 24, 24))
     views: list[ViewGeom] = []
+    rects: list[tuple[int, int, int, int]] = []
     for n_i, si in enumerate(idxs):
         geom = ViewGeom(axis, int(si), rows, cols, crop_box, scale, cw, ch)
         panel = _panel_from_slice(M.extract_slice(image, axis, int(si)), window,
@@ -695,9 +714,11 @@ def render_sheet(image: np.ndarray, axis: str, start: int, stop: int, n: int,
         _draw_frame(panel, geom, spacing, f"{axis} {si}", letters=False,
                     scale_bar=(n_i == len(idxs) - 1), chip_pos="tl")
         r_i, c_i = divmod(n_i, ncols)
-        out.paste(panel, (c_i * (cw + pad), r_i * (ch + pad)))
+        px0, py0 = c_i * (cw + pad), r_i * (ch + pad)
+        out.paste(panel, (px0, py0))
+        rects.append((px0, py0, px0 + cw, py0 + ch))
         views.append(geom)
-    return out, RenderInfo("sheet", views, [], [], window)
+    return out, RenderInfo("sheet", views, [], [], window, panel_rects=rects)
 
 
 def render_outline_change(image: np.ndarray, prev_mask: np.ndarray | None,
@@ -976,6 +997,99 @@ def render_review_grid(image: np.ndarray, mask: np.ndarray, spacing=(1.0, 1.0, 1
     return out, RenderInfo("review", views, [], [], window)
 
 
+REVIEW_COMPONENT_MAX = 5     # components per component-review sheet (largest first;
+                             # more sheets are returned in batches so every current-mask
+                             # component is represented in the finish review)
+
+
+def render_review_components(image: np.ndarray, mask: np.ndarray,
+                             spacing=(1.0, 1.0, 1.0),
+                             markset: M.MarkSet | None = None,
+                             max_components: int = REVIEW_COMPONENT_MAX,
+                             start: int = 0,
+                             ) -> tuple[Image.Image, RenderInfo]:
+    """Per-component review sheet for multi-lesion targets (Phase 4, non-MSTT datasets).
+
+    The union-extent review grid (render_review_grid) inspects the union of all lesions;
+    with several separated lesions its 25/50/75% columns can fall between them and each
+    lesion's own boundary is never seen. This sheet adds what the grid cannot show: one
+    row per connected component of ``mask`` (largest first), columns axial/coronal/sagittal
+    through the component's centre of mass, every cell cropped to THAT component's bbox
+    grown by ``max(20 mm, 30% of its extent)`` per side (one shared scale per row). Green
+    outline; chip 'Ck ax 123' names the row's component rank (volumes are in the
+    observation text). Components are rendered largest first; the sheet covers ranks
+    ``start+1 .. start+max_components`` — callers batch through ALL components (one sheet
+    per ``max_components`` ranks, as many sheets as needed) so no current-mask component
+    is omitted. Derived from the current mask only.
+    """
+    image = np.asarray(image)
+    mask = np.asarray(mask) > 0
+    spacing = tuple(float(s) for s in spacing)
+    labels, n = ndi.label(mask, structure=ndi.generate_binary_structure(3, 1))
+    if n == 0:
+        return render_overview(image, spacing, mask=None, marks=markset)
+    shape = image.shape
+    sizes = np.bincount(labels.ravel())
+    sizes[0] = 0
+    order = [int(i) for i in np.argsort(sizes)[::-1] if i != 0]
+    batch = order[start:start + max_components]
+    if not batch:
+        raise ValueError(f"component sheet batch is empty: {len(order)} components, "
+                         f"start={start}, max_components={max_components}")
+    window = _window_for(image, markset)
+    views: list[ViewGeom] = []
+    row_imgs: list[Image.Image] = []
+    for rank, lab in enumerate(batch, start=start + 1):
+        comp = labels == lab
+        idx = np.nonzero(comp)
+        centre = tuple(int(np.clip(np.floor(a.mean() + 0.5), 0, sn - 1))
+                       for a, sn in zip(idx, shape))
+        lo = [int(a.min()) for a in idx]
+        hi = [int(a.max()) + 1 for a in idx]
+        plan = []
+        for axis, sl_idx in (("axial", centre[2]), ("coronal", centre[1]), ("sagittal", centre[0])):
+            ra, rflip, ca, cflip = M._INPLANE[axis]
+            rows, cols = M.slice_shape(shape, axis)
+            box_vox = {}
+            for a in (ra, ca):
+                ext_mm = (hi[a] - lo[a]) * spacing[a]
+                m_vox = int(np.ceil(max(REVIEW_MARGIN_MM, REVIEW_MARGIN_FRAC * ext_mm) / spacing[a]))
+                box_vox[a] = (max(0, lo[a] - m_vox), min(shape[a], hi[a] + m_vox))
+            r_lo, r_hi = _display_interval(*box_vox[ra], shape[ra], rflip)
+            c_lo, c_hi = _display_interval(*box_vox[ca], shape[ca], cflip)
+            plan.append((axis, sl_idx, rows, cols, (r_lo, c_lo, r_hi, c_hi)))
+        long_side = max(max(b[2] - b[0], b[3] - b[1]) for *_x, b in plan)
+        sum_w = sum(b[3] - b[1] for *_x, b in plan)
+        scale = min(REVIEW_CELL_MAX_PX / long_side,
+                    (TOTAL_WIDTH_PX - 2 * PANEL_GAP_PX) / sum_w, REVIEW_MAX_SCALE)
+        panels = []
+        for axis, sl_idx, rows, cols, box in plan:
+            pw = max(1, int(np.floor((box[3] - box[1]) * scale)))
+            ph = max(1, int(np.floor((box[2] - box[0]) * scale)))
+            geom = ViewGeom(axis, sl_idx, rows, cols, box, scale, pw, ph)
+            panel = _panel_from_slice(M.extract_slice(image, axis, sl_idx), window, box, scale, pw, ph)
+            panel = _overlay_outline_px(panel, M.extract_slice(comp.astype(np.uint8), axis, sl_idx),
+                                        box, OUTLINE_COLOR)
+            _draw_frame(panel, geom, spacing, f"C{rank} {axis[:3]} {sl_idx}", scale_bar=False)
+            views.append(geom)
+            panels.append(panel)
+        row = Image.new("RGB", (sum(p.width for p in panels) + 2 * REVIEW_GAP_PX,
+                                max(p.height for p in panels)), (24, 24, 24))
+        x = 0
+        for p in panels:
+            row.paste(p, (x, 0))
+            x += p.width + REVIEW_GAP_PX
+        row_imgs.append(row)
+    w = max(r.width for r in row_imgs)
+    h = sum(r.height for r in row_imgs) + REVIEW_GAP_PX * (len(row_imgs) - 1)
+    out = Image.new("RGB", (w, h), (24, 24, 24))
+    y = 0
+    for r in row_imgs:
+        out.paste(r, ((w - r.width) // 2, y))
+        y += r.height + REVIEW_GAP_PX
+    return out, RenderInfo("review_components", views, [], [], window)
+
+
 CANDIDATE_COLOR = (255, 64, 255)     # magenta outline/tint of a candidate (green = mask, red = removed)
 CANDIDATE_TINT = 0.2                 # <= 20% fill so the tissue inside the outline stays visible
 CANDIDATE_MARGIN_MM = 20.0           # cell crop: bbox(mask U candidate) + this margin per side
@@ -1047,6 +1161,8 @@ def render_candidates(image: np.ndarray, mask: np.ndarray, candidates,
     mhi = [int(a.max()) + 1 for a in midx] if midx[0].size else None
     views: list[ViewGeom] = []
     row_imgs: list[Image.Image] = []
+    row_rects: list[tuple[int, int, int, int]] = []
+    y = 0
     for cand in cands:
         region = np.zeros(shape, dtype=bool)
         region[cand.bbox] = cand.crop
@@ -1091,13 +1207,15 @@ def render_candidates(image: np.ndarray, mask: np.ndarray, candidates,
         for i, p in enumerate(panels):
             row.paste(p, (i * (cell + gap) + (cell - p.width) // 2, (row_h - p.height) // 2))
         row_imgs.append(row)
+        row_rects.append((0, y, 3 * cell + 2 * gap, y + row_h))
+        y += row_h + gap
     h = sum(r.height for r in row_imgs) + gap * (n - 1)
     out = Image.new("RGB", (3 * cell + 2 * gap, h), (24, 24, 24))
     y = 0
     for r in row_imgs:
         out.paste(r, (0, y))
         y += r.height + gap
-    return out, RenderInfo("candidates", views, [], [], window)
+    return out, RenderInfo("candidates", views, [], [], window, panel_rects=row_rects)
 
 
 RAW_MARGIN_TOP_PX = 22       # raw-pointing rulers/title live in margins around the image
@@ -1160,3 +1278,33 @@ def render_raw_pointing(image: np.ndarray, axis: str, slice_idx: int, crop="full
     draw.text((max(L + pw - tw - 4, L + 8 + bar_px + 50), yb), title, font=f, fill=_WHITE,
               anchor="lm")
     return canvas, RenderInfo("raw", [geom], [], [], window)
+
+
+PROPOSED_COLOR = (56, 189, 248)    # bright sky blue; distinct from marks/mask/candidates
+
+
+def draw_proposed_points(view_img, panel_rects, points) -> Image.Image:
+    """seg_locate feedback: draw proposed points (panel-0 pixel coordinates) with
+    numbered P labels on every panel of the view image (clean + marked share one
+    geometry, so the same panel-relative position is valid on both).
+
+    ``panel_rects`` are the RenderInfo paste rects (panel 0 first); a single-panel
+    image passes ``[(0, 0, w, h)]``. ``points``: [(x, y, label)]. Returns a COPY; the
+    input image is never modified.
+    """
+    out = view_img.copy()
+    draw = ImageDraw.Draw(out)
+    for x, y, label in points:
+        for x0, y0, _x1, _y1 in panel_rects:
+            px, py = x0 + x, y0 + y
+            draw.ellipse((px - 7, py - 7, px + 7, py + 7), outline=_BLACK, width=4)
+            draw.ellipse((px - 7, py - 7, px + 7, py + 7), outline=PROPOSED_COLOR, width=2)
+            placed = False
+            for ax, ay in ((px + 9, py - 24), (px + 9, py + 8), (px - 30, py - 24)):
+                if 2 <= ax and ax + 24 < out.width - 2 and 2 <= ay and ay + 16 < out.height - 2:
+                    _chip(draw, (ax, ay), label)
+                    placed = True
+                    break
+            if not placed:
+                _chip(draw, (max(2, px - 30), max(2, py - 24)), label)
+    return out

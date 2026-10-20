@@ -1,0 +1,1 @@
+Find the {{target}} in this MRI image. Output its bounding box as JSON only: {"box": [y0, x0, y1, x1], "confidence": <0-1>} with coordinates normalized to 0-1000. If you cannot find it, output {"answer": "uncertain"}.

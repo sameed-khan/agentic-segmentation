@@ -1,0 +1,33 @@
+[project]
+name = "pointd-molmo2"
+version = "1.0.0"
+description = "FastAPI pointer service around AI2 Molmo2-8B (HF Transformers, trust_remote_code)"
+requires-python = ">=3.11,<3.13"          # official card: Python 3.11
+dependencies = [
+    # Official Molmo2-8B card quickstart pins (research/literature/pointer_models_gui_actor_molmo2.md):
+    "transformers==4.57.1",
+    "torch==2.7.1",                        # CUDA 12.x Linux wheels on PyPI include sm_80 (A100)
+    "accelerate>=1.1.0",
+    "einops>=0.8.0",
+    "torchvision>=0.22.0",
+    "pillow>=11.0.0",
+    "numpy>=2.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "pydantic>=2.9.0",
+]
+# Notes:
+# - trust_remote_code=True is set at model/processor load (server.py), never on the transport layer.
+# - torch_dtype=bfloat16 is explicit at load: checkpoint weights are FP32 (dtype="auto" needs ~35 GB).
+# - decord2 / molmo_utils (card quickstart) are video-only; single-image pointing needs neither.
+
+[dependency-groups]
+dev = ["pytest>=8.3.0", "httpx>=0.27.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Application-style uv project (no wheel to build/install); uv syncs the venv only.
+package = false

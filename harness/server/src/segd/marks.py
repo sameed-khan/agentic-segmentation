@@ -86,6 +86,23 @@ AXES = ("axial", "coronal", "sagittal")
 # longer collapse toward the volume corner (the clamp used the downsampled shape).
 MARKS_VERSION = 7
 
+# --- Density profiles (Phase 4, decision 5): dataset-level option for DENSER FINE MARKS.
+# MSTT uses "default" (no overrides: identical constants, identical marks, byte-identical
+# caches). CaseState selects the profile per dataset via config.MARKS_PROFILE; the profile
+# and its values are stored in MarkSet.params, so cache_matches() recomputes when the
+# profile changes. "dense" raises the fine-mark density (3D thinning, in-plane thinning,
+# per-panel label cap) for multi-small-lesion volumes; candidate generation (blob detector)
+# is unchanged.
+DENSITY_PROFILES = {
+    "default": {},
+    "dense": {
+        "fine_spacing_mm": 3.0,          # 3D fine thinning (default FINE_SPACING_MM 5.0)
+        "fine_clear_coarse_mm": 2.0,     # clearance from coarse marks (default 3.0)
+        "visible_thin_mm": {"coarse": 8.0, "fine": 3.0},   # in-plane thinning (defaults 10/6)
+        "visible_cap": 200,              # per-panel label cap (default VISIBLE_CAP 50)
+    },
+}
+
 # In-plane display mapping (CONTRACTS §1): (row axis index, row flipped, col axis index,
 # col flipped).  For axial the slice is img[:, :, k] = [i, j]; display needs
 # row = J-1-j, col = I-1-i -> row axis 1 flipped, col axis 0 flipped, etc.
@@ -230,7 +247,7 @@ class MarkSet:
 
     # -- visibility ---------------------------------------------------------
     def visible(self, axis: str, slice_idx: int, box2d: tuple | None = None,
-                level: str = "coarse", max_n: int = VISIBLE_CAP) -> list[Mark]:
+                level: str = "coarse", max_n: int | None = None) -> list[Mark]:
         """Marks shown on one slice of ``axis`` (CONTRACTS §2).
 
         A mark is visible if ``|mark_slice_coord - slice_idx| <= max(scale_mm/2, 2)``
@@ -248,9 +265,16 @@ class MarkSet:
         panel instead of clumping on the strongest structures (a purely
         strength-ordered cap measurably loses in-slice coverage on dense slices,
         e.g. L43).  The returned list is ordered strongest-first.
-        """
+
+        ``max_n=None`` (default) uses the MarkSet's density profile: the module
+        default VISIBLE_CAP, or ``visible_cap`` from ``params`` (Phase 4 dense
+        profile).  An explicit ``max_n`` (e.g. sheet cells) always wins."""
         if axis not in AXIS_INDEX or level not in ("coarse", "fine") or len(self._ids) == 0:
             return []
+        if max_n is None:
+            max_n = int(self.params.get("visible_cap") or VISIBLE_CAP)
+        thin_mm = self.params.get("visible_thin_mm") or VISIBLE_THIN_MM
+        clear_coarse = float(self.params.get("fine_clear_coarse_mm") or FINE_CLEAR_COARSE_MM)
         sl = self._ijk[AXIS_INDEX[axis]].astype(np.float64)
         r_vox = np.maximum(self._scale / (2.0 * self.spacing[AXIS_INDEX[axis]]),
                            MIN_VISIBLE_MM / self.spacing[AXIS_INDEX[axis]])
@@ -280,15 +304,15 @@ class MarkSet:
         co = np.nonzero(is_coarse[idxs])[0]          # indices relative to ``idxs``
         fi = np.nonzero(~is_coarse[idxs])[0]
         kept_co = np.nonzero(_greedy_spatial_thin(pts_mm[co], prio[co],
-                                                  radius_mm=VISIBLE_THIN_MM["coarse"]))[0]
+                                                  radius_mm=thin_mm["coarse"]))[0]
         co_capped = _cap(kept_co)
         if level == "coarse":
             order = co_capped
         else:
             fine_pool = fi
-            extra = (pts_mm[co[co_capped]], FINE_CLEAR_COARSE_MM) if co_capped.size else ()
+            extra = (pts_mm[co[co_capped]], clear_coarse) if co_capped.size else ()
             kept_fi = np.nonzero(_greedy_spatial_thin(pts_mm[fine_pool], prio[fine_pool],
-                                                      radius_mm=VISIBLE_THIN_MM["fine"],
+                                                      radius_mm=thin_mm["fine"],
                                                       extra=extra if len(extra) == 2 else None))[0]
             n_co = co_capped.size
             if capped:
@@ -601,7 +625,7 @@ def _region_candidates(dnorm: np.ndarray, dbody: np.ndarray, ds_mm: float,
 # compute_marks
 # ---------------------------------------------------------------------------
 def compute_marks(image: np.ndarray, spacing: tuple[float, float, float],
-                  timings: dict | None = None) -> MarkSet:
+                  timings: dict | None = None, profile: str = "default") -> MarkSet:
     """Deterministic mark set for one volume (CONTRACTS §2).
 
     Pipeline: body mask -> intensity window -> 2 mm blob grid (LoG extrema, both
@@ -613,7 +637,18 @@ def compute_marks(image: np.ndarray, spacing: tuple[float, float, float],
     coarse marks -> stable IDs (coarse first, each sorted by k, then j, then i).
     ``timings``, when given, receives per-stage wall seconds for the offline
     diagnostic.
-    """
+
+    ``profile`` selects a DENSITY_PROFILES entry (Phase 4 decision 5): "default"
+    (MSTT; the module constants above, byte-identical) or "dense" (dataset-level
+    option for multi-small-lesion volumes: finer fine thinning, larger label cap).
+    The profile and its values are recorded in MarkSet.params so cached sets are
+    invalidated when the profile changes."""
+    prof = DENSITY_PROFILES.get(profile)
+    if prof is None:
+        raise ValueError(f"unknown marks density profile {profile!r} "
+                         f"(have {sorted(DENSITY_PROFILES)})")
+    fine_spacing = float(prof.get("fine_spacing_mm", FINE_SPACING_MM))
+    fine_clear = float(prof.get("fine_clear_coarse_mm", FINE_CLEAR_COARSE_MM))
     def _t(tag: str, t0: float) -> None:
         if timings is not None:
             timings[tag] = timings.get(tag, 0.0) + (time.monotonic() - t0)
@@ -663,7 +698,7 @@ def compute_marks(image: np.ndarray, spacing: tuple[float, float, float],
                min(int(ijk_full[2]), shape[2] - 1))
         cands.append((ijk, scale_mm, kind, raw))
     if not cands:
-        return MarkSet({}, spacing, win, {}, params=_params_snapshot())
+        return MarkSet({}, spacing, win, {}, params=_params_snapshot(profile))
 
     # joint priority: percentile rank of normalised strength across all candidates
     t0 = time.monotonic()
@@ -707,8 +742,8 @@ def compute_marks(image: np.ndarray, spacing: tuple[float, float, float],
                         for sv in sv_ids[coarse_idx] if sv > 0}
     fine_pool = np.setdiff1d(np.arange(len(cands), dtype=np.int64), coarse_idx)
     keep_fine_local = _greedy_spatial_thin(
-        pts_mm[fine_pool], prio[fine_pool], FINE_SPACING_MM,
-        extra=(pts_mm[coarse_idx], FINE_CLEAR_COARSE_MM) if len(coarse_idx) else None)
+        pts_mm[fine_pool], prio[fine_pool], fine_spacing,
+        extra=(pts_mm[coarse_idx], fine_clear) if len(coarse_idx) else None)
     fine_idx = fine_pool[keep_fine_local]
     _t("thin", t0)
 
@@ -730,11 +765,11 @@ def compute_marks(image: np.ndarray, spacing: tuple[float, float, float],
             marks[nid] = Mark(nid, kind, ijk, float(scale_mm), level)
             strengths[nid] = float(prio[ci])
 
-    return MarkSet(marks, spacing, win, strengths, params=_params_snapshot(), shape=shape)
+    return MarkSet(marks, spacing, win, strengths, params=_params_snapshot(profile), shape=shape)
 
 
-def _params_snapshot() -> dict:
-    return {
+def _params_snapshot(profile: str = "default") -> dict:
+    snap = {
         "version": MARKS_VERSION,
         "downsample_mm": DOWNSAMPLE_MM, "region_downsample_mm": REGION_DOWNSAMPLE_MM,
         "log_sigmas_mm": list(LOG_SIGMAS_MM),
@@ -749,12 +784,20 @@ def _params_snapshot() -> dict:
         "region_scale_clamp_mm": list(REGION_SCALE_CLAMP_MM),
         "body_grid_max_dim": BODY_GRID_MAX_DIM,
     }
+    prof = DENSITY_PROFILES.get(profile)
+    if prof is None:
+        raise ValueError(f"unknown marks density profile {profile!r}")
+    if profile != "default":
+        snap["profile"] = profile
+        snap.update(prof)
+    return snap
 
 
-def cache_matches(ms: "MarkSet", shape) -> bool:
+def cache_matches(ms: "MarkSet", shape, profile: str = "default") -> bool:
     """True when a loaded mark cache was computed with the CURRENT version/params
-    (full fingerprint) on a volume of ``shape`` — otherwise it must be recomputed."""
-    current = json.loads(json.dumps(_params_snapshot()))
+    (full fingerprint, including the density profile) on a volume of ``shape`` —
+    otherwise it must be recomputed."""
+    current = json.loads(json.dumps(_params_snapshot(profile)))
     return ms.params == current and tuple(ms.shape or ()) == tuple(int(v) for v in shape)
 
 

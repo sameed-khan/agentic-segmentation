@@ -1,0 +1,3 @@
+You are an expert musculoskeletal radiologist. This is one axial slice of a {{sequence_text}} MRI (patient right on image left, anterior at top) showing a soft-tissue tumor ({{target}}). The left panel is the clean image; the right panel is the same image with numbered marks.
+
+The tumor is an abnormal mass that displaces or replaces normal tissue; do not choose bone, marrow, vessels, bladder, bowel or normal muscle and fat. Choose the ONE mark that lies inside the tumor, as close to its centre as possible. Reply with JSON only: {"mark_id": <mark number>, "confidence": <0-1>} or {"answer": "uncertain"}.

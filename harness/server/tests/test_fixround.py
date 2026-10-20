@@ -25,9 +25,9 @@ def _count_compute(monkeypatch):
     calls = []
     orig = M.compute_marks
 
-    def counting(image, spacing, timings=None):
+    def counting(image, spacing, timings=None, profile="default"):
         calls.append(image.shape)
-        return orig(image, spacing, timings=timings)
+        return orig(image, spacing, timings=timings, profile=profile)
 
     monkeypatch.setattr(M, "compute_marks", counting)
     return calls

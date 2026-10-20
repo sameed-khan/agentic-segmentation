@@ -34,6 +34,12 @@ COL_AXIS = {"axial": 0, "coronal": 0, "sagittal": 1}
 # is exhausted only `finish` is accepted.
 MODEL_PROMPT_OPS = frozenset({"point", "lasso", "scribble", "box", "refine"})
 
+# Phase 4 marks density (decision 5): dataset -> segd.marks DENSITY_PROFILES profile for
+# compute_marks/MarkSet. "mstt" (and any dataset absent here) uses "default" — the frozen
+# MSTT mark parameters, byte-identical. "dense" raises fine-mark density for multi-
+# small-lesion volumes (BEAMSTER); see marks.DENSITY_PROFILES for the exact overrides.
+MARKS_PROFILE = {"beamster": "dense"}
+
 # Candidate corrections (segd.candidates; benchmark results/candidate_bench/summary.md
 # chose 'intensity' as the best precision/recall-per-second source, max 5 per state).
 CANDIDATE_METHOD = "intensity"

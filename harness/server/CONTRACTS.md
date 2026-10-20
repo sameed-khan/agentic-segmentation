@@ -320,3 +320,93 @@ as the `v3` object. Implementation: `segd/v3.py`; constants in `config.py` (`V3_
   candidate accepts matched version- and order-aware, unexposed distinct from overrides;
   the accept-operation-level Dice delta once per operation, labelled as such) from
   trajectories, versions.npz and offline GT.
+
+## Deviations/Phase 4 — BEAMSTER multi-lesion changes (2026-10-21)
+
+Phase 4 narrowed to BEAMSTER only (brain metastases, CE-T1 MRI, 140 cases: 30 design /
+110 test, multiple small lesions per case, 1 mm iso conversions under
+`data/phase4/beamster/nifti_iso/`). All changes are gated on the case's `dataset`;
+`dataset="mstt"` (the default everywhere) keeps byte-identical v2/v3 behaviour.
+
+1. **Dataset selection (decision 1).** Runner `--dataset mstt|beamster` (default `mstt` =
+   unchanged behaviour); the case-open body (`POST /cases`) carries `dataset` (omitted on
+   mstt: identical v2 request), validated like other body fields (unknown manifest → 400,
+   unknown case → 404). `segd.data` gains the manifest reader `read_cases_phase4(dataset,
+   split)` for `eval/v4/<dataset>_cases.csv` + `get_case(case, dataset="mstt")`;
+   `CaseRow` gains `modality` and the GT-derived `n_lesions` (OFFLINE use only — scorer,
+   diagnostics; CaseState never receives it, so no GT lesion count can reach any
+   agent-visible path) and carries the manifest `target_text`. Path portability: env
+   `SEGD_DATA_ROOT` (default `<project>/data`) — manifest absolute paths recorded under
+   `/home/ubuntu/agentic-segmentation/data` are remapped onto `$SEGD_DATA_ROOT`
+   (`remap_data_path`); MSTT `DATA_DIR` resolves under the same root (import time). The
+   committed beamster manifest had `image_path`/`mask_paths` swapped with the `*_src`
+   provenance columns (native paths in the harness columns, 1 mm iso paths in `*_src` —
+   the reverse of the column semantics pinned by eval/v4/phase4_common.py and of
+   `repoint_manifests_to_iso.py`); fixed in place (backup kept), all 140 rows verified to
+   point at `nifti_iso/` with `n_lesions` matching the iso-mask components (140/140).
+2. **Task = ALL lesions, ONE multi-component nnInteractive object (option a; decision
+   2).** No expected-lesion-count disclosure anywhere (that would be a scoring leak).
+   Prompts: `harness/prompts/system_multi.md` / `task_multi.md` are copies of
+   `system.md`/`task.md` with exactly the minimal edits: 'one lesion' → 'all lesions of
+   the target (there may be one or many, some very small)'; the MSK-specific 'What counts
+   as the lesion' rule (rim/fascia/nerve) replaced by the neutral 'Include every lesion of
+   the target type anywhere in the volume; check all slices, small lesions are easy to
+   miss'; everything else identical (`task_multi.md` is currently a faithful copy — the
+   'one lesion' phrase does not occur in `task.md`). The runner selects them as the
+   default task/system files for non-mstt datasets (explicit `--system-file`/`--task-file`
+   wins; no combined v3+multi variant exists — that combination errors and requires an
+   explicit `--system-file`).
+3. **Multi-component observation text (decision 3).** On non-mstt datasets every
+   components line reports the component count and the volumes of up to the 10 largest
+   components derived from the CURRENT mask only
+   (`components N (mL: v1, v2, …; M smaller)`) — `mask_stats.component_ml` +
+   `observe.components_text_multi`; MSTT keeps the legacy 'largest X%' line.
+   `seg_edit keep_component`/`remove_component` were VERIFIED mark-based (they keep/remove
+   the component containing the mark's nearest mask voxel, `ops.op_edit`) — they never
+   reduce the mask to the largest component, so no fix was needed. Finish review: the
+   union-extent grid's fraction columns can fall between separated lesions, so on
+   non-mstt datasets a mask with ≥ 2 components additionally returns the COMPONENT SHEET
+   (`render.render_review_components`): one row per component (largest first, up to 5),
+   axial/coronal/sagittal through the component's centre of mass, each cropped to that
+   component's bbox + max(20 mm, 30% of its extent) — chosen (simplest robust option) so
+   every lesion's own boundary is reviewable while the existing union-extent grid keeps
+   its past-the-union-extent meaning. The candidate sheet's image position/wording shifts
+   accordingly ('third image'); review codes/authorisation are unchanged.
+4. **Budgets (decision 4).** Runner per-dataset defaults (`DATASET_DEFAULTS`): beamster =
+   50 tool calls, 20 model prompts, 12 min wall — applied only for flags the user did not
+   pass explicitly; static per dataset, never derived from GT. segd's
+   `config.DEFAULT_BUDGETS` (mstt 40/15) unchanged.
+5. **Marks density option (decision 5).** `segd.marks.DENSITY_PROFILES` + `config.
+   MARKS_PROFILE = {"beamster": "dense"}`: the dense profile (fine 3D thinning 5→3 mm,
+   fine/coarse in-plane thinning 6/10→3/8 mm, per-panel cap 50→200) is fingerprinted into
+   `MarkSet.params` (`cache_matches(…, profile=)`) so caches are profile-aware; MSTT uses
+   the "default" profile (byte-identical marks). Measured on the 30 BEAMSTER design cases
+   (72 GT lesions; hit = a DRAWN mark inside the lesion on its largest axial slice;
+   eval/v4/mark_coverage_beamster.py, before/after files in eval/v4/marks_beamster/):
+   <0.5 mL full-view fine hit 0.10→0.24, 0.5–2 mL 0.41→0.71, >2 mL 0.85→0.96; crop
+   (zoom-view) fine hit <0.5 mL 0.55→0.62, ≥0.5 mL 1.00. Residual: 10/72 lesions have no
+   mark even in crops (blob-candidate generation, unchanged by design here) and full-view
+   panel-space strength ordering still biases against tiny lesions — discovery on full
+   views stays imperfect by construction; sheets + `crop='marks'` zooms + `seg_candidates`
+   are the compensating mechanisms.
+6. **Multi-lesion scorer (decision 6).** `eval/v4/score_multi.py` (reuses eval/v2/score.py
+   primitives): global Dice/HD95/NSD on the union; lesion-wise detection — GT lesion =
+   connected component (6-conn, same convention as the manifest builder and
+   `observe.mask_stats`), DETECTED when some predicted component overlaps ≥ 10% of its
+   voxels, FP = predicted component with zero GT overlap; lesion sensitivity, FP count,
+   lesion precision/F1, mean per-lesion Dice over DETECTED lesions (matched prediction =
+   union of the ≥10%-overlapping predicted components, so a component bridging two
+   lesions counts against both); breakdown by lesion size (<0.5 / 0.5–2 / >2 mL); the tag
+   'none_detected' (no GT lesion detected) replaces the MSTT 'localization' tag (same
+   precedence otherwise); per-case `n_lesions` (GT components, computed — cross-checked
+   against the manifest column) in `scores_multi.csv` + per-lesion `lesions_multi.csv`.
+7. **Tests (decision 7).** MSTT byte-identity: `test_v3_off_identity.py` (unchanged)
+   still passes — all Phase 4 paths are gated on `dataset != "mstt"` and every new
+   CaseState/render parameter defaults to the previous behaviour. New:
+   `harness/server/tests/test_phase4_beamster.py` (manifest reader + remap, MSTT defaults,
+   multi observation text, dense-profile fingerprinting, component sheet, and a FakeNNI
+   smoke path on the REAL design case Dataset_A_001 read-only from
+   `/home/ubuntu/agentic-segmentation/data/phase4/beamster/nifti_iso` via
+   `SEGD_DATA_ROOT`) and `eval/v4/test_score_multi.py` (detection rule, 10% boundary,
+   FP/bucket/F1 math, tags, and a synthetic-manifest integration case with dataset
+   inference from `case_meta.json`).

@@ -128,8 +128,10 @@ class CaseState:
     def __init__(self, case_id: str, image: np.ndarray, affine: np.ndarray,
                  spacing: tuple[float, float, float], target_text: str, sequence: str,
                  out_dir, nni_url: Optional[str] = None, budgets: Optional[dict] = None,
-                 orig_geometry: Optional[tuple] = None, v3: Optional[dict] = None):
+                 orig_geometry: Optional[tuple] = None, v3: Optional[dict] = None,
+                 dataset: str = "mstt"):
         self.case_id = case_id
+        self.dataset = dataset          # "mstt" (default, unchanged behaviour) or "beamster"
         self.image = np.ascontiguousarray(image, dtype=np.float32)
         self.affine = np.asarray(affine, dtype=np.float64)
         self.spacing = tuple(float(s) for s in spacing)
@@ -204,6 +206,7 @@ class CaseState:
             "sequence": self.sequence, "target_text": self.target_text, "budgets": self.budgets,
             "nni": "remote" if self.nni_url else "fake",
             "v3": self.v3,
+            "dataset": self.dataset,
             "upload_packed_bytes": self.upload_packed_bytes,
             "crop_offset": list(self.crop_offset), "crop_shape": list(self.crop_shape),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self.created_at)),
@@ -227,11 +230,15 @@ class CaseState:
         if cache_path.exists():
             try:
                 ms = MarkSet.load(str(cache_path))
-                if cache_matches(ms, self.shape):   # version + full params + shape
+                # fingerprint includes the density profile of THIS dataset (decision 5)
+                if cache_matches(ms, self.shape,
+                                 profile=config.MARKS_PROFILE.get(self.dataset, "default")):
                     return ms
             except Exception:
                 pass  # corrupt/incompatible cache file: recompute
-        ms = compute_marks(self.image, self.spacing)
+        # dataset-level marks density (Phase 4 decision 5): "mstt" keeps the default profile
+        ms = compute_marks(self.image, self.spacing,
+                           profile=config.MARKS_PROFILE.get(self.dataset, "default"))
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             ms.save(str(cache_path))   # atomic (tmp + os.replace)
@@ -507,6 +514,7 @@ class CaseState:
             "sequence": self.sequence, "target_text": self.target_text, "budgets": self.budgets,
             "nni": "remote" if self.nni_url else "fake",
             "v3": self.v3,
+            "dataset": self.dataset,
             "upload_packed_bytes": self.upload_packed_bytes,
             "crop_offset": list(self.crop_offset), "crop_shape": list(self.crop_shape),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self.created_at)),

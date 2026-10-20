@@ -31,6 +31,7 @@ __all__ = [
     "render_outline_change",
     "render_change_3plane",
     "render_review_grid",
+    "render_review_components",
     "render_candidates",
     "render_raw_pointing",
     "draw_proposed_points",
@@ -994,6 +995,89 @@ def render_review_grid(image: np.ndarray, mask: np.ndarray, spacing=(1.0, 1.0, 1
         out.paste(r, ((w - r.width) // 2, y))
         y += r.height + REVIEW_GAP_PX
     return out, RenderInfo("review", views, [], [], window)
+
+
+REVIEW_COMPONENT_MAX = 5     # rows in the per-component review sheet (largest first)
+
+
+def render_review_components(image: np.ndarray, mask: np.ndarray,
+                             spacing=(1.0, 1.0, 1.0),
+                             markset: M.MarkSet | None = None,
+                             max_components: int = REVIEW_COMPONENT_MAX
+                             ) -> tuple[Image.Image, RenderInfo]:
+    """Per-component review sheet for multi-lesion targets (Phase 4, non-MSTT datasets).
+
+    The union-extent review grid (render_review_grid) inspects the union of all lesions;
+    with several separated lesions its 25/50/75% columns can fall between them and each
+    lesion's own boundary is never seen. This sheet adds what the grid cannot show: one
+    row per connected component of ``mask`` (largest first, up to ``max_components``),
+    columns axial/coronal/sagittal through the component's centre of mass, every cell
+    cropped to THAT component's bbox grown by ``max(20 mm, 30% of its extent)`` per side
+    (one shared scale per row). Green outline; chip 'Ck ax 123' names the row's component
+    rank (volumes are in the observation text). Derived from the current mask only.
+    """
+    image = np.asarray(image)
+    mask = np.asarray(mask) > 0
+    spacing = tuple(float(s) for s in spacing)
+    labels, n = ndi.label(mask, structure=ndi.generate_binary_structure(3, 1))
+    if n == 0:
+        return render_overview(image, spacing, mask=None, marks=markset)
+    shape = image.shape
+    sizes = np.bincount(labels.ravel())
+    sizes[0] = 0
+    order = [int(i) for i in np.argsort(sizes)[::-1] if i != 0][:max_components]
+    window = _window_for(image, markset)
+    views: list[ViewGeom] = []
+    row_imgs: list[Image.Image] = []
+    for rank, lab in enumerate(order, start=1):
+        comp = labels == lab
+        idx = np.nonzero(comp)
+        centre = tuple(int(np.clip(np.floor(a.mean() + 0.5), 0, sn - 1))
+                       for a, sn in zip(idx, shape))
+        lo = [int(a.min()) for a in idx]
+        hi = [int(a.max()) + 1 for a in idx]
+        plan = []
+        for axis, sl_idx in (("axial", centre[2]), ("coronal", centre[1]), ("sagittal", centre[0])):
+            ra, rflip, ca, cflip = M._INPLANE[axis]
+            rows, cols = M.slice_shape(shape, axis)
+            box_vox = {}
+            for a in (ra, ca):
+                ext_mm = (hi[a] - lo[a]) * spacing[a]
+                m_vox = int(np.ceil(max(REVIEW_MARGIN_MM, REVIEW_MARGIN_FRAC * ext_mm) / spacing[a]))
+                box_vox[a] = (max(0, lo[a] - m_vox), min(shape[a], hi[a] + m_vox))
+            r_lo, r_hi = _display_interval(*box_vox[ra], shape[ra], rflip)
+            c_lo, c_hi = _display_interval(*box_vox[ca], shape[ca], cflip)
+            plan.append((axis, sl_idx, rows, cols, (r_lo, c_lo, r_hi, c_hi)))
+        long_side = max(max(b[2] - b[0], b[3] - b[1]) for *_x, b in plan)
+        sum_w = sum(b[3] - b[1] for *_x, b in plan)
+        scale = min(REVIEW_CELL_MAX_PX / long_side,
+                    (TOTAL_WIDTH_PX - 2 * PANEL_GAP_PX) / sum_w, REVIEW_MAX_SCALE)
+        panels = []
+        for axis, sl_idx, rows, cols, box in plan:
+            pw = max(1, int(np.floor((box[3] - box[1]) * scale)))
+            ph = max(1, int(np.floor((box[2] - box[0]) * scale)))
+            geom = ViewGeom(axis, sl_idx, rows, cols, box, scale, pw, ph)
+            panel = _panel_from_slice(M.extract_slice(image, axis, sl_idx), window, box, scale, pw, ph)
+            panel = _overlay_outline_px(panel, M.extract_slice(comp.astype(np.uint8), axis, sl_idx),
+                                        box, OUTLINE_COLOR)
+            _draw_frame(panel, geom, spacing, f"C{rank} {axis[:3]} {sl_idx}", scale_bar=False)
+            views.append(geom)
+            panels.append(panel)
+        row = Image.new("RGB", (sum(p.width for p in panels) + 2 * REVIEW_GAP_PX,
+                                max(p.height for p in panels)), (24, 24, 24))
+        x = 0
+        for p in panels:
+            row.paste(p, (x, 0))
+            x += p.width + REVIEW_GAP_PX
+        row_imgs.append(row)
+    w = max(r.width for r in row_imgs)
+    h = sum(r.height for r in row_imgs) + REVIEW_GAP_PX * (len(row_imgs) - 1)
+    out = Image.new("RGB", (w, h), (24, 24, 24))
+    y = 0
+    for r in row_imgs:
+        out.paste(r, ((w - r.width) // 2, y))
+        y += r.height + REVIEW_GAP_PX
+    return out, RenderInfo("review_components", views, [], [], window)
 
 
 CANDIDATE_COLOR = (255, 64, 255)     # magenta outline/tint of a candidate (green = mask, red = removed)

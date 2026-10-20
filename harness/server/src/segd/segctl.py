@@ -53,6 +53,8 @@ def main(argv=None) -> int:
     p_open.add_argument("--out-dir", required=True)
     p_open.add_argument("--nni-url", default=None)
     p_open.add_argument("--budgets", default=None, help="JSON, e.g. '{\"max_tool_calls\":40}'")
+    p_open.add_argument("--dataset", default="mstt",
+                        help='Phase 4 dataset manifest ("beamster"); default mstt (unchanged)')
 
     p_op = sub.add_parser("op", help="run one op on an open case")
     p_op.add_argument("case")
@@ -75,6 +77,8 @@ def main(argv=None) -> int:
                     body["nni_url"] = a.nni_url
                 if a.budgets:
                     body["budgets"] = json.loads(a.budgets)
+                if a.dataset != "mstt":
+                    body["dataset"] = a.dataset
                 resp = http.post("/cases", json=body)
                 data = resp.json()
                 if resp.status_code == 200 and data.get("ok"):

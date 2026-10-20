@@ -34,7 +34,8 @@ from segd.case_state import (
     CaseState, OpError, parse_version, project_to_slice, vid_label, voxel_to_inplane,
 )
 from segd.observe import (
-    _fmt_extent, budget_line, components_text, mask_stats, observation_after_mutation, observation_after_restore,
+    _fmt_extent, budget_line, components_text_for, mask_stats, is_multi_lesion,
+    observation_after_mutation, observation_after_restore,
     observation_for_view,
 )
 
@@ -761,6 +762,17 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
         cand_text = ""
         cands: list = []
         cand_row_rects: list = []
+        cand_img = None
+        comp_text = ""
+        # Phase 4 (non-MSTT datasets): with several separated lesions the union-extent
+        # grid's fraction columns can fall between them — add the per-component sheet
+        # (rows through each component's centre) so every lesion's outline is reviewable.
+        if is_multi_lesion(cs) and st["n_components"] >= 2:
+            img_comp, _rc = _render().render_review_components(cs.image, mask, cs.spacing)
+            images.append(img_comp)
+            comp_text = ("The next image is the component sheet: one row per detected component "
+                         "(largest first, up to 5), axial/coronal/sagittal through its centre. "
+                         "Check each lesion's outline separately. ")
         if st["n_components"] > 0:
             # required candidate round: every first review for a version also proposes
             # candidates (capped after CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS accepted rounds)
@@ -772,9 +784,11 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
                 if cands:
                     img_c, ri_c = _candidate_image(cs, cands)   # render BEFORE anything is authorized
                     images.append(img_c)
+                    cand_img = img_c
                     cs.candidates_shown = cs.current      # after the sheet rendered; a later
                     # save_render/logging failure rolls the authorization back (run_op transaction)
-                    cand_text = ("Candidates (second image): automatic proposals of possibly missed lesion "
+                    nth = "third" if comp_text else "second"
+                    cand_text = (f"Candidates ({nth} image): automatic proposals of possibly missed lesion "
                                  "tissue next to the mask, computed from image intensity only (often wrong).\n"
                                  f"{_candidate_lines(cs, cands)}\n{CANDIDATE_IMAGE_TEXT}. "
                                  f"{CANDIDATE_JUDGE_TEXT} ")
@@ -792,10 +806,11 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
                     " Otherwise keep editing.")
         else:
             text = (f"Final review of {label}: volume {st['volume_ml']:.1f} mL | "
-                    f"{components_text(st)} | {_fmt_extent(st['extent'])} | {budget_line(cs)}. "
+                    f"{components_text_for(cs, st)} | {_fmt_extent(st['extent'])} | {budget_line(cs)}. "
                     "The image shows five slices per plane (three inside the mask extent + one "
                     "just past each end; past-the-mask panels are orange). "
-                    "Check: (1) Is lesion tissue visible in the past-the-mask panels (orange)? "
+                    + comp_text
+                    + "Check: (1) Is lesion tissue visible in the past-the-mask panels (orange)? "
                     "Then the mask stops too early: seg_view that slice and add positive points "
                     "on the lesion there. (2) Does the outline cut through lesion or include "
                     "normal tissue on any panel? (3) Stray components? If any answer shows a "
@@ -806,8 +821,7 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
         if cs.v3 is not None:
             from segd import v3 as v3_mod
             try:
-                v3_note = v3_mod.finish_review_notes(cs, img,
-                                                     images[1] if len(images) > 1 else None,
+                v3_note = v3_mod.finish_review_notes(cs, img, cand_img,
                                                      cand_row_rects, cands, cs.current)
             except Exception as e:                          # noqa: BLE001 (by design)
                 # last resort so a hook crash cannot fail the review either — but it must
@@ -825,7 +839,7 @@ def op_finish(cs: CaseState, confidence: str = "medium", reason: str = "",
         return OpOutput(text, images)
     st = mask_stats(cs.current_mask(), cs.spacing)
     text = cs.finish(confidence, reason)
-    text += (f" | final volume {st['volume_ml']:.1f} mL, {components_text(st)} "
+    text += (f" | final volume {st['volume_ml']:.1f} mL, {components_text_for(cs, st)} "
              f"| {budget_line(cs)}")
     return OpOutput(text, [], done=True)
 

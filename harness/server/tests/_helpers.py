@@ -114,7 +114,7 @@ class StubMarkSet:
         return cls(marks, shape)
 
 
-def stub_compute_marks(image: np.ndarray, spacing) -> StubMarkSet:
+def stub_compute_marks(image: np.ndarray, spacing, profile: str = "default") -> StubMarkSet:
     """Deterministic marks: coarse/fine grid points inside the body (step 24/6 vox)."""
     body = body_mask_fallback(image)
     marks: list[StubMark] = []
@@ -400,7 +400,7 @@ def install_fake_data(monkeypatch, shape=(120, 120, 80), z_halfwidth=0.25, case_
         img, lesion, _body = make_phantom(shape, seed=i, z_halfwidth=z_halfwidth)
         phantoms[cid] = (img, lesion)
 
-    def fake_get_case(case):
+    def fake_get_case(case, dataset="mstt"):
         if case not in phantoms:
             raise KeyError(case)
         return FakeCaseRow(case)

@@ -40,6 +40,7 @@ import {
 import { createSegExtension, SEG_TOOL_NAMES } from "../extension/index.ts";
 import {
 	DEFAULT_SYSTEM_FILE,
+	DEFAULT_SYSTEM_MULTI_FILE,
 	DEFAULT_SYSTEM_V3_FILE,
 	selectSystemFile,
 } from "./system_prompt.ts";
@@ -49,7 +50,10 @@ const PROJECT_ROOT = resolve(HERE, "..", "..");
 const HARNESS_DIR = join(PROJECT_ROOT, "harness");
 const DEFAULT_EXTENSION_DIR = join(HARNESS_DIR, "extension");
 const DEFAULT_TASK_FILE = join(HARNESS_DIR, "prompts", "task.md");
-const CASES_CSV = join(PROJECT_ROOT, "eval", "v2", "mstt_cases.csv");
+const DEFAULT_TASK_MULTI_FILE = join(HARNESS_DIR, "prompts", "task_multi.md");
+const MSTT_CASES_CSV = join(PROJECT_ROOT, "eval", "v2", "mstt_cases.csv");
+const phase4CasesCsv = (dataset: string): string =>
+	join(PROJECT_ROOT, "eval", "v4", `${dataset}_cases.csv`);
 const DESIGN_SHAPES = join(PROJECT_ROOT, "eval", "v2", "data_check", "design.jsonl");
 const DEFAULT_AUTH_SHIM = join(
 	homedir(),
@@ -61,6 +65,15 @@ const DEFAULT_AUTH_SHIM = join(
 	"pi-anthropic-auth",
 );
 const STUB_SERVER = join(HERE, "test", "stub_segd.mjs");
+
+/** Runner-selectable datasets (Phase 4 = BEAMSTER only; 'mstt' = unchanged behaviour). */
+const DATASETS = ["mstt", "beamster"] as const;
+
+/** Per-dataset budget/prompt defaults (decision 4): applied for options the user did
+ *  NOT pass explicitly. Static per dataset — never derived from GT lesion counts. */
+const DATASET_DEFAULTS: Record<string, { wallMin: number; maxToolCalls: number; maxModelPrompts: number }> = {
+	beamster: { wallMin: 12, maxToolCalls: 50, maxModelPrompts: 20 },
+};
 
 const HISTOTYPE_TEXT: Record<string, string> = {
 	F: "fibrous soft-tissue tumor",
@@ -102,6 +115,7 @@ interface V3Spec {
 interface Options {
 	cases: string[];
 	split: string | null;
+	dataset: string;
 	runId: string;
 	concurrency: number;
 	model: string;
@@ -125,15 +139,19 @@ interface Options {
 	note: string;
 	examples: string;
 	systemFile: string;
-	systemFileSupplied: boolean;
+	systemFileSupplied: boolean;   // tracked apart from the value: an explicit
 	taskFile: string;
+	taskFileSupplied: boolean;     // default-path override must still win
 	resume: boolean;
 }
 
 function parseArgs(argv: string[]): Options {
+	// options the user passed explicitly (per-dataset defaults must not override them)
+	const explicit = new Set<string>();
 	const opts: Options = {
 		cases: [],
 		split: null,
+		dataset: "mstt",
 		runId: `run-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`,
 		concurrency: 4,
 		model: "anthropic/claude-sonnet-5-5",
@@ -160,6 +178,7 @@ function parseArgs(argv: string[]): Options {
 		systemFile: DEFAULT_SYSTEM_FILE,
 		systemFileSupplied: false,   // tracked apart from the value: an explicit
 		taskFile: DEFAULT_TASK_FILE,
+		taskFileSupplied: false,     // default-path override must still win
 	};
 
 	for (let i = 0; i < argv.length; i++) {
@@ -176,6 +195,9 @@ function parseArgs(argv: string[]): Options {
 			case "--split":
 				opts.split = next();
 				break;
+				case "--dataset":
+				opts.dataset = next();
+				break;
 			case "--run-id":
 				opts.runId = next();
 				break;
@@ -191,15 +213,18 @@ function parseArgs(argv: string[]): Options {
 			case "--wall-min":
 				opts.wallMin = Number(next());
 				break;
+				explicit.add("--wall-min");
 			case "--max-nudges":
 				opts.maxNudges = Number(next());
 				break;
 			case "--max-tool-calls":
 				opts.maxToolCalls = Number(next());
 				break;
+				explicit.add("--max-tool-calls");
 			case "--max-model-prompts":
 				opts.maxModelPrompts = Number(next());
 				break;
+				explicit.add("--max-model-prompts");
 			case "--segd-url":
 				opts.segdUrl = next();
 				break;
@@ -252,6 +277,8 @@ function parseArgs(argv: string[]): Options {
 			case "--task-file":
 				opts.taskFile = resolve(next());
 				break;
+				opts.taskFileSupplied = true;   // tracked apart from the value: an explicit
+				// default-path override must still win
 			case "--help":
 			case "-h":
 				printHelp();
@@ -261,14 +288,36 @@ function parseArgs(argv: string[]): Options {
 				throw new Error(`unknown option: ${arg}`);
 		}
 	}
+	if (!DATASETS.includes(opts.dataset as any)) {
+		throw new Error(`--dataset must be one of ${DATASETS.join("|")}`);
+	}
+	applyDatasetProfile(opts, explicit);
 	return opts;
+	}
+
+/** Per-dataset defaults (decision 4): budgets and prompt files for options the user did
+ *  not pass explicitly. Static per dataset - never derived from GT lesion counts. MSTT
+ *  (absent from DATASET_DEFAULTS) keeps the original defaults. */
+function applyDatasetProfile(opts: Options, explicit: Set<string>): void {
+	const d = DATASET_DEFAULTS[opts.dataset];
+	if (d) {
+		if (!explicit.has("--wall-min")) opts.wallMin = d.wallMin;
+		if (!explicit.has("--max-tool-calls")) opts.maxToolCalls = d.maxToolCalls;
+		if (!explicit.has("--max-model-prompts")) opts.maxModelPrompts = d.maxModelPrompts;
+	}
+	if (!explicit.has("--task-file")) {
+		opts.taskFile = opts.dataset === "mstt" ? DEFAULT_TASK_FILE : DEFAULT_TASK_MULTI_FILE;
+	}
 }
 
 function printHelp(): void {
 	console.log(`Usage: npx tsx run_cases.ts [options]
 
   --cases F14,M07           comma-separated case ids (or --split)
-  --split design|test|all   run every case in that split of eval/v2/mstt_cases.csv
+  --split design|test|all   run every case in that split of the dataset's cases csv
+  --dataset <name>          mstt (default, eval/v2/mstt_cases.csv, unchanged behaviour) or beamster
+                            (Phase 4: eval/v4/beamster_cases.csv; beamster budget defaults 50 tool
+                            calls / 20 prompts / 12 min wall unless overridden by flag)
   --run-id <id>             run directory name under results/ (default: timestamp)
   --concurrency <n>         parallel cases in this process (default 4)
   --model <provider/id>     (default anthropic/claude-sonnet-5-5)
@@ -399,20 +448,32 @@ interface CaseRow {
 	histotype: string;
 	sequence: string;
 	split: string;
+	/** Full target phrase: the manifest column on Phase 4 rows, the histotype map on MSTT rows. */
+	target_text: string;
+	modality: string;
 }
 
-function loadCases(): CaseRow[] {
-	const raw = readFileSync(CASES_CSV, "utf8").trim().split(/\r?\n/);
+/** Rows of eval/v2/mstt_cases.csv (dataset "mstt") or eval/v4/<dataset>_cases.csv (Phase 4). */
+function loadCases(dataset: string): CaseRow[] {
+	const csv = dataset === "mstt" ? MSTT_CASES_CSV : phase4CasesCsv(dataset);
+	const raw = readFileSync(csv, "utf8").trim().split(/\r?\n/);
 	const header = raw[0].split(",");
-	const rows = raw.slice(1).map((line) => {
+	return raw.slice(1).map((line) => {
 		const cells = line.split(",");
 		const row: Record<string, string> = {};
 		header.forEach((name, index) => {
 			row[name] = cells[index];
 		});
-		return row as unknown as CaseRow;
+		const histotype = row.histotype ?? "";
+		return {
+			case: row.case,
+			histotype,
+			sequence: row.sequence,
+			split: row.split,
+			target_text: row.target_text ?? HISTOTYPE_TEXT[histotype] ?? histotype,
+			modality: row.modality ?? "",
+		} as CaseRow;
 	});
-	return rows;
 }
 
 function shapeForCase(caseId: string): string {
@@ -605,6 +666,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 				max_tool_calls: opts.maxToolCalls,
 				max_model_prompts: opts.maxModelPrompts,
 			},
+			// Phase 4 dataset selection (omitted on mstt: identical v2 request)
+			...(opts.dataset !== "mstt" ? { dataset: opts.dataset } : {}),
 			// harness v3 flags (omitted entirely when off: identical v2 request)
 			...(opts.v3 ? { v3: opts.v3 } : {}),
 		});
@@ -616,7 +679,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		const taskTemplate = readFileSync(opts.taskFile, "utf8");
 		const taskMessage = renderTemplate(taskTemplate, {
 			case_id: caseId,
-			target_text: HISTOTYPE_TEXT[row.histotype] ?? row.histotype,
+			target_text: row.target_text,
 			sequence: row.sequence,
 			shape: shapeForCase(caseId),
 			budgets: `max ${opts.maxToolCalls} tool calls / ${opts.maxModelPrompts} model prompts / ${opts.wallMin} min wall time`,
@@ -634,7 +697,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			exampleImages = [{ type: "image", data: buf.toString("base64"), mimeType: "image/png" }];
 			exampleText =
 				`\n\nThe attached image is an example from a different patient (not this case): a ` +
-				`${HISTOTYPE_TEXT[row.histotype] ?? row.histotype} outlined in green in axial, coronal and sagittal slices. ` +
+				`${row.target_text} outlined in green in axial, coronal and sagittal slices. ` +
 				"Use it to recognize this tumor type and to judge how much tissue the outline should include.";
 			mkdirSync(caseDir, { recursive: true });
 			writeFileSync(
@@ -874,6 +937,7 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 		const meta = {
 			case_id: caseId,
 			run_id: opts.runId,
+			dataset: opts.dataset,
 			model: opts.model,
 			thinking_level: opts.thinking,
 			pi_version: VERSION,
@@ -964,7 +1028,7 @@ async function main(): Promise<void> {
 		console.log(`[runner] dry-stub segd at ${stub.url}`);
 	}
 
-	const allRows = loadCases();
+	const allRows = loadCases(opts.dataset);
 	let rows: CaseRow[];
 	if (opts.cases.length > 0) {
 		rows = allRows.filter((row) => opts.cases.includes(row.case));
@@ -984,6 +1048,7 @@ async function main(): Promise<void> {
 		opts.systemFileSupplied,
 		opts.systemFile,
 		Boolean(opts.v3),
+		opts.dataset,
 	);
 	const systemTemplate = readFileSync(systemFileUsed, "utf8");
 	const systemPrompt = renderTemplate(systemTemplate, {
@@ -1086,6 +1151,7 @@ async function main(): Promise<void> {
 
 	const summary = {
 		run_id: opts.runId,
+		dataset: opts.dataset,
 		model: opts.model,
 		thinking_level: opts.thinking,
 		extension: opts.extension,

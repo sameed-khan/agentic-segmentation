@@ -10,25 +10,64 @@ from segd.case_state import OpError, vid_label
 
 
 def mask_stats(mask: np.ndarray, spacing: tuple) -> dict:
-    """Volume (mL), component count, largest-component fraction, slice extent per axis."""
+    """Volume (mL), component count, largest-component fraction, slice extent per axis.
+
+    ``component_ml`` (Phase 4): volumes of up to the 10 largest connected components,
+    mL, descending — derived from the CURRENT mask only (never GT). Empty mask: []."""
     m = mask > 0
     nvox = int(m.sum())
-    out = {"volume_ml": 0.0, "n_components": 0, "largest_frac": 0.0, "extent": None}
+    out = {"volume_ml": 0.0, "n_components": 0, "largest_frac": 0.0, "extent": None,
+           "component_ml": []}
     if nvox == 0:
         return out
     voxel_mm3 = float(np.prod(spacing))
     out["volume_ml"] = nvox * voxel_mm3 / 1000.0
     labels, n = ndimage.label(m, structure=ndimage.generate_binary_structure(3, 1))
     out["n_components"] = int(n)
+    sizes = np.bincount(labels.ravel())
     if n:
-        sizes = np.bincount(labels.ravel())
         out["largest_frac"] = float(sizes[1:].max() / nvox)
+        ml = (sizes[1:].astype(np.float64) * voxel_mm3 / 1000.0)
+        ml.sort()
+        out["component_ml"] = [round(float(v), 3) for v in ml[::-1][:10]]
     extent = {}
     for axis_name, a in (("sagittal", 0), ("coronal", 1), ("axial", 2)):
         idx = np.nonzero(m.any(axis=tuple(i for i in range(3) if i != a)))[0]
         extent[axis_name] = (int(idx.min()), int(idx.max()))
     out["extent"] = extent
     return out
+
+
+def is_multi_lesion(cs) -> bool:
+    """True on Phase 4 (non-MSTT) datasets: one multi-component target object holding ALL
+    lesions. Gates every dataset-aware observation/review change; 'mstt' (and any CaseState
+    without the attribute, e.g. the pre-dataset reference tree) keeps byte-identical text."""
+    return getattr(cs, "dataset", "mstt") != "mstt"
+
+
+def _fmt_ml(v: float) -> str:
+    if v >= 10:
+        return f"{v:.1f}"
+    if v >= 0.1:
+        return f"{v:.2f}"
+    return f"{v:.3f}"
+
+
+def components_text_multi(st: dict) -> str:
+    """Phase 4 components line: component count + volumes of up to the 10 largest
+    components (mask_stats.component_ml, current mask only — never the GT lesion count).
+    'components 4 (mL: 2.10, 0.60, 0.12, 0.05)'; beyond 10: '; N smaller'."""
+    n = st["n_components"]
+    if n == 0:
+        return "components 0"
+    vols = st.get("component_ml") or []
+    tail = f"; {n - len(vols)} smaller" if n > len(vols) else ""
+    return f"components {n} (mL: {', '.join(_fmt_ml(v) for v in vols)}{tail})"
+
+
+def components_text_for(cs, st: dict) -> str:
+    """components_text on MSTT (byte-identical), components_text_multi on Phase 4."""
+    return components_text_multi(st) if is_multi_lesion(cs) else components_text(st)
 
 
 def components_text(st: dict) -> str:
@@ -74,7 +113,7 @@ def _observation_body(cs, new: np.ndarray, parent: np.ndarray) -> str:
     if st["volume_ml"] == 0.0 and added_vox == 0 and removed_vox == 0:
         comp_txt = "components 0"
     else:
-        comp_txt = components_text(st)
+        comp_txt = components_text_for(cs, st)
     if added_vox == 0 and removed_vox == 0:
         change_txt = "change none"
     else:

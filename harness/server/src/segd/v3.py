@@ -233,7 +233,7 @@ def medgemma_call(cs, checkpoint: str, image, prompt: str, *, requested_id: str 
         res = client.chat_json(prompt, images=[png], temperature=0.0,
                                max_tokens=config.V3_MEDGEMMA_MAX_TOKENS,
                                deadline=time.monotonic() + allowance)
-        rec.update(raw=res.text, latency_ms=round(res.latency_ms, 3), model=res.model)
+        rec.update(raw=res.text, latency_ms=round(res.wall_ms, 3), model=res.model)
         parsed = res.parsed
         if parsed is None:
             rec["error"] = f"unusable reply: {res.parse_error}"

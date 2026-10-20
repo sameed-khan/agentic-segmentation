@@ -277,6 +277,19 @@ function extractSystemText(payload: unknown): string | undefined {
 	return undefined;
 }
 
+/**
+ * Per-row system-prompt hash (review m3): hash the system text the provider ACTUALLY
+ * received (captured at before_provider_request — on Anthropic OAuth accounts that is
+ * the identity-prefixed form accepted below), NOT the declared neutral constant. Rows
+ * with no capture (transport failures before the request) record the declared text's
+ * hash, the only prompt that could have been sent.
+ */
+function rowSystemPromptHash(capture: { seen: boolean; system?: string }): string {
+	return capture.seen && typeof capture.system === "string"
+		? sha256Text(capture.system)
+		: sha256Text(MINIMAL_NEUTRAL_SYSTEM_PROMPT);
+}
+
 /** Best-effort reproduction of the shim's OAuth payload shaping (see replay_candidates.ts). */
 async function shapeWithShim(shimPath: string, payload: unknown): Promise<unknown | undefined> {
 	try {
@@ -504,7 +517,7 @@ async function runCall(
 			},
 			stop_reason: noResponse ? null : msg.stopReason,
 			transport_retries: retries,
-			system_prompt_sha256: sha256Text(MINIMAL_NEUTRAL_SYSTEM_PROMPT),
+			system_prompt_sha256: rowSystemPromptHash(capture),
 			ok,
 			error: error ?? null,
 		};
@@ -556,7 +569,7 @@ async function runCall(
 					},
 					stop_reason: "error",
 					transport_retries: [],
-					system_prompt_sha256: sha256Text(MINIMAL_NEUTRAL_SYSTEM_PROMPT),
+					system_prompt_sha256: rowSystemPromptHash(capture),
 					ok: false,
 					error: (err as Error).message,
 				}) + "\n",
@@ -671,7 +684,12 @@ async function main(): Promise<void> {
 		system_prompt_note:
 			"deliberate minimal neutral prompt; the SDK default (a coding-agent prompt) is " +
 			"selected whenever resourceLoaderOptions.systemPrompt is undefined/empty, so it is " +
-			"overridden explicitly and the effective payload is asserted per call",
+			"overridden explicitly and the effective payload is asserted per call. On Anthropic " +
+			"OAuth (subscription) accounts the provider request carries the fixed Claude Code " +
+			"identity line (\"You are Claude Code, Anthropic's official CLI for Claude.\") as a " +
+			"prefix before this prompt; that EXACT prefixed form is accepted " +
+			"(ACCEPTED_PROVIDER_SYSTEM_PROMPTS) and the per-row system_prompt_sha256 hashes the " +
+			"captured provider text, not this constant (review m3).",
 		transport_retries: "SDK auto-retry, max 2; parse failures are never retried",
 		pi_sdk_version: VERSION,
 		auth_shim_path: resolve(opts.authShim),

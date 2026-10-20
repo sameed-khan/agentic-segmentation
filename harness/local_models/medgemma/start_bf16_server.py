@@ -34,7 +34,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-SERVICE_VERSION = "1.0.0"
+SERVICE_VERSION = "1.0.1"   # 1.0.1: process-wide inference lock (see /v1/chat/completions below)
 DEFAULT_MODEL_ID = "google/medgemma-1.5-4b-it"
 
 import threading
@@ -57,14 +57,17 @@ class FakeBackend:
 
     name = "fake"
 
-    def __init__(self, model_id: str = DEFAULT_MODEL_ID, **_: Any) -> None:
+    def __init__(self, model_id: str = DEFAULT_MODEL_ID, delay_s: float = 0.0, **_: Any) -> None:
         self.model_id = model_id
+        self.delay_s = delay_s  # test-only hook: slow generate() so lock tests can overlap
 
     def load(self) -> None:
         pass
 
     def generate(self, prompt_text: str, images_b64: list[str], temperature: float,
                  max_tokens: int) -> str:
+        if self.delay_s:
+            time.sleep(self.delay_s)
         seed = int.from_bytes(hashlib.sha256(b"medgemma|" + prompt_text.encode()
                                              + b"|".join(i.encode() for i in images_b64)).digest()[:8], "big")
         # A valid JSON reply with the explicit `uncertain` option, deterministic per input.

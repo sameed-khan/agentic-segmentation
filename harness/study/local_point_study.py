@@ -22,7 +22,25 @@ GT-derived manifest fields are never sent: only the images and the prompt text.
 (harness/study/prompts/local_point_<COND>.md; PATH relative to the repo root or
 absolute). With --models selecting a single model this gives per-model×condition
 prompt variants; the effective template path + sha256 per condition are recorded in
-meta.json `prompts` and are immutable on resume.
+meta.json `prompts` and are immutable on resume (legacy metas that used the old
+`local_point_<COND>` keys still resume when the templates are identical).
+
+Latency semantics (review M3): every response row records BOTH `service_latency_ms`
+(server-reported inference time, queue wait behind the per-process inference lock
+excluded: pointd `latency_ms` field; BF16 server `latency_ms` extension; llama-server
+`timings.prompt_ms + timings.predicted_ms`; None when a server does not report it) and
+`wall_ms` (client wall clock around the whole call, queue wait included). The scorer
+reports service latency and says so. `latency_ms` keeps its legacy per-model meaning
+(pointd: server latency; chat: client wall time) for old rows/old scorers.
+
+Service-version resume check (review M4): /healthz is fetched once per selected model
+at run start; resuming refuses when an existing ok row's `service_version` differs from
+the live service's version (the 1.0.1 servers serialise inference; responses collected
+before that lock under concurrency > 1 may be corrupted and must not be mixed into a
+run). Chat rows carry no per-call version (llama-server exposes none in its payload),
+so they are stamped with the /healthz version fetched at start; llama-server's /healthz
+has no `version` field at all — its rows keep `service_version: null` and the check is
+skipped for that model (documented limitation: a q4 run cannot be verified this way).
 
 Output: results/phase5/studyA/<run>/responses.jsonl (one line per
 case×model×condition×rep; resumable exactly like ask.ts: ok rows are skipped, error
@@ -182,8 +200,53 @@ def call_pointd(url: str, image_path: Path, query: str, k: int, timeout_s: float
 def call_chat(client: MedGemmaClient, prompt: str, image_path: Path, max_tokens: int) -> dict:
     result = client.chat_json(prompt, [image_path], max_tokens=max_tokens)
     return {"raw": result.text, "parsed": result.parsed, "parse_error": result.parse_error,
-            "uncertain": result.uncertain, "latency_ms": result.latency_ms,
+            "uncertain": result.uncertain, "wall_ms": result.wall_ms,
+            "service_latency_ms": result.service_latency_ms,
             "model": result.model, "usage": result.usage, "raw_body": result.raw_body}
+
+
+def fetch_service_versions(urls: dict[str, str], models: list[str]) -> dict[str, str | None]:
+    """GET /healthz once per selected model at run start (service-version resume check,
+    review M4). Returns each service's `version`; None when the endpoint exposes no
+    version field (llama-server). A service that is not up exits: the runner cannot make
+    its calls anyway, and a skipped check could silently mix pre/post-lock responses."""
+    import httpx
+
+    out: dict[str, str | None] = {}
+    for model in models:
+        try:
+            with httpx.Client(timeout=10.0) as client:
+                r = client.get(urls[model].rstrip("/") + "/healthz")
+                r.raise_for_status()
+                payload = r.json()
+            out[model] = payload.get("version") if isinstance(payload, dict) else None
+        except Exception as exc:
+            raise SystemExit(f"{model}: /healthz failed at {urls[model]} "
+                             f"({type(exc).__name__}: {exc}) — start the service first; the "
+                             "service_version resume check needs the live version")
+    return out
+
+
+def check_service_version_resume(prior: dict[str, set], live: dict[str, str | None]) -> None:
+    """Refuse to resume when an existing ok row's `service_version` (per model) differs
+    from the live service's /healthz version (review M4: the 1.0.1 servers added the
+    inference lock; responses collected before it under concurrency > 1 may be corrupted
+    and must not be mixed into one aggregate).
+
+    A live version of None means the service exposes no version (llama-server): the
+    check is skipped for that model. Existing rows with no version at all (chat rows
+    recorded before this check) cannot be verified either -> also refused when a live
+    version is known."""
+    for model, versions in sorted(prior.items()):
+        live_v = live.get(model)
+        if live_v is None:
+            continue  # llama-server: no version to check against (documented limitation)
+        bad = sorted({"null" if v is None else str(v) for v in versions if v != live_v})
+        if bad:
+            raise SystemExit(
+                f"{model}: existing ok rows record service_version {bad} but the live "
+                f"service reports {live_v!r} (pre-lock responses must not be mixed into "
+                "this run) — use a new --run name or re-run the affected model")
 
 
 # ------------------------------------------------------------------ main loop
@@ -205,10 +268,11 @@ def build_call(row: dict, model: str, condition: str, rep: int, opts) -> dict:
         "sequence": row["sequence"], "model": model, "condition": condition, "rep": rep,
         "model_id": None, "service_version": None,
         "prompt_template": template_label,
-        "prompt_sha256": hashlib.sha256(template.encode()).hexdigest(),
+        "prompt_sha256": hashlib.sha256(template_path.read_bytes()).hexdigest(),
         "prompt_text": prompt_text, "image": row[image_field], "k": opts.k,
         "raw": "", "points": [], "parsed": None, "parse_error": None, "uncertain": None,
-        "usage": None, "latency_ms": None, "ok": False, "error": None,
+        "usage": None, "latency_ms": None, "service_latency_ms": None, "wall_ms": None,
+        "ok": False, "error": None,
         "created_at": utcnow(),
     }
     t0 = time.perf_counter()
@@ -218,7 +282,9 @@ def build_call(row: dict, model: str, condition: str, rep: int, opts) -> dict:
             line.update({
                 "raw": out.get("raw", ""), "points": out.get("points", []),
                 "model_id": out.get("model"), "service_version": out.get("version"),
-                "latency_ms": out.get("latency_ms"), "verifier": out.get("verifier"),
+                "latency_ms": out.get("latency_ms"),          # legacy field: server latency
+                "service_latency_ms": out.get("latency_ms"),  # server-reported inference time
+                "verifier": out.get("verifier"),
             })
         else:
             out = call_chat(MedGemmaClient(base_url=opts.urls[model], timeout_s=opts.timeout),
@@ -226,8 +292,13 @@ def build_call(row: dict, model: str, condition: str, rep: int, opts) -> dict:
             line.update({
                 "raw": out["raw"], "parsed": out["parsed"], "parse_error": out["parse_error"],
                 "uncertain": out["uncertain"], "model_id": out["model"],
-                "latency_ms": out["latency_ms"], "usage": out["usage"],
-                "raw_body": out["raw_body"][:2000], "service_version": None,
+                "latency_ms": out["wall_ms"],                 # legacy field: client wall time
+                "service_latency_ms": out["service_latency_ms"],
+                "usage": out["usage"],
+                "raw_body": out["raw_body"][:2000],
+                # No per-call version from llama-server: stamp the /healthz version fetched
+                # once at run start (empty in tests that bypass the fetch).
+                "service_version": (opts.service_versions or {}).get(model),
             })
         line["ok"] = True
     except Exception as exc:  # transport/HTTP failure: record, retry on resume
@@ -278,6 +349,7 @@ def parse_args(argv=None):
         "medgemma_q4": args.medgemma_q4_url or f"http://127.0.0.1:{MODELS['medgemma_q4']['port']}",
         "medgemma_bf16": args.medgemma_bf16_url or f"http://127.0.0.1:{MODELS['medgemma_bf16']['port']}",
     }
+    args.service_versions: dict[str, str | None] = {}  # filled by main() from /healthz
     args.conditions_filter = [c.strip() for c in args.conditions.split(",") if c.strip()]
     for cond in args.conditions_filter:
         if cond not in ALL_CONDITIONS:
@@ -286,15 +358,17 @@ def parse_args(argv=None):
     return args
 
 
-def load_done_and_prune(resp_path: Path) -> set[tuple]:
-    """Resume bookkeeping (ask.ts convention): returns the completed ok keys;
-    rewrites the file without error/malformed/duplicate rows so a rerun with the same
-    --run retries exactly the failures."""
+def load_done_and_prune(resp_path: Path) -> tuple[set, dict[str, set]]:
+    """Resume bookkeeping (ask.ts convention): returns the completed ok keys AND the
+    service_version values recorded per model (service-version resume check, review
+    M4); rewrites the file without error/malformed/duplicate rows so a rerun with the
+    same --run retries exactly the failures."""
     done: set[tuple] = set()
+    prior_versions: dict[str, set] = {}
     kept: list[str] = []
     n_seen = 0
     if not resp_path.exists():
-        return done
+        return done, prior_versions
     for line in resp_path.read_text().splitlines():
         if not line.strip():
             continue
@@ -307,13 +381,23 @@ def load_done_and_prune(resp_path: Path) -> set[tuple]:
             key = (rec["case"], rec["model"], rec["condition"], rec["rep"])
             if key not in done:
                 done.add(key)
+                prior_versions.setdefault(rec["model"], set()).add(rec.get("service_version"))
                 kept.append(line)
     if len(kept) != n_seen or len(done) != len(kept):
         resp_path.write_text("".join(l + "\n" for l in kept))
         print(f"[studyA] resume: dropping {n_seen - len(kept)} row(s) for retry")
-    return done
+    return done, prior_versions
 
 
+def _normalise_legacy_prompt_keys(prompts) -> dict:
+    """meta.json `prompts` keys were renamed `local_point_<cond>` -> `<cond>` (Study A
+    fix round): old runs stay resumable when the templates themselves are identical."""
+    out = {}
+    for key, value in (prompts or {}).items():
+        out[key[len("local_point_"):] if key.startswith("local_point_") else key] = value
+    return out
+
+ 
 # Immutable run configuration (review P2-4): resuming must never mix variants.
 IMMUTABLE_META_KEYS = ("models", "conditions", "reps", "k", "max_tokens",
                        "prepare_manifest", "prepare_manifest_sha256", "selected_cases",
@@ -323,15 +407,21 @@ IMMUTABLE_META_KEYS = ("models", "conditions", "reps", "k", "max_tokens",
 def check_immutable_config(run_dir: Path, meta: dict, done: set) -> None:
     """Refuse to resume a run whose immutable configuration drifted from the prior
     meta.json (a changed prompt/image/decoding config would mix variants in one
-    aggregate); require a new run name on mismatch."""
+    aggregate); require a new run name on mismatch. Legacy `prompts` key spellings are
+    normalised before the comparison (see _normalise_legacy_prompt_keys)."""
     if not done:
         return
     meta_path = run_dir / "meta.json"
     if not meta_path.exists():
         return
     prior = json.loads(meta_path.read_text())
-    drifted = {k: (prior.get(k), meta.get(k)) for k in IMMUTABLE_META_KEYS
-               if prior.get(k) != meta.get(k)}
+    drifted = {}
+    for k in IMMUTABLE_META_KEYS:
+        p, m = prior.get(k), meta.get(k)
+        if k == "prompts":
+            p, m = _normalise_legacy_prompt_keys(p), _normalise_legacy_prompt_keys(m)
+        if p != m:
+            drifted[k] = (prior.get(k), meta.get(k))
     if drifted:
         raise SystemExit(f"run config drifted from prior meta.json for {run_dir}; "
                          f"use a new --run name. Drifted keys: {drifted}")
@@ -366,8 +456,14 @@ def main() -> None:
     # Resumability (ask.ts convention): keep ok rows, drop error/malformed rows so a
     # rerun with the same --run retries exactly the failures.
     resp_path = run_dir / "responses.jsonl"
-    done = load_done_and_prune(resp_path)
+    done, prior_service_versions = load_done_and_prune(resp_path)
     todo = [c for c in calls if (c[0]["case"], c[1], c[2], c[3]) not in done]
+
+    # Service-version resume check (review M4): /healthz once per selected model, then
+    # refuse to mix rows from a different service build (pre-lock responses may be
+    # corrupted; llama-server exposes no version -> skipped, see the docstring).
+    opts.service_versions = fetch_service_versions(opts.urls, opts.models)
+    check_service_version_resume(prior_service_versions, opts.service_versions)
 
     meta = {
         "run": opts.run, "stage": "phase5_studyA_local_point", "created_at": utcnow(),
@@ -379,6 +475,7 @@ def main() -> None:
         "selected_cases": [r["case"] for r in rows],
         "images_root": opts.images_root,
         "urls": opts.urls, "timeout_s": opts.timeout, "concurrency": opts.concurrency,
+        "service_versions": opts.service_versions,
         "planned_calls": len(calls), "resumed_from_lines": len(done),
         "prompts": prompt_provenance(opts.prompt_overrides),
     }

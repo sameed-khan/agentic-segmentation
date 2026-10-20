@@ -383,3 +383,49 @@ def test_system_message_qwen25_checkpoint_uses_constants_variant(gui_actor_serve
     monkeypatch.setitem(sys.modules, "gui_actor.constants", fake_constants)
     backend = gui_server.GuiActorRealBackend(model_id="microsoft/GUI-Actor-2B-Qwen2.5-VL")
     assert backend._system_message() == long_prompt
+
+
+# ----------------------------------------------------------------- inference lock (M4/m6)
+def test_inference_lock_serializes_concurrent_requests(gui_actor_server_mod):
+    """Two concurrent /point requests NEVER overlap inside backend.predict: the
+    process-wide _INFER_LOCK serialises inference (HF tokenizers are not thread-safe;
+    'Already borrowed' under concurrency). Uses the FakeBackend test-only delay hook so
+    the second request is still in flight while the first predicts."""
+    import asyncio
+    import threading
+    import time
+
+    import httpx
+
+    class RecordingBackend(gui_actor_server_mod.FakeBackend):
+        def __init__(self):
+            super().__init__(delay_s=0.05)
+            self.active = 0
+            self.max_active = 0
+            self.lock = threading.Lock()
+
+        def predict(self, png_bytes, query, k, verify):
+            with self.lock:
+                self.active += 1
+                self.max_active = max(self.max_active, self.active)
+            try:
+                return super().predict(png_bytes, query, k, verify)
+            finally:
+                with self.lock:
+                    self.active -= 1
+
+    backend = RecordingBackend()
+    app = gui_actor_server_mod.create_app(backend)
+
+    async def fire():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                     base_url="http://testserver") as client:
+            async def one(i):
+                r = await client.post("/point", json={"image_png_b64": b64png(8, 8, i),
+                                                      "query": "q", "k": 2})
+                return r.status_code
+            return await asyncio.gather(*(one(i) for i in range(3)))
+
+    statuses = asyncio.run(fire())
+    assert statuses == [200, 200, 200]
+    assert backend.max_active == 1  # never two predictions inside the critical section

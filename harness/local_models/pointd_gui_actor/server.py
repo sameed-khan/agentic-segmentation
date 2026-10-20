@@ -45,7 +45,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-SERVICE_VERSION = "1.0.0"
+SERVICE_VERSION = "1.0.1"   # 1.0.1: process-wide inference lock (see /point below)
 DEFAULT_MODEL_ID = "microsoft/GUI-Actor-2B-Qwen2-VL"
 DEFAULT_VERIFIER_MODEL_ID = "microsoft/GUI-Actor-Verifier-2B"
 DEFAULT_REPO = os.environ.get("GUI_ACTOR_REPO", "")
@@ -71,13 +71,16 @@ class FakeBackend:
 
     name = "fake"
 
-    def __init__(self, model_id: str = DEFAULT_MODEL_ID, **_: Any) -> None:
+    def __init__(self, model_id: str = DEFAULT_MODEL_ID, delay_s: float = 0.0, **_: Any) -> None:
         self.model_id = model_id
+        self.delay_s = delay_s  # test-only hook: slow predict() so lock tests can overlap
 
     def load(self) -> None:  # symmetry with RealBackend.load
         pass
 
     def predict(self, png_bytes: bytes, query: str, k: int, verify: bool) -> dict[str, Any]:
+        if self.delay_s:
+            time.sleep(self.delay_s)
         seed = int.from_bytes(hashlib.sha256(b"gui-actor|" + query.encode() + b"|" + png_bytes).digest()[:8], "big")
         raw = f"fake gui-actor prediction for query={query!r} (sha256 seed {seed >> 32})"
         # Three pseudo-random but deterministic centres spread across the image; the

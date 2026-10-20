@@ -50,12 +50,18 @@ def image_to_data_url(image) -> str:
 
 @dataclass
 class ChatResult:
-    """One completion: raw reply text, parsed JSON (when requested), and the log."""
+    """One completion: raw reply text, parsed JSON (when requested), and the log.
+
+    Latency semantics (review M3): ``wall_ms`` is the client wall clock around the whole
+    request (includes queue wait behind the server's inference lock);
+    ``service_latency_ms`` is the SERVER-reported inference latency when the payload
+    exposes it, else None."""
 
     text: str
     raw_body: str                    # full HTTP JSON body (for the run log)
-    latency_ms: float
+    wall_ms: float
     model: str
+    service_latency_ms: float | None = None
     usage: dict | None = None
     parsed: dict | None = None       # chat_json only: parsed JSON, None on parse failure
     parse_error: str | None = None   # chat_json only: why parsing failed
@@ -116,6 +122,29 @@ def _load_object(candidate: str, source: str) -> dict:
     if not isinstance(obj, dict):
         raise ValueError(f"{source} is JSON but not an object")
     return obj
+
+
+def server_reported_latency_ms(payload) -> float | None:
+    """Server-reported inference latency from known extension fields, else None.
+
+    Our BF16 Transformers server returns ``latency_ms`` (measured inside its inference
+    lock, queue wait excluded); llama-server returns the llama.cpp ``timings`` object —
+    the generation cost it reports is ``prompt_ms + predicted_ms``. Any other/absent
+    field -> None (the caller keeps its own wall time; the scorer must not silently
+    compare wall time against other models' service latency).
+    """
+    if not isinstance(payload, dict):
+        return None
+    lat = payload.get("latency_ms")
+    if isinstance(lat, (int, float)) and not isinstance(lat, bool):
+        return round(float(lat), 3)
+    timings = payload.get("timings")
+    if isinstance(timings, dict):
+        prompt_ms, predicted_ms = timings.get("prompt_ms"), timings.get("predicted_ms")
+        if (isinstance(prompt_ms, (int, float)) and not isinstance(prompt_ms, bool)
+                and isinstance(predicted_ms, (int, float)) and not isinstance(predicted_ms, bool)):
+            return round(float(prompt_ms) + float(predicted_ms), 3)
+    return None
 
 
 def _clamp_read_to_deadline(resp, deadline: float) -> None:
@@ -184,12 +213,13 @@ class MedGemmaClient:
         except TimeoutError as exc:   # incl. socket.timeout: the deadline clamp fired
             raise RuntimeError(f"MedGemma request timed out: wall-clock deadline "
                                f"exceeded at {self.base_url}") from exc
-        latency_ms = (time.perf_counter() - t0) * 1000.0
+        wall_ms = (time.perf_counter() - t0) * 1000.0
         message = (payload.get("choices") or [{}])[0].get("message", {})
         text = message.get("content") or ""  # OpenAI chat completion: message.content
-        return ChatResult(text=text, raw_body=json.dumps(payload), latency_ms=round(latency_ms, 3),
+        return ChatResult(text=text, raw_body=json.dumps(payload), wall_ms=round(wall_ms, 3),
                           model=payload.get("model", body["model"]),
-                          usage=payload.get("usage"))
+                          usage=payload.get("usage"),
+                          service_latency_ms=server_reported_latency_ms(payload))
 
     # -- strict JSON --------------------------------------------------------
     def _remaining_s(self, deadline: float | None) -> float:

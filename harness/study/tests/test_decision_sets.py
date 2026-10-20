@@ -7,6 +7,7 @@ Run:  uv run --project harness/server python -m pytest harness/study/tests -q
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -593,7 +594,8 @@ def test_replay_parse_failure_is_final_outcome_not_retried(tmp_path, monkeypatch
         parse_error = "no JSON object found"
         uncertain = None
         usage = None
-        latency_ms = 3.0
+        wall_ms = 3.0            # client wall clock (legacy `latency_ms` field)
+        service_latency_ms = None  # server did not report one
         model = "medgemma-1.5-4b-it"
         raw_body = "oops not json"
 
@@ -607,9 +609,15 @@ def test_replay_parse_failure_is_final_outcome_not_retried(tmp_path, monkeypatch
     monkeypatch.setattr(replay, "MedGemmaClient", FakeClient)
     row = _replay_row(tmp_path)
     opts = replay.parse_args(["--set", "done_check", "--run", "x"])
-    line = replay.build_call(row, 0, opts, Path("decision_done.md"), "template {{case}}")
+    template_path = tmp_path / "decision_done.md"
+    template_path.write_text("template {{case}}")
+    line = replay.build_call(row, 0, opts, template_path, "template {{case}}")
     assert line["ok"] is True and line["error"] is None
     assert line["parse_error"] == "no JSON object found" and line["parsed"] is None
+    # latency semantics (review M3): service latency absent -> None; wall clock recorded
+    assert line["service_latency_ms"] is None and line["latency_ms"] == 3.0
+    assert line["wall_ms"] >= 0.0
+    assert line["prompt_sha256"] == hashlib.sha256(template_path.read_bytes()).hexdigest()
     resp = tmp_path / "responses.jsonl"
     resp.write_text(json.dumps(line) + "\n")
     done = replay.load_done_and_prune(resp)
@@ -630,7 +638,9 @@ def test_replay_transport_error_is_retried_on_resume(tmp_path, monkeypatch):
     monkeypatch.setattr(replay, "MedGemmaClient", FailingClient)
     row = _replay_row(tmp_path)
     opts = replay.parse_args(["--set", "done_check", "--run", "x"])
-    line = replay.build_call(row, 0, opts, Path("decision_done.md"), "t")
+    template_path = tmp_path / "decision_done.md"
+    template_path.write_text("t")
+    line = replay.build_call(row, 0, opts, template_path, "t")
     assert line["ok"] is False and "connection refused" in line["error"]
     resp = tmp_path / "responses.jsonl"
     resp.write_text(json.dumps(line) + "\n")

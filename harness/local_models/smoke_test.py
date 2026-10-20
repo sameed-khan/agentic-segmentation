@@ -170,7 +170,7 @@ def main() -> None:
                 ok = result.parse_error is None
                 check(f"{name} chat_json", ok,
                       f"parsed={result.parsed} raw: {result.text[:120]!r} "
-                      f"({result.latency_ms}ms)" if ok else result.parse_error or "parse failed")
+                      f"({result.wall_ms}ms)" if ok else result.parse_error or "parse failed")
             except Exception as exc:
                 check(name, False, f"unreachable or failed: {exc}")
 

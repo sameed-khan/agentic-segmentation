@@ -80,7 +80,9 @@ def test_client_full_http_path(medgemma_bf16_app, monkeypatch):
     assert result.parse_error is None
     assert result.parsed["answer"] == "uncertain"  # deterministic fake reply
     assert result.uncertain is True
-    assert result.latency_ms > 0
+    assert result.wall_ms > 0
+    # the fake BF16 server reports its own latency (measured inside the inference lock)
+    assert result.service_latency_ms is not None and 0 < result.service_latency_ms < result.wall_ms + 1e-6
     server.should_exit = True
     thread.join(timeout=10)
 
@@ -178,3 +180,96 @@ def test_bf16_server_healthz(medgemma_client_fixture):
     body = medgemma_client_fixture.get("/healthz").json()
     assert body["status"] == "ok" and body["backend"] == "fake"
     assert body["model"] == "google/medgemma-1.5-4b-it"
+    assert body["version"] == "1.0.1"  # inference lock added (review M4)
+
+
+# ----------------------------------------------------------------- latency semantics (M3)
+def test_server_reported_latency_from_both_server_flavours():
+    """service latency: BF16 `latency_ms` extension; llama-server `timings` sum; else None."""
+    from medgemma_client import server_reported_latency_ms
+
+    assert server_reported_latency_ms({"latency_ms": 12.3456}) == 12.346
+    assert server_reported_latency_ms({"latency_ms": 12}) == 12.0
+    assert server_reported_latency_ms({"timings": {"prompt_ms": 120.5, "predicted_ms": 200.25}}) == 320.75
+    assert server_reported_latency_ms({"timings": {"prompt_ms": 120.5}}) is None
+    assert server_reported_latency_ms({}) is None
+    assert server_reported_latency_ms({"latency_ms": True}) is None
+    assert server_reported_latency_ms(None) is None
+
+
+def test_client_keeps_wall_and_service_latency_apart(monkeypatch):
+    """chat(): wall_ms = client wall clock; service_latency_ms = the server payload's
+    latency field (BF16 extension here; llama-server timings covered separately)."""
+    client = MedGemmaClient(base_url="http://testserver", model="google/medgemma-1.5-4b-it")
+
+    class Response:
+        payload = {"choices": [{"message": {"role": "assistant", "content": "ok"}}],
+                   "model": "m", "usage": None, "latency_ms": 42.5}
+
+        def read(self):
+            return json.dumps(self.payload).encode()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    import urllib.request
+
+    monkeypatch.setattr(urllib.request, "urlopen", lambda request, timeout: Response())
+    result = client.chat("q", [png_bytes(8, 8)])
+    assert result.wall_ms >= 0.0
+    assert result.service_latency_ms == 42.5
+    # a server that reports neither field: service_latency_ms stays None (wall only)
+    Response.payload = {"choices": [{"message": {"role": "assistant", "content": "ok"}}],
+                        "model": "m", "usage": None}
+    result2 = client.chat("q", [png_bytes(8, 8)])
+    assert result2.service_latency_ms is None and result2.wall_ms >= 0.0
+
+
+# ----------------------------------------------------------------- inference lock (M4/m6)
+def test_inference_lock_serializes_concurrent_requests(medgemma_server_mod):
+    """Two concurrent /v1/chat/completions requests NEVER overlap inside
+    backend.generate: the process-wide _INFER_LOCK serialises inference. Uses the
+    FakeBackend test-only delay hook so the second request is still in flight while the
+    first generates."""
+    import asyncio
+    import threading
+
+    import httpx
+
+    class RecordingBackend(medgemma_server_mod.FakeBackend):
+        def __init__(self):
+            super().__init__(delay_s=0.05)
+            self.active = 0
+            self.max_active = 0
+            self.lock = threading.Lock()
+
+        def generate(self, prompt_text, images_b64, temperature, max_tokens):
+            with self.lock:
+                self.active += 1
+                self.max_active = max(self.max_active, self.active)
+            try:
+                return super().generate(prompt_text, images_b64, temperature, max_tokens)
+            finally:
+                with self.lock:
+                    self.active -= 1
+
+    backend = RecordingBackend()
+    app = medgemma_server_mod.create_app(backend, "google/medgemma-1.5-4b-it")
+
+    async def fire():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                     base_url="http://testserver") as client:
+            async def one(i):
+                r = await client.post("/v1/chat/completions", json={
+                    "model": "google/medgemma-1.5-4b-it",
+                    "messages": [{"role": "user", "content": "q"}],
+                })
+                return r.status_code
+            return await asyncio.gather(*(one(i) for i in range(3)))
+
+    statuses = asyncio.run(fire())
+    assert statuses == [200, 200, 200]
+    assert backend.max_active == 1  # never two generations inside the critical section

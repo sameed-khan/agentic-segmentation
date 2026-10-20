@@ -33,15 +33,30 @@ point was folded; --clean-panel-fold off keeps the pre-fold behaviour exactly.
 
 MedGemma box scale: Gemma answers boxes as [y0, x0, y1, x1] on a 0-1000 integer scale
 (e.g. {"box": [350, 230, 580, 530]}), the Phase 5 prompts ask for [0,1] fractions; the
-scorer accepts both (all four values in [0,1] -> `unit`; else all in [0,1000] ->
-`per1000`, divided by 1000; else parse failure; degenerate boxes y1<y0 or x1<x0 are
-parse failures) and records `box_scale` per scored row.
+scorer accepts both (all four values in [0,1] -> `unit`; else all four INTEGER-VALUED on
+[0,1000] with max > 1 -> `per1000`, divided by 1000; anything else — wrong shape/type,
+bool values, mixed/slightly-overshooting scales like [0.1, 0.2, 1.02, 0.4], a value
+outside [0,1000], or a degenerate box y1<y0 or x1<x0 — is a parse failure) and records
+`box_scale` per scored row. A box given as a single nested list [[y0, x0, y1, x1]]
+(MedGemma emits this) is unwrapped to the inner four numbers (declared normalisation,
+`box_unwrapped: true`).
+
+Latency semantics (review M3): responses record `service_latency_ms` (server-reported
+inference time, queue wait behind the per-process inference lock excluded) and `wall_ms`
+(client wall clock). The scorer reports service latency; rows recorded before that field
+existed fall back to legacy `latency_ms` (chat rows' client wall time — flagged in the
+report, not directly comparable across models).
 
 Inputs: a run dir from local_point_study.py (responses.jsonl) + the prepare manifest
 + GT masks (offline only). Baseline: a Phase 2 run dir (e.g. the main tree's
 results/phase2_test/p2-test-high, read-only) — its scored.jsonl rows are per-call;
 per-case hits use the SAME majority-over-reps hit-flag rule as the headline metrics
 (case_flag_at_k convention: ties -> miss; error/parse reps count as misses).
+
+Fold sensitivity (review M2): every response is ALSO scored with the fold off in the
+same pass; `hit1_nofold` / `hit3_nofold` in score.json and the report table show how
+often the fold changes a result, and rank-0 `n_folded` / `fold_rate` are aggregated per
+model×condition. scored.jsonl keeps the primary (selected --clean-panel-fold) rows only.
 
 Outputs (in the run dir): scored.jsonl (one row per response×rank), score.json,
 report.md.
@@ -114,16 +129,23 @@ def _strict_int(value) -> int | None:
 def _box_scale(box) -> str | None:
     """Declared MedGemma box-scale rule: Gemma answers boxes as [y0, x0, y1, x1] on a
     0-1000 integer scale (e.g. {"box": [350, 230, 580, 530]}), the Phase 5 prompts ask
-    for [0,1] fractions. All four values in [0,1] -> "unit"; else all in [0,1000] ->
-    "per1000" (the scorer divides by 1000); otherwise None (parse failure: wrong
-    shape/type, a value outside [0,1000], or mixed-scale values that fit neither
-    declared frame)."""
-    if not (isinstance(box, list) and len(box) == 4
-            and all(isinstance(v, (int, float)) for v in box)):
+    for [0,1] fractions. All four values in [0,1] -> "unit"; else "per1000" (the scorer
+    divides by 1000) only when every value is integer-valued, within [0,1000], and
+    max(box) > 1; otherwise None (parse failure: wrong shape/type, bool values, mixed
+    or slightly-overshooting scales like [0.1, 0.2, 1.02, 0.4] — NOT reinterpreted as
+    per1000, which would shrink them to a tiny box near (0,0) — a value outside
+    [0,1000], or a 0-1000-scale box with a non-integer value)."""
+    if not (isinstance(box, list) and len(box) == 4):
+        return None
+    if any(isinstance(v, bool) for v in box):  # bools are ints in Python: reject explicitly
+        return None
+    if not all(isinstance(v, (int, float)) for v in box):
         return None
     if all(0 <= v <= 1 for v in box):
         return "unit"
-    if all(0 <= v <= 1000 for v in box):
+    if (all(float(v).is_integer() for v in box)
+            and max(box) > 1
+            and all(0 <= v <= 1000 for v in box)):
         return "per1000"
     return None
 
@@ -169,14 +191,20 @@ def answer_point(x: float, y: float) -> str:
 # ------------------------------------------------------------------ per response
 def score_response(resp: dict, row: dict, gt2d: np.ndarray, edt: np.ndarray,
                    clean_panel_fold: bool = True) -> list[dict]:
-    """Score one responses.jsonl line -> per-rank scored rows (rank 0 = top point)."""
+    """Score one responses.jsonl line -> per-rank scored rows (rank 0 = top point).
+
+    Reported latency (review M3): `service_latency_ms` (server-reported; falls back to
+    the legacy `latency_ms` for rows recorded before that field existed)."""
+    service_latency = (resp.get("service_latency_ms")
+                       if resp.get("service_latency_ms") is not None else resp.get("latency_ms"))
     base = {
         "run": resp.get("run"), "case": resp["case"], "histotype": row["histotype"],
         "sequence": row["sequence"], "model": resp["model"], "condition": resp["condition"],
         "rep": resp.get("rep"), "latency_ms": resp.get("latency_ms"),
+        "service_latency_ms": service_latency,
         "response_error": bool(resp.get("error")),
         "n_points": len(resp.get("points") or []),
-        "folded": False, "box_scale": None,
+        "folded": False, "box_scale": None, "box_unwrapped": False,
     }
     if base["response_error"]:
         base.update({"rank": 0, "status": "response_error", "hit": False, "distance_mm": None,
@@ -285,6 +313,10 @@ def _score_chat(resp: dict, row: dict, gt2d, edt, base, clean_panel_fold: bool) 
         return [row0]
 
     box = (parsed or {}).get("box")
+    box_unwrapped = False
+    if (isinstance(box, list) and len(box) == 1 and isinstance(box[0], list)
+            and len(box[0]) == 4):
+        box, box_unwrapped = box[0], True  # MedGemma emits [[y0, x0, y1, x1]]: declared unwrap
     box_scale = _box_scale(box)
     if box_scale is None:
         row0.update({"status": "parse_fail", "hit": False, "distance_mm": None})
@@ -295,6 +327,7 @@ def _score_chat(resp: dict, row: dict, gt2d, edt, base, clean_panel_fold: bool) 
         row0.update({"status": "parse_fail", "hit": False, "distance_mm": None})
         return [row0]
     row0["box_scale"] = box_scale
+    row0["box_unwrapped"] = box_unwrapped
     cx = (x0 + x1) / 2.0
     cy = (y0 + y1) / 2.0
     if resp["condition"] == "raw_box":
@@ -393,23 +426,42 @@ def case_flag_at_k(case_calls: list[dict], k: int) -> int:
     return int(sum(flags) * 2 > len(reps))
 
 
+def case_level_hit_rate(calls: list[dict], k: int) -> float:
+    """Case-level hit@k rate: majority over reps per case (case_flag_at_k), averaged
+    over cases; ties -> miss. Empty input -> 0.0 (aggregate convention)."""
+    by_case: dict[str, list[dict]] = {}
+    for c in calls:
+        by_case.setdefault(c["case"], []).append(c)
+    if not by_case:
+        return 0.0
+    return round(sum(case_flag_at_k(by_case[cse], k) for cse in sorted(by_case)) / len(by_case), 4)
+
+
+def fold_off_sensitivity(nofold_calls: list[dict]) -> dict:
+    """Fold-off sensitivity (review M2, same pass): case-level hit@1/hit@3 of the SAME
+    responses scored with --clean-panel-fold off — the identical convention as the
+    headline hit@k, so the columns show exactly what the fold changed."""
+    return {"hit1_nofold": case_level_hit_rate(nofold_calls, 1),
+            "hit3_nofold": case_level_hit_rate(nofold_calls, 3)}
+
+
 def aggregate(calls: list[dict]) -> dict:
     """Metrics over scored rows: hit@1 (rank 0), hit@3 (any of ranks 0-2), distance,
     parse/abstain rates, latency. Per-case hit@k = majority over reps (case-level,
     matching the McNemar pairing); hit1_mean_over_calls is the phase2
-    hit_rate_mean_over_reps analog."""
+    hit_rate_mean_over_reps analog. n_folded/fold_rate count rank-0 rows whose point was
+    clean-panel folded before snapping; latency is service_latency_ms (server-reported,
+    falling back to legacy latency_ms rows — see score_response)."""
     rank0 = [c for c in calls if c["rank"] == 0]
-    by_case: dict[str, list[dict]] = {}
-    for c in calls:
-        by_case.setdefault(c["case"], []).append(c)
-    cases = sorted(by_case)
+    cases = sorted({c["case"] for c in calls})
 
     def hit_rate(k: int) -> float:
-        return round(sum(case_flag_at_k(by_case[case], k) for case in cases) / max(len(cases), 1), 4)
+        return case_level_hit_rate(calls, k)
 
     dists = [c["distance_mm"] for c in rank0 if c["distance_mm"] is not None]
-    lat = [c["latency_ms"] for c in calls if c["latency_ms"] is not None]
+    lat = [c["service_latency_ms"] for c in calls if c.get("service_latency_ms") is not None]
     n = max(len(rank0), 1)
+    n_fold0 = sum(1 for c in rank0 if c.get("folded"))
     return {
         "n_calls": len(calls),
         "n_cases": len(cases),
@@ -423,6 +475,8 @@ def aggregate(calls: list[dict]) -> dict:
         "n_response_error": sum(c["status"] == "response_error" for c in rank0),
         "parse_fail_rate": round(sum(c["status"] == "parse_fail" for c in rank0) / n, 4),
         "abstain_rate": round(sum(c["status"] == "abstain" for c in rank0) / n, 4),
+        "n_folded": n_fold0,
+        "fold_rate": round(n_fold0 / n, 4),
         "latency_mean_ms": round(float(np.mean(lat)), 1) if lat else None,
         "latency_median_ms": round(float(np.median(lat)), 1) if lat else None,
     }
@@ -503,14 +557,15 @@ def write_report(run_dir: Path, cond_keys: list[tuple], agg: dict, per_hist: dic
     lines.append("")
     lines.append("## Headline")
     lines.append("")
-    lines.append("| model | condition | n cases | hit@1 | CI95 | hit@3 | dist mean mm | parse fail | abstain | "
-                 "latency mean ms |")
-    lines.append("|---|" + "---|" * 9)
+    lines.append("| model | condition | n cases | hit@1 | CI95 | hit@3 | fold rate | hit@1 nofold | "
+                 "hit@3 nofold | dist mean mm | parse fail | abstain | latency mean ms |")
+    lines.append("|---|" + "---|" * 12)
     for key in cond_keys:
         a = agg[key]
         ci = a.get("hit1_ci95")
         lines.append(f"| {key[0]} | {key[1]} | {a['n_cases']} | {a['hit1']:.3f} | "
-                     f"[{ci[0]}, {ci[1]}] | {a['hit3']:.3f} | {a['distance_mean_mm']} | "
+                     f"[{ci[0]}, {ci[1]}] | {a['hit3']:.3f} | {a['fold_rate']:.3f} | "
+                     f"{a['hit1_nofold']:.3f} | {a['hit3_nofold']:.3f} | {a['distance_mean_mm']} | "
                      f"{a['n_parse_fail']} | {a['n_abstain']} | {a['latency_mean_ms']} |")
     lines.append("")
     if baseline:
@@ -550,22 +605,41 @@ def write_report(run_dir: Path, cond_keys: list[tuple], agg: dict, per_hist: dic
                      "whose x lies on the clean panel is translated to the same position on the "
                      "marked panel (x + panel_w + gap, y unchanged) BEFORE snapping (the panels "
                      "share the same view geometry); points in the gap are not folded. Per-rank "
-                     "`folded` records whether the point was folded. Pointer `marks` ranks are "
-                     "deduplicated by snapped mark id (first occurrence in rank order; later "
-                     "points snapping to an already-used mark are dropped and do not consume a "
-                     "rank) so hit@3 means 3 distinct marks.")
+                     "`folded` records whether the point was folded; fold rate = share of rank-0 "
+                     "answers that were folded. Pointer `marks` ranks are deduplicated by snapped "
+                     "mark id (first occurrence in rank order; later points snapping to an "
+                     "already-used mark are dropped and do not consume a rank) so hit@3 means 3 "
+                     "distinct marks. The dedup is tied to this same flag (not separately "
+                     "toggleable); at the default k=3 it has NO effect on hit@1 or hit@3 — rank 0 "
+                     "is always kept and a dropped duplicate repeats an earlier rank's result — "
+                     "it only changes results at k > 3. A marks_box centre landing in the gap is "
+                     "NOT folded and snaps from its gap position (declared behaviour).")
     else:
         lines.append("- Clean-panel fold is OFF (--clean-panel-fold off): every point/box centre "
-                     "snaps as-is and ranks are not deduplicated.")
-    lines.append("- raw_box / marks_box boxes: [y0, x0, y1, x1]; all four values in [0,1] are "
-                 "fractions (box_scale `unit`), else all in [0,1000] are the Gemma 0-1000 "
-                 "integer scale (box_scale `per1000`, divided by 1000); anything else — wrong "
-                 "shape/type, a value outside [0,1000], or a degenerate box (y1 < y0 or "
-                 "x1 < x0) — is a parse failure.")
+                     "snaps as-is and ranks are not deduplicated (pre-fold behaviour; the nofold "
+                     "columns then equal the primary columns).")
+    lines.append("- Fold-off sensitivity (same pass): every response was ALSO scored with the fold "
+                 "off; `hit@1 nofold` / `hit@3 nofold` show what the fold changed (primary = the "
+                 "selected --clean-panel-fold setting).")
+    lines.append("- raw_box / marks_box boxes: [y0, x0, y1, x1]; a single nested list [[...]] is "
+                 "unwrapped to the inner four numbers (declared normalisation, per-row "
+                 "`box_unwrapped`). All four values in [0,1] are fractions (box_scale `unit`); "
+                 "else only all-INTEGER values on the Gemma 0-1000 scale with max > 1 are "
+                 "`per1000` (divided by 1000); anything else — bool values, mixed or "
+                 "slightly-overshooting scales like [0.1, 0.2, 1.02, 0.4] (NOT reinterpreted, "
+                 "which would shrink them to a tiny box near (0,0)), a value outside [0,1000], "
+                 "or a degenerate box (y1 < y0 or x1 < x0) — is a parse failure.")
     lines.append("- marks_id: mark id answered directly (S path; a non-integer id is a "
                  "parse failure, an unknown integer id = invalid_mark).")
     lines.append("- Parse failures and the explicit `uncertain` answer count as misses and are "
                  "reported separately (parse_fail / abstain); never retried.")
+    lines.append("- Latency: `latency mean ms` is SERVICE latency (server-reported inference "
+                 "time, queue wait behind the per-process inference lock excluded): pointd "
+                 "`latency_ms`, the BF16 server's `latency_ms` extension, or llama-server's "
+                 "`timings` (prompt_ms + predicted_ms) sum; client wall time is kept separately "
+                 "as `wall_ms`. Rows recorded before `service_latency_ms` existed fall back to "
+                 "the legacy `latency_ms` (chat rows: client wall time — not directly comparable "
+                 "across models).")
     (run_dir / "report.md").write_text("\n".join(lines) + "\n")
 
 
@@ -615,6 +689,7 @@ def main() -> None:
 
     fold = args.clean_panel_fold == "on"
     scored: list[dict] = []
+    nofold_scored: list[dict] = []  # same-pass fold-off sensitivity (review M2)
     gt_cache: dict[str, tuple] = {}
     for resp in resp_lines:
         case = resp["case"]
@@ -623,6 +698,13 @@ def main() -> None:
             gt_cache[case] = phase2_score.gt_slices_and_edt(rows[case], mask)
         gt2d, edt = gt_cache[case]
         scored.extend(score_response(resp, rows[case], gt2d, edt, fold))
+        # Same-pass sensitivity: score every response with the fold OFF as well
+        # (primary = the selected --clean-panel-fold setting; scored.jsonl keeps the
+        # primary rows only). When the primary IS off this is the primary itself.
+        if fold:
+            nofold_scored.extend(score_response(resp, rows[case], gt2d, edt, False))
+        else:
+            nofold_scored = scored
     (run_dir / "scored.jsonl").write_text("".join(json.dumps(c) + "\n" for c in scored))
 
     # ---- aggregation: (model, condition) -> metrics --------------------------
@@ -633,6 +715,9 @@ def main() -> None:
         model, condition = key
         cc = [c for c in scored if c["model"] == model and c["condition"] == condition]
         a = aggregate(cc)
+        # fold-off sensitivity for THIS model×condition (same pass, review M2)
+        nf_cc = [c for c in nofold_scored if c["model"] == model and c["condition"] == condition]
+        a.update(fold_off_sensitivity(nf_cc))
         by_case: dict[str, list[dict]] = {}
         for c in cc:
             by_case.setdefault(c["case"], []).append(c)
@@ -687,6 +772,7 @@ def main() -> None:
         "baseline": {"dir": str(baseline_dir), "condition": args.baseline_condition} if baseline_dir else None,
         "n_boot": args.n_boot, "seed": args.seed,
         "clean_panel_fold": args.clean_panel_fold,
+        "fold_off_sensitivity": True,
     }, indent=2) + "\n")
     write_report(run_dir, cond_keys, agg, per_hist, baseline,
                  {**meta, "prepare_manifest": str(prepare_dir / "manifest.jsonl"),
@@ -696,6 +782,7 @@ def main() -> None:
     for key in cond_keys:
         a = agg[key]
         print(f"[score] {key[0]}/{key[1]}: hit@1 {a['hit1']:.3f} hit@3 {a['hit3']:.3f} "
+              f"(nofold {a['hit1_nofold']:.3f}/{a['hit3_nofold']:.3f}, fold_rate {a['fold_rate']:.3f}) "
               f"dist={a['distance_mean_mm']} parse_fail={a['n_parse_fail']} abstain={a['n_abstain']}")
         if key in baseline:
             comp = baseline[key]

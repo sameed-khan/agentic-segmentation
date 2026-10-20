@@ -111,3 +111,47 @@ def test_fake_raw_uses_molmo2_format(molmo2_client):
     on the served path (the 0-1000 -> pixel conversion is exercised end-to-end)."""
     body = molmo2_client.post("/point", json={"image_png_b64": b64png(200, 100), "query": "q", "k": 3}).json()
     assert "<points" in body["raw"] and "coords=" in body["raw"]
+
+
+# ----------------------------------------------------------------- inference lock (M4/m6)
+def test_inference_lock_serializes_concurrent_requests(molmo2_server_mod):
+    """Two concurrent /point requests NEVER overlap inside backend.predict: the
+    process-wide _INFER_LOCK serialises inference. Uses the FakeBackend test-only delay
+    hook so the second request is still in flight while the first predicts."""
+    import asyncio
+    import threading
+
+    import httpx
+
+    class RecordingBackend(molmo2_server_mod.FakeBackend):
+        def __init__(self):
+            super().__init__(delay_s=0.05)
+            self.active = 0
+            self.max_active = 0
+            self.lock = threading.Lock()
+
+        def predict(self, png_bytes, query, k, max_new_tokens):
+            with self.lock:
+                self.active += 1
+                self.max_active = max(self.max_active, self.active)
+            try:
+                return super().predict(png_bytes, query, k, max_new_tokens)
+            finally:
+                with self.lock:
+                    self.active -= 1
+
+    backend = RecordingBackend()
+    app = molmo2_server_mod.create_app(backend)
+
+    async def fire():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                     base_url="http://testserver") as client:
+            async def one(i):
+                r = await client.post("/point", json={"image_png_b64": b64png(8, 8, i),
+                                                      "query": "q", "k": 2})
+                return r.status_code
+            return await asyncio.gather(*(one(i) for i in range(3)))
+
+    statuses = asyncio.run(fire())
+    assert statuses == [200, 200, 200]
+    assert backend.max_active == 1  # never two predictions inside the critical section

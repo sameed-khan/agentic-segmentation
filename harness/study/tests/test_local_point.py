@@ -322,15 +322,14 @@ def test_raw_box_per1000_hits_gt(row, gt_edt):
     assert out[0]["hit"] is True and out[0]["distance_mm"] == 0.0
 
 
-def test_raw_box_mixed_values_are_per1000_by_declared_rule(row, gt_edt):
-    """Values not all <= 1 but all <= 1000 are read on the Gemma 0-1000 scale (declared
-    rule: unit first, then per1000, else parse failure)."""
+def test_raw_box_slight_overshoot_is_parse_fail_not_per1000(row, gt_edt):
+    """A unit-scale box that slightly overshoots (e.g. [0.1, 0.2, 1.02, 0.4]) is a parse
+    failure — NOT reinterpreted as per1000 (that would shrink it to a tiny box near
+    (0,0), an accidental outside_panel miss or, for marks_box, a snap from the corner)."""
     gt2d, edt = gt_edt
     out = S.score_response(_resp("medgemma_q4", "raw_box", parsed={"box": [0.1, 0.2, 1.5, 0.4]}),
                            row, gt2d, edt)
-    assert out[0]["box_scale"] == "per1000"
-    # divided by 1000 the centre sits in the left margin -> outside_panel miss
-    assert out[0]["hit"] is False
+    assert out[0]["status"] == "parse_fail" and out[0]["box_scale"] is None
 
 
 def test_box_degenerate_is_parse_fail(row, gt_edt):
@@ -597,8 +596,9 @@ def test_runner_resume_keeps_ok_drops_errors(tmp_path):
     err_line = json.dumps({"run": "r", "case": "B", "model": "gui_actor", "condition": "raw",
                            "rep": 0, "ok": False, "error": "boom"})
     resp.write_text(ok_line + "\n" + err_line + "\n{malformed}\n")
-    done = runner.load_done_and_prune(resp)
+    done, versions = runner.load_done_and_prune(resp)
     assert done == {("A", "gui_actor", "raw", 0)}
+    assert versions == {"gui_actor": {None}}  # service_version for the resume check (M4)
     kept = [json.loads(l) for l in resp.read_text().splitlines()]
     assert len(kept) == 1 and kept[0]["case"] == "A"  # error + malformed rows dropped
 
@@ -747,3 +747,343 @@ def test_runner_refuses_prompt_override_drift_on_resume(tmp_path):
     with pytest.raises(SystemExit, match="drifted"):
         runner.check_immutable_config(run_dir, meta, {("A", "gui_actor", "raw", 0)})
     runner.check_immutable_config(run_dir, dict(prior), {("A", "gui_actor", "raw", 0)})
+
+
+# ------------------------------------------------------------------ missing tests (review m6)
+def test_marks_fold_gap_point_raw_diagnostic_is_none(row, gt_edt):
+    """Fold on: a gap point is not folded and has no marked-panel voxel -> the raw
+    diagnostic is None (it snaps from the gap, but the unsnapped point is unscoreable)."""
+    gt2d, edt = gt_edt
+    out = S.score_response(_resp("molmo2", "marks", points=[{"x": 88.0, "y": 28.0}]),
+                           row, gt2d, edt)
+    assert out[0]["folded"] is False
+    assert out[0]["snapped_mark_id"] == 12  # still snaps (nearest mark from the gap)
+    assert out[0]["raw_point_hit"] is None and out[0]["raw_point_distance_mm"] is None
+
+
+def test_marks_dedup_with_no_drawn_marks(row, gt_edt):
+    """Dedup when the snap returns None (no drawn marks in the manifest row): every rank
+    is a parse_fail, no dedup happens, ranks still consume 0..k-1."""
+    gt2d, edt = gt_edt
+    empty = dict(row, drawn_marks=[])
+    points = [{"x": 38.0, "y": 28.0}, {"x": 38.0, "y": 28.0}, {"x": 38.0, "y": 28.0}]
+    out = S.score_response(_resp("molmo2", "marks", points=points), empty, gt2d, edt)
+    assert [o["rank"] for o in out] == [0, 1, 2]
+    assert all(o["status"] == "parse_fail" and o["snapped_mark_id"] is None for o in out)
+
+
+def test_clean_panel_fold_half_open_at_panel_w(row, gt_edt):
+    """The clean panel is the half-open range [0, panel_w): x = panel_w - 1e-9 folds,
+    x = panel_w (the first gap pixel) does not."""
+    assert S.clean_panel_fold_px(PANEL_W - 1e-9, 5.0, GEOM_R, True)[2] is True
+    assert S.clean_panel_fold_px(float(PANEL_W), 5.0, GEOM_R, True)[2] is False
+    gt2d, edt = gt_edt
+    eps = S.score_response(_resp("molmo2", "marks", points=[{"x": PANEL_W - 1e-9, "y": 28.0}]),
+                           row, gt2d, edt)
+    assert eps[0]["folded"] is True
+    gap = S.score_response(_resp("molmo2", "marks", points=[{"x": float(PANEL_W), "y": 28.0}]),
+                           row, gt2d, edt)
+    assert gap[0]["folded"] is False
+
+
+def test_marks_box_straddling_centre_in_gap_snaps_unfolded(row, gt_edt):
+    """DECLARED: a marks_box that straddles both panels has its centre in the 16 px gap;
+    a gap centre is NOT folded and snaps from its gap position (nearest mark, Euclidean).
+    The raw diagnostic is None (no panel voxel in the gap)."""
+    gt2d, edt = gt_edt
+    total_w = 2 * PANEL_W + PANEL_GAP
+    cy = 28.0 / PANEL_H
+    box = [cy - 0.02, 70.0 / total_w, cy + 0.02, 100.0 / total_w]  # x spans 70..100 px
+    out = S.score_response(_resp("medgemma_bf16", "marks_box", parsed={"box": box}),
+                           row, gt2d, edt)
+    assert out[0]["folded"] is False
+    assert out[0]["snapped_mark_id"] == 12  # mark 12 (x=134) is nearer than mark 15 (x=170)
+    assert out[0]["hit"] is True
+    assert out[0]["raw_point_hit"] is None  # centre in the gap: no panel voxel
+
+
+# ------------------------------------------------------------------ fold aggregation (M2)
+def test_aggregate_fold_rate_and_nofold_sensitivity(row, gt_edt):
+    """aggregate() gains n_folded/fold_rate over rank-0 rows; fold_off_sensitivity()
+    applies the same case-level convention to the fold-off rows."""
+    gt2d, edt = gt_edt
+    # point on the clean panel (folds) + a second rep on the marked panel (no fold)
+    calls = (S.score_response(_resp("molmo2", "marks", points=[{"x": 38.0, "y": 28.0}], rep=0),
+                              row, gt2d, edt, True)
+             + S.score_response(_resp("molmo2", "marks", points=[{"x": 135.0, "y": 29.0}], rep=0),
+                                row, gt2d, edt, True))
+    a = S.aggregate(calls)
+    assert a["n_calls"] == 2 and a["n_cases"] == 1
+    assert a["n_folded"] == 1 and a["fold_rate"] == 0.5
+    # fold off: the clean-panel point snaps to a different mark -> sensitivity differs
+    off = S.score_response(_resp("molmo2", "marks", points=[{"x": 74.0, "y": 54.0}], rep=0),
+                           row, gt2d, edt, False)
+    sens = S.fold_off_sensitivity(off)
+    assert sens["hit1_nofold"] == 1.0 and sens["hit3_nofold"] == 1.0
+    assert S.score_response(_resp("molmo2", "marks", points=[{"x": 74.0, "y": 54.0}], rep=0),
+                            row, gt2d, edt, True)[0]["hit"] is False  # fold changes this case
+
+
+def test_raw_condition_nofold_sensitivity_equals_primary(row, gt_edt):
+    """The fold only applies to the marks conditions: for `raw`, nofold == primary."""
+    gt2d, edt = gt_edt
+    calls = S.score_response(_resp("gui_actor", "raw",
+                                   points=[{"x": 39.0 + PNG_ML, "y": 29.0 + PNG_MT}]),
+                             row, gt2d, edt)
+    assert S.fold_off_sensitivity(list(S.score_response(
+        _resp("gui_actor", "raw", points=[{"x": 39.0 + PNG_ML, "y": 29.0 + PNG_MT}]),
+        row, gt2d, edt, False)).copy()) == {"hit1_nofold": 1.0, "hit3_nofold": 1.0}
+
+
+# ------------------------------------------------------------------ latency semantics (M3)
+def test_scored_row_latency_uses_service_latency(row, gt_edt):
+    """The scorer reports service_latency_ms; the legacy latency_ms stays as recorded."""
+    gt2d, edt = gt_edt
+    resp = _resp("molmo2", "raw", points=[{"x": 79.0, "y": 51.0}])
+    resp["latency_ms"] = 90.0           # legacy runner field
+    resp["service_latency_ms"] = 30.0   # server-reported
+    out = S.score_response(resp, row, gt2d, edt)
+    assert out[0]["service_latency_ms"] == 30.0 and out[0]["latency_ms"] == 90.0
+    assert S.aggregate(out)["latency_mean_ms"] == 30.0
+    # rows recorded before service_latency_ms: fall back to legacy latency_ms
+    old = S.score_response(_resp("gui_actor", "raw", points=[{"x": 79.0, "y": 51.0}]),
+                           row, gt2d, edt)
+    assert old[0]["service_latency_ms"] == 12.0
+    assert S.aggregate(old)["latency_mean_ms"] == 12.0
+    # an error row with neither field reports None, not a fabricated number
+    err_resp = _resp("gui_actor", "raw", rep=1, error="boom")
+    err_resp["latency_ms"] = None
+    err = S.score_response(err_resp, row, gt2d, edt)
+    assert err[0]["service_latency_ms"] is None
+
+
+# ------------------------------------------------------------------ box rule + unwrap (m1)
+def test_per1000_requires_integer_values(row, gt_edt):
+    gt2d, edt = gt_edt
+    out = S.score_response(_resp("medgemma_q4", "raw_box", parsed={"box": [350.5, 230, 580, 530]}),
+                           row, gt2d, edt)
+    assert out[0]["status"] == "parse_fail" and out[0]["box_scale"] is None
+
+
+def test_box_bool_values_are_parse_fail(row, gt_edt):
+    """true/false are not numbers for box purposes (bool passes isinstance(int))."""
+    gt2d, edt = gt_edt
+    out = S.score_response(_resp("medgemma_q4", "raw_box",
+                                 parsed={"box": [True, 0.2, 0.9, 0.4]}), row, gt2d, edt)
+    assert out[0]["status"] == "parse_fail" and out[0]["box_scale"] is None
+    out = S.score_response(_resp("medgemma_q4", "raw_box",
+                                 parsed={"box": [500, 200, False, 400]}), row, gt2d, edt)
+    assert out[0]["status"] == "parse_fail"
+
+
+def test_nested_box_list_is_unwrapped(row, gt_edt):
+    """MedGemma emits a single nested list [[y0, x0, y1, x1]]: unwrapped to the inner
+    four numbers (declared normalisation, box_unwrapped=true); exactly one level."""
+    gt2d, edt = gt_edt
+    png_w, png_h = PANEL_W + PNG_ML, PANEL_H + PNG_MT + PNG_MB
+    cx, cy = (2.0 * GT_C_DISPLAY + PNG_ML) / png_w, (2.0 * GT_R_DISPLAY + PNG_MT) / png_h
+    box = [cy - 0.05, cx - 0.05, cy + 0.05, cx + 0.05]
+    out = S.score_response(_resp("medgemma_bf16", "raw_box", parsed={"box": [box]}),
+                           row, gt2d, edt)
+    assert out[0]["box_unwrapped"] is True and out[0]["box_scale"] == "unit"
+    assert out[0]["hit"] is True
+    mx, my = row["drawn_marks"][0]["combined_px"]
+    box2 = [my / PANEL_H - 0.05, mx / (2 * PANEL_W + PANEL_GAP) - 0.05,
+            my / PANEL_H + 0.05, mx / (2 * PANEL_W + PANEL_GAP) + 0.05]
+    out2 = S.score_response(_resp("medgemma_bf16", "marks_box", parsed={"box": [box2]}),
+                            row, gt2d, edt)
+    assert out2[0]["box_unwrapped"] is True and out2[0]["snapped_mark_id"] == 12
+    # a plain box is NOT marked as unwrapped
+    out3 = S.score_response(_resp("medgemma_bf16", "raw_box", parsed={"box": box}), row, gt2d, edt)
+    assert out3[0]["box_unwrapped"] is False
+    # deeper nesting does not unwrap twice -> parse failure
+    out4 = S.score_response(_resp("medgemma_bf16", "raw_box", parsed={"box": [[box]]}),
+                            row, gt2d, edt)
+    assert out4[0]["status"] == "parse_fail" and out4[0]["box_unwrapped"] is False
+
+
+# ------------------------------------------------------------------ service versions (M4)
+def test_load_done_collects_service_versions(tmp_path):
+    resp = tmp_path / "responses.jsonl"
+    resp.write_text("\n".join([
+        json.dumps({"case": "A", "model": "gui_actor", "condition": "raw", "rep": 0,
+                    "ok": True, "service_version": "1.0.0"}),
+        json.dumps({"case": "B", "model": "gui_actor", "condition": "raw", "rep": 0,
+                    "ok": True, "service_version": "1.0.0"}),
+        json.dumps({"case": "C", "model": "medgemma_q4", "condition": "raw_box", "rep": 0,
+                    "ok": True, "service_version": None}),
+    ]) + "\n")
+    done, versions = runner.load_done_and_prune(resp)
+    assert len(done) == 3
+    assert versions == {"gui_actor": {"1.0.0"}, "medgemma_q4": {None}}
+
+
+def test_service_version_resume_refuses_mismatch():
+    """Resuming rows from a different service build is refused (M4: the 1.0.1 servers
+    added the inference lock; pre-lock responses must not be mixed in)."""
+    with pytest.raises(SystemExit, match="service_version"):
+        runner.check_service_version_resume({"gui_actor": {"1.0.0"}}, {"gui_actor": "1.0.1"})
+    with pytest.raises(SystemExit, match="service_version"):
+        runner.check_service_version_resume({"medgemma_bf16": {None}}, {"medgemma_bf16": "1.0.1"})
+    runner.check_service_version_resume({"gui_actor": {"1.0.1"}}, {"gui_actor": "1.0.1"})
+    # llama-server exposes no /healthz version: the check is skipped for that model
+    runner.check_service_version_resume({"medgemma_q4": {None}}, {"medgemma_q4": None})
+    runner.check_service_version_resume({}, {"gui_actor": "1.0.1"})
+
+
+def test_fetch_service_versions_healthz(monkeypatch):
+    """/healthz once per model; a service that is down is a hard error (the calls would
+    fail anyway and the version check must not silently degrade)."""
+    class FakeClient:
+        def __init__(self, timeout=None):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def get(self, url):
+            assert url.endswith("/healthz")
+
+            class R:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {"status": "ok", "version": "1.0.1"}
+
+            return R()
+
+    monkeypatch.setattr("httpx.Client", FakeClient)
+    assert runner.fetch_service_versions({"gui_actor": "http://x:8092"}, ["gui_actor"]) == \
+        {"gui_actor": "1.0.1"}
+
+    class Down:
+        def __init__(self, timeout=None):
+            raise RuntimeError("connection refused")
+
+    monkeypatch.setattr("httpx.Client", Down)
+    with pytest.raises(SystemExit, match="/healthz failed"):
+        runner.fetch_service_versions({"gui_actor": "http://x:8092"}, ["gui_actor"])
+
+
+# ------------------------------------------------------------------ legacy keys (m4)
+def test_immutable_config_normalises_legacy_prompt_keys(tmp_path):
+    """meta.json `prompts` keys were renamed local_point_<cond> -> <cond>: an old run
+    resumes when the templates themselves are identical."""
+    run_dir = tmp_path / "studyA" / "old"
+    run_dir.mkdir(parents=True)
+    (run_dir / "meta.json").write_text(json.dumps(
+        {"prompts": {"local_point_raw": {"path": "harness/study/prompts/local_point_raw.md",
+                                         "sha256": "samesha"},
+                     "local_point_marks": {"path": "harness/study/prompts/local_point_marks.md",
+                                           "sha256": "samesha2"}}}))
+    meta = {"prompts": {"raw": {"path": "harness/study/prompts/local_point_raw.md",
+                                "sha256": "samesha"},
+                       "marks": {"path": "harness/study/prompts/local_point_marks.md",
+                                 "sha256": "samesha2"}}}
+    runner.check_immutable_config(run_dir, meta, {("A", "gui_actor", "raw", 0)})  # no exit
+    meta_bad = {"prompts": {"raw": {"path": "variants/raw_v9.md", "sha256": "other"}}}
+    with pytest.raises(SystemExit, match="drifted"):
+        runner.check_immutable_config(run_dir, meta_bad, {("A", "gui_actor", "raw", 0)})
+
+
+# ------------------------------------------------------------------ byte hashes (m5)
+def test_prompt_sha256_hashes_raw_template_bytes(row, monkeypatch, tmp_path):
+    """Row + meta prompt hashes read the template BYTES: a CRLF template hashes its
+    actual bytes, not the universal-newline text read_text() would return."""
+    from PIL import Image
+
+    image_path = tmp_path / "img.png"
+    Image.new("RGB", (8, 8)).save(image_path)
+    r = dict(row, image_R=str(image_path), image_S=str(image_path))
+    variant = tmp_path / "crlf.md"
+    variant.write_bytes(b"Point at the {{target}}.\r\n")
+    assert hashlib.sha256(variant.read_bytes()).hexdigest() != \
+        hashlib.sha256(variant.read_text().encode()).hexdigest()
+
+    def fake_call_pointd(url, image, query, k, timeout_s):
+        return {"points": [{"x": 1.0, "y": 2.0}], "raw": "out", "latency_ms": 5.0,
+                "model": "m", "version": "1.0.1", "verifier": None}
+
+    monkeypatch.setattr(runner, "call_pointd", fake_call_pointd)
+    opts = runner.parse_args(["--run", "x", "--prepare-dir", str(tmp_path),
+                              "--models", "gui_actor", "--conditions", "raw",
+                              "--prompt", f"raw={variant}"])
+    opts.prepare_dir = str(tmp_path)
+    line = runner.build_call(r, "gui_actor", "raw", 0, opts)
+    assert line["prompt_sha256"] == hashlib.sha256(variant.read_bytes()).hexdigest()
+    prov = runner.prompt_provenance({"raw": variant})
+    assert prov["raw"]["sha256"] == hashlib.sha256(variant.read_bytes()).hexdigest()
+
+
+# ------------------------------------------------------------------ runner latency rows (M3)
+def test_build_call_row_latency_semantics(row, monkeypatch, tmp_path):
+    """Rows carry service_latency_ms + wall_ms next to the legacy latency_ms field:
+    pointd latency_ms/service_latency_ms = the server's number; chat latency_ms = the
+    client wall time and service_latency_ms = the server payload's."""
+    from PIL import Image
+
+    image_path = tmp_path / "img.png"
+    Image.new("RGB", (8, 8)).save(image_path)
+    r = dict(row, image_R=str(image_path), image_S=str(image_path))
+
+    def fake_call_pointd(url, image, query, k, timeout_s):
+        return {"points": [{"x": 1.0, "y": 2.0}], "raw": "out", "latency_ms": 5.0,
+                "model": "m", "version": "1.0.1", "verifier": None}
+
+    monkeypatch.setattr(runner, "call_pointd", fake_call_pointd)
+    opts = runner.parse_args(["--run", "x", "--prepare-dir", str(tmp_path),
+                              "--models", "gui_actor", "--conditions", "raw"])
+    opts.prepare_dir = str(tmp_path)
+    line = runner.build_call(r, "gui_actor", "raw", 0, opts)
+    assert line["service_latency_ms"] == 5.0 and line["latency_ms"] == 5.0
+    assert line["wall_ms"] >= 0.0  # whole-call wall clock (fake returns instantly)
+    assert line["service_version"] == "1.0.1"
+
+    def fake_call_chat(client, prompt, image, max_tokens):
+        return {"raw": "{}", "parsed": {"answer": "uncertain"}, "parse_error": None,
+                "uncertain": True, "wall_ms": 7.5, "service_latency_ms": None,
+                "model": "m", "usage": None, "raw_body": "{}"}
+
+    monkeypatch.setattr(runner, "call_chat", fake_call_chat)
+    opts = runner.parse_args(["--run", "x", "--prepare-dir", str(tmp_path),
+                              "--models", "medgemma_bf16", "--conditions", "marks_id"])
+    opts.prepare_dir = str(tmp_path)
+    opts.service_versions = {"medgemma_bf16": "1.0.1"}
+    line = runner.build_call(r, "medgemma_bf16", "marks_id", 0, opts)
+    assert line["latency_ms"] == 7.5 and line["service_latency_ms"] is None
+    assert line["wall_ms"] >= 0.0
+    # chat rows are stamped with the /healthz version fetched at run start (llama-server
+    # exposes none per call): this is what the service-version resume check compares
+    assert line["service_version"] == "1.0.1"
+
+
+def test_runner_main_refuses_pre_lock_resume(row, tmp_path, monkeypatch):
+    """Wiring (M4): main() fetches /healthz once per model and refuses to resume a run
+    whose existing ok rows were served by a different service build."""
+    run_dir = tmp_path / "studyA" / "r1"
+    run_dir.mkdir(parents=True)
+    (run_dir / "responses.jsonl").write_text("\n".join(
+        json.dumps({"run": "r1", "case": "T99", "model": "gui_actor", "condition": cond,
+                    "rep": 0, "ok": True, "service_version": "1.0.0"})
+        for cond in ("raw", "marks")) + "\n")
+    (tmp_path / "manifest.jsonl").write_text(json.dumps(row) + "\n")
+    monkeypatch.setattr(runner, "fetch_service_versions",
+                        lambda urls, models: {"gui_actor": "1.0.1"})
+    monkeypatch.setattr(sys, "argv",
+                        ["local_point_study.py", "--run", "r1", "--models", "gui_actor",
+                         "--prepare-dir", str(tmp_path), "--results-root", str(tmp_path / "studyA")])
+    with pytest.raises(SystemExit, match="service_version"):
+        runner.main()
+    # matching versions resume cleanly (every call done -> no service call needed)
+    (run_dir / "responses.jsonl").write_text("\n".join(
+        json.dumps({"run": "r1", "case": "T99", "model": "gui_actor", "condition": cond,
+                    "rep": 0, "ok": True, "service_version": "1.0.1"})
+        for cond in ("raw", "marks")) + "\n")
+    runner.main()
+    meta = json.loads((run_dir / "meta.json").read_text())
+    assert meta["service_versions"] == {"gui_actor": "1.0.1"}
+    assert meta["planned_calls"] == 2 and meta["resumed_from_lines"] == 2

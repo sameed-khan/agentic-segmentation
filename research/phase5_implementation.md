@@ -131,7 +131,8 @@ uv run --project harness/server python harness/study/local_point_study.py \
 # conditions: gui_actor/molmo2 -> raw, marks; medgemma_* -> raw_box, marks_box, marks_id
 # all four models in one run: omit --models (runs 4 models x their conditions x 30 cases)
 
-# scorer (GT offline; reuses harness/study/score.py GT-hit code):
+# scorer (GT offline; reuses harness/study/score.py GT-hit code; aggregates fold rate
+#   + a same-pass fold-off sensitivity hit@1/hit@3 and reports service latency):
 uv run --project harness/server python harness/study/score_local_point.py \
     --run studyA-design-gui \
     --baseline-dir results/phase2_dev/dev-02-high --baseline-condition S
@@ -143,12 +144,45 @@ uv run --project harness/server python harness/study/score_local_point.py \
   marked image (`image_S`, clean left + numbered marks right) -> point snapped to the nearest
   drawn mark (predeclared rule: Euclidean over the manifest `combined_px`, ties -> lowest id);
   for MedGemma also **marks_id** (answer a mark id; non-integer ids are parse failures, unknown
-  integer ids `invalid_mark`) and **marks_box** (box `[y0,x0,y1,x1]` in [0,1] of the whole image
-  -> centre -> snapped). The unsnapped raw point is scored separately as a secondary diagnostic
-  and never mixed with the snapped answer.
+  integer ids `invalid_mark`) and **marks_box** (box `[y0,x0,y1,x1]` -> centre -> snapped). The
+  unsnapped raw point is scored separately as a secondary diagnostic and never mixed with the
+  snapped answer.
+- Prompt overrides: `--prompt COND=PATH` (repeatable) replaces the default
+  `local_point_<COND>.md` template for one condition — per-model×condition prompt variants
+  without touching the shared defaults. The effective path + sha256 per condition are recorded
+  in meta.json `prompts` (keyed `<cond>`) and are immutable on resume; runs from before the
+  rename (meta keys `local_point_<cond>`) still resume when the templates are identical.
+- Clean-panel fold (declared scorer rule, `--clean-panel-fold on` default): the marks image is
+  clean panel 0 + 16 px gap + marked panel 1 and both panels share the same view geometry, so a
+  `marks`/`marks_box` point whose x lies on the clean panel is translated (x + panel_w + gap)
+  BEFORE snapping; gap points are not folded. Per-rank `folded` records it; the aggregate adds
+  `n_folded`/`fold_rate` (rank 0) and every response is also scored with the fold off in the
+  same pass (`hit1_nofold`/`hit3_nofold` in score.json + report) so the fold's effect is
+  measured, not assumed. Pointd `marks` ranks are deduplicated by snapped mark id (dropped
+  duplicates do not consume a rank) so hit@3 means 3 distinct marks; the dedup is tied to the
+  same flag and has NO effect on hit@1/hit@3 at the default k=3 (only k > 3).
+- MedGemma box scale + unwrap (declared scorer rule): boxes `[y0,x0,y1,x1]`; all four values in
+  [0,1] -> fractions (`unit`); else only all-integer values on [0,1000] with max > 1 ->
+  `per1000` (divided by 1000); anything else — bool values, mixed/slightly-overshooting scales
+  like [0.1, 0.2, 1.02, 0.4] (not reinterpreted: that would shrink them to a tiny box near
+  (0,0)), a value outside [0,1000], or a degenerate box — is a parse failure. A box emitted as
+  a single nested list `[[y0,x0,y1,x1]]` is unwrapped to the inner four numbers
+  (`box_unwrapped: true`).
+- Latency semantics: response rows carry `service_latency_ms` (SERVER-reported inference time,
+  queue wait behind the per-process inference lock excluded: pointd `latency_ms` field, the
+  BF16 server's `latency_ms` extension, llama-server `timings.prompt_ms + predicted_ms`) and
+  `wall_ms` (client wall clock, queue wait included). The scorer's latency mean/median report
+  the service latency (legacy rows fall back to `latency_ms` — chat rows there are client wall
+  time, not comparable across models; the report says so).
+- Service-version resume check: /healthz is fetched once per selected model at run start;
+  resuming refuses when an existing ok row's `service_version` differs from the live version
+  (servers 1.0.1 serialise inference; responses collected before that lock under
+  concurrency > 1 may be corrupted — re-run them). llama-server exposes no /healthz version:
+  its rows keep `service_version: null` and the check is skipped for that model.
 - Prompt templates: `harness/study/prompts/local_point_*.md` (initial versions; {{target}} =
   histotype text, {{sequence_text}}). Up to 8 variants per model × condition — tune on the
-  design split ONLY, then freeze (sha256 in meta.json) before the test split.
+  design split ONLY, then freeze (sha256 in meta.json) before the test split. Per-row and meta
+  prompt hashes are over the raw template BYTES (`read_bytes`).
 - Scorer: hit@1, hit@3 (any of ranks 0-2), EDT distance in mm, parse/abstain rates, latency,
   per-histotype breakdown, case-bootstrap CIs, and paired exact McNemar vs the Phase 2 frontier
   run (both arms use the SAME per-case summary: majority over reps of per-rep hit flags, ties ->
@@ -178,8 +212,10 @@ uv run --project harness/server python harness/study/build_decision_sets.py \
 uv run --project harness/server python harness/study/replay_local.py \
     --set done_check --run medgemma-q4 --model medgemma_q4
 
-# replay to frontier models (identical manifests + templates; no system prompt — parity
-# with MedGemma, which has no system instruction):
+# replay to frontier models (identical manifests + templates; minimal neutral system prompt —
+# MedGemma has no system instruction, and on Anthropic OAuth accounts the provider request
+# carries the fixed Claude Code identity prefix, accepted exactly and hashed per row in
+# replay_decisions.ts):
 npx tsx harness/study/replay_decisions.ts --set done_check --run sonnet-high \
     --images-root /home/ubuntu/agentic-segmentation
 
@@ -221,6 +257,10 @@ uv run --project harness/server python harness/study/score_decision.py \
 Tune prompts/thresholds on the design split only; freeze (git tag + preregistration in
 `research/experiment_log.md`) BEFORE any test-split run; the test split is 169 cases
 (`--prepare-dir results/phase2_test/prepare`, baseline `results/phase2_test/p2-test-high`).
+The freeze entry must restate the Study A scorer rules from §4 (clean-panel fold + dedup and
+the fold-off sensitivity, MedGemma box scale + nested unwrap, latency semantics,
+service-version resume check) so the frontier comparison is not open to a post-hoc-scoring
+objection.
 
 ## 7. What remains (not part of this build)
 

@@ -11,8 +11,13 @@ failures are recorded, never retried. A parse failure is a FINAL outcome: the ro
 completed with ok=True and parse_error set, stays in responses.jsonl on resume and in
 the scorer's denominators (as a wrong answer). Only transport/HTTP failures are
 ok=False and retried on resume. Prompts come from
-harness/study/prompts/decision_<set>.md (sha256 recorded); only image paths and the
-GT-free `text` enter the prompt — labels/precision/dice stay offline.
+harness/study/prompts/decision_<set>.md (sha256 of the raw template BYTES recorded);
+only image paths and the GT-free `text` enter the prompt — labels/precision/dice stay
+offline.
+
+Latency rows (review M3): `service_latency_ms` = server-reported inference time (None
+when the server does not report it), `wall_ms` = whole-call client wall clock;
+`latency_ms` keeps its legacy meaning (client request wall time).
 
 Output: results/phase5/studyB/<set>/<run>/responses.jsonl (+ meta.json), resumable:
 ok rows are skipped on resume (INCLUDING parse failures — they are final outcomes),
@@ -30,6 +35,7 @@ import hashlib
 import json
 import sys
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -137,19 +143,23 @@ def build_call(row: dict, rep: int, opts, template_path: Path, template: str) ->
         "source_run": row.get("source_run"), "version": row.get("version"),
         "model": opts.model, "rep": rep,
         "model_id": None, "prompt_template": f"harness/study/prompts/{template_path.name}",
-        "prompt_sha256": hashlib.sha256(template.encode()).hexdigest(),
+        "prompt_sha256": hashlib.sha256(template_path.read_bytes()).hexdigest(),
         "prompt_text": prompt_text, "images": row["images"],
         "raw": "", "parsed": None, "parse_error": None, "uncertain": None,
-        "usage": None, "latency_ms": None, "ok": False, "error": None,
+        "usage": None, "latency_ms": None, "service_latency_ms": None, "wall_ms": None,
+        "ok": False, "error": None,
         "created_at": utcnow(),
     }
     client = MedGemmaClient(base_url=opts.url, timeout_s=opts.timeout)
+    t0 = time.perf_counter()
     try:
         result = client.chat_json(prompt_text.strip(), images, max_tokens=opts.max_tokens)
         line.update({
             "raw": result.text, "parsed": result.parsed, "parse_error": result.parse_error,
             "uncertain": result.uncertain, "usage": result.usage,
-            "latency_ms": result.latency_ms, "model_id": result.model,
+            "latency_ms": result.wall_ms,                  # legacy field: client wall time
+            "service_latency_ms": result.service_latency_ms,  # server-reported (None if absent)
+            "model_id": result.model,
             "raw_body": result.raw_body[:2000],
             # Receiving a completion is the outcome: a JSON parse failure is itself
             # recorded (ok=True, parse_error set) — a final result, kept on resume and
@@ -159,6 +169,8 @@ def build_call(row: dict, rep: int, opts, template_path: Path, template: str) ->
         })
     except Exception as exc:  # transport/HTTP failure: record, retry on resume
         line["error"] = f"{type(exc).__name__}: {exc}"
+    # wall_ms = whole-call client wall clock (review M3), service_latency_ms = server-reported
+    line["wall_ms"] = round((time.perf_counter() - t0) * 1000.0, 3)
     return line
 
 
@@ -253,7 +265,7 @@ def main() -> None:
         "selected_keys": [r["key"] for r in rows],
         "images_root": opts.images_root,
         "prompt_template": f"harness/study/prompts/{template_path.name}",
-        "prompt_sha256": hashlib.sha256(template.encode()).hexdigest(),
+        "prompt_sha256": hashlib.sha256(template_path.read_bytes()).hexdigest(),
         "planned_calls": len(rows) * opts.reps, "resumed_from_lines": len(done),
         "gt_fields_never_sent": ["label", "precision", "dice_state", "dice_best",
                                  "version_dice_gain", "oracle_dice_gain", "region_vox",

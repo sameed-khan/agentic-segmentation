@@ -111,3 +111,4 @@ come back when its window refreshes (interleave to maximise throughput).
 - 01:36 UTC: Sameed: drop Opus 5 -> marker sweep_p3-opus5-best.done contains 'skipped' (no scores exist; not a result).
 - 03:14 UTC: Phase 4 harness changes committed on phase5-v3 (1c8de32; 186+148 tests; manifest image/mask column swap fixed); pushed to mount; gpt-6.1-sol review running. A10 owns Phase 3 + main; A100 agent owns phase5-v3 (Phases 4-5).
 - 03:29 UTC: phase5-v3 @145cd2d pushed (Phase 4 fixes). HANDOFF_A100.md finalized (also at mount root). A10 now: Phase 3 only.
+- 05:16 UTC: gpt61sol-high done (0.777, best; +0.011 vs Opus xhigh p=0.10), exported. Scheduler: sol-xhigh probe/full stop the sweep on quota (no waiting) -> then Phase 6 = harness v2 + SAM-Med3D-turbo instead of nnInteractive (Sonnet 5.5 high, 169 test, paired vs phase3-high; large tumours: overlapping 128^3 patches, option a). Build worker in worktree /home/ubuntu/agseg-p6 (branch phase6-sammed3d, from main).

@@ -37,6 +37,10 @@ from pydantic import BaseModel
 SERVICE_VERSION = "1.0.0"
 DEFAULT_MODEL_ID = "google/medgemma-1.5-4b-it"
 
+import threading
+
+_INFER_LOCK = threading.Lock()
+
 log = logging.getLogger("medgemma_bf16_server")
 
 
@@ -166,14 +170,18 @@ def create_app(backend: FakeBackend | MedGemmaRealBackend, served_model_id: str)
             base64.b64decode(all_images[0], validate=False) if all_images else None
         except (binascii.Error, ValueError) as exc:
             return JSONResponse(status_code=400, content={"error": {"message": f"invalid base64 image: {exc}"}})
-        t0 = time.perf_counter()
-        try:
-            out_text = backend.generate(prompt_text, all_images, req.temperature or 0.0,
-                                        req.max_tokens or 256)
-        except Exception as exc:
-            log.exception("generation failed")
-            return JSONResponse(status_code=500, content={"error": {"message": f"generation failed: {exc}"}})
-        latency_ms = (time.perf_counter() - t0) * 1000.0
+        # One inference at a time: HF tokenizers/models are not thread-safe (FastAPI runs
+        # sync endpoints in a threadpool; concurrent requests raised 'Already borrowed').
+        # latency_ms is measured inside the lock = pure inference time (queue wait excluded).
+        with _INFER_LOCK:
+            t0 = time.perf_counter()
+            try:
+                out_text = backend.generate(prompt_text, all_images, req.temperature or 0.0,
+                                            req.max_tokens or 256)
+            except Exception as exc:
+                log.exception("generation failed")
+                return JSONResponse(status_code=500, content={"error": {"message": f"generation failed: {exc}"}})
+            latency_ms = (time.perf_counter() - t0) * 1000.0
         completion_id = f"chatcmpl-{uuid.uuid4().hex[:24]}"
         payload = {
             "id": completion_id,

@@ -42,6 +42,10 @@ SERVICE_VERSION = "1.0.0"
 DEFAULT_MODEL_ID = "allenai/Molmo2-8B"
 DEFAULT_MAX_NEW_TOKENS = 256
 
+import threading
+
+_INFER_LOCK = threading.Lock()
+
 log = logging.getLogger("pointd_molmo2")
 
 
@@ -161,15 +165,19 @@ def create_app(backend: FakeBackend | Molmo2RealBackend) -> FastAPI:
         if w <= 0 or h <= 0:
             raise HTTPException(status_code=400, detail="degenerate image size")
 
-        t0 = time.perf_counter()
-        try:
-            out = backend.predict(png, req.query, req.k, req.max_new_tokens)
-        except HTTPException:
-            raise
-        except Exception as exc:
-            log.exception("prediction failed")
-            raise HTTPException(status_code=500, detail=f"prediction failed: {exc}") from exc
-        latency_ms = (time.perf_counter() - t0) * 1000.0
+        # One inference at a time: HF tokenizers/models are not thread-safe (FastAPI runs
+        # sync endpoints in a threadpool; concurrent requests raised 'Already borrowed').
+        # latency_ms is measured inside the lock = pure inference time (queue wait excluded).
+        with _INFER_LOCK:
+            t0 = time.perf_counter()
+            try:
+                out = backend.predict(png, req.query, req.k, req.max_new_tokens)
+            except HTTPException:
+                raise
+            except Exception as exc:
+                log.exception("prediction failed")
+                raise HTTPException(status_code=500, detail=f"prediction failed: {exc}") from exc
+            latency_ms = (time.perf_counter() - t0) * 1000.0
 
         parsed: list[MolmoPoint] = parse_molmo_points(out["raw"], w, h)
         points = [{"x": round(p.x, 2), "y": round(p.y, 2), "score": None,

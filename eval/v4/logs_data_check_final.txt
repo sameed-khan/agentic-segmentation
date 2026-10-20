@@ -1,0 +1,3 @@
+[beamster] 140/140 cases ok -> /home/ubuntu/agseg-p4/eval/v4/data_check_phase4/beamster.jsonl
+[spinal_mm_seg] 72/72 cases ok -> /home/ubuntu/agseg-p4/eval/v4/data_check_phase4/spinal_mm_seg.jsonl
+[longitudinal_ct] 226/226 cases ok -> /home/ubuntu/agseg-p4/eval/v4/data_check_phase4/longitudinal_ct.jsonl

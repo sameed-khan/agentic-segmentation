@@ -1,0 +1,39 @@
+{
+  "case_id": "V51",
+  "shape": [
+    96,
+    96,
+    58
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 466680,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    96,
+    96,
+    58
+  ],
+  "created_at": "2026-10-20T06:41:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:45:24Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "The mask follows the lobulated T2-bright tumor on the reviewed slices; off-mask review slices show no convincing extension of the mass.",
+  "tool_calls": 33,
+  "model_prompts": 3
+}

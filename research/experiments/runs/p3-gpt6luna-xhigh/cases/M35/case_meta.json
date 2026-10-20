@@ -1,0 +1,39 @@
+{
+  "case_id": "M35",
+  "shape": [
+    220,
+    220,
+    320
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17410126,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    320
+  ],
+  "created_at": "2026-10-20T05:59:57Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:02:00Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Orthogonal review shows the mass and tapered ends within the mask; neighboring review slices have no missed lesion tissue.",
+  "tool_calls": 19,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L24",
+  "shape": [
+    241,
+    241,
+    271
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18120808,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    271
+  ],
+  "created_at": "2026-10-20T05:36:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:39:03Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The three-plane review shows the mask tracking the dominant mass; adjacent proposals and tissue just beyond its extent appear to be normal surrounding structures.",
+  "tool_calls": 22,
+  "model_prompts": 1
+}

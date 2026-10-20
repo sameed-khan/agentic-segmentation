@@ -1,0 +1,39 @@
+{
+  "case_id": "L32",
+  "shape": [
+    281,
+    281,
+    236
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 13116194,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    236
+  ],
+  "created_at": "2026-10-20T05:40:06Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:46:32Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "The mask captures the main heterogeneous mass and rim; outer-ring candidates appear to be normal tissue, though the proximal tip at the just-past axial slice is uncertain.",
+  "tool_calls": 40,
+  "model_prompts": 6
+}

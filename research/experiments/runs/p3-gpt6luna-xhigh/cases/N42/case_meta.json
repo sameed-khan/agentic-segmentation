@@ -1,0 +1,39 @@
+{
+  "case_id": "N42",
+  "shape": [
+    111,
+    111,
+    82
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1137652,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    111,
+    111,
+    82
+  ],
+  "created_at": "2026-10-20T06:23:14Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:26:23Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The mask follows the circumscribed T2-bright tumor through its full extent; adjacent candidate regions are normal anatomy, though the faint outer rim is indistinct.",
+  "tool_calls": 20,
+  "model_prompts": 2
+}

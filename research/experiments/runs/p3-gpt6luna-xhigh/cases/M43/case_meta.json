@@ -1,0 +1,39 @@
+{
+  "case_id": "M43",
+  "shape": [
+    201,
+    201,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6853843,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    141
+  ],
+  "created_at": "2026-10-20T06:04:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:10:56Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "The focal T2-bright mass and contiguous extension are outlined in all planes; review end slices are clear, while neighboring bright proposals appear separate normal tissue.",
+  "tool_calls": 37,
+  "model_prompts": 4
+}

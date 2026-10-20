@@ -1,0 +1,39 @@
+{
+  "case_id": "V01",
+  "shape": [
+    131,
+    131,
+    139
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 797745,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    139
+  ],
+  "created_at": "2026-10-20T06:27:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:32:47Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The small focal T2-bright lesion is covered in all planes; nearby high-signal tissue is normal and excluded.",
+  "tool_calls": 32,
+  "model_prompts": 3
+}

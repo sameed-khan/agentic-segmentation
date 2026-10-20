@@ -1,0 +1,39 @@
+{
+  "case_id": "N15",
+  "shape": [
+    141,
+    141,
+    133
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3468591,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    133
+  ],
+  "created_at": "2026-10-20T06:13:26Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:15:54Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The well-defined lobulated mass is encompassed in all three planes; review endpoints are clear and neighboring candidate regions appear separate from the tumor.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

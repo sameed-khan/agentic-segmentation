@@ -1,0 +1,39 @@
+{
+  "case_id": "M13",
+  "shape": [
+    480,
+    480,
+    294
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 46712041,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    480,
+    480,
+    294
+  ],
+  "created_at": "2026-10-20T05:50:47Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:56:10Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "The multi-lobulated high-T2 mass is covered through its full extent; adjacent candidate tissue appears normal and the past-the-mask slices show no tumor.",
+  "tool_calls": 24,
+  "model_prompts": 4
+}

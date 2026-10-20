@@ -1,0 +1,39 @@
+{
+  "case_id": "L41",
+  "shape": [
+    281,
+    281,
+    386
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31418269,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    386
+  ],
+  "created_at": "2026-10-20T05:43:59Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:46:46Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "The well-defined fatty mass is covered along its full extent in all three planes; past-end slices show no continuation, and adjacent fat candidates are outside the capsule.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

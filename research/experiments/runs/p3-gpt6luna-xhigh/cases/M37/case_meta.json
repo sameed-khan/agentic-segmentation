@@ -1,0 +1,39 @@
+{
+  "case_id": "M37",
+  "shape": [
+    350,
+    350,
+    220
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 21537452,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    350,
+    350,
+    220
+  ],
+  "created_at": "2026-10-20T06:00:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:08:13Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The primary heterogeneous myxoid mass is delineated across axial, coronal, and sagittal views; only trace endpoint voxels remain uncertain.",
+  "tool_calls": 33,
+  "model_prompts": 2
+}

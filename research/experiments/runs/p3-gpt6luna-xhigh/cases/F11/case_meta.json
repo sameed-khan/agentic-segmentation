@@ -1,0 +1,39 @@
+{
+  "case_id": "F11",
+  "shape": [
+    249,
+    249,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7994496,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    249,
+    249,
+    163
+  ],
+  "created_at": "2026-10-20T04:54:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:00:45Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "The final review shows the focal mass covered through its full extent in all planes; the large remaining proposals are adjacent normal tissue.",
+  "tool_calls": 29,
+  "model_prompts": 2
+}

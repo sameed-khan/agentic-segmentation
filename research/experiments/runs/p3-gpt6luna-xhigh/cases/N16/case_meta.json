@@ -1,0 +1,39 @@
+{
+  "case_id": "N16",
+  "shape": [
+    261,
+    261,
+    241
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18070251,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    241
+  ],
+  "created_at": "2026-10-20T06:13:56Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:16:45Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The main fusiform T2-bright tumor is outlined across all planes with tapered margins; adjacent candidate structures and past-end slices are not lesion.",
+  "tool_calls": 24,
+  "model_prompts": 1
+}

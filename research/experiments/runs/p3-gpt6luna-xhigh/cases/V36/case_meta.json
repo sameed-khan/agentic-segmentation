@@ -1,0 +1,39 @@
+{
+  "case_id": "V36",
+  "shape": [
+    481,
+    481,
+    216
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34808291,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    481,
+    481,
+    216
+  ],
+  "created_at": "2026-10-20T06:36:22Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:39:28Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The reviewed mask covers the lobulated heterogeneous mass in all three planes; the outlying rim proposals and isolated endpoint foci appear to be surrounding tissue or vessels, not tumor.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

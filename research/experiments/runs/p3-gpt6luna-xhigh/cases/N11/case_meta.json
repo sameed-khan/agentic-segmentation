@@ -1,0 +1,39 @@
+{
+  "case_id": "N11",
+  "shape": [
+    101,
+    101,
+    121
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1612726,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    101,
+    101,
+    121
+  ],
+  "created_at": "2026-10-20T06:12:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:17:12Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Reviewed the full 3-plane extent: the bright mass and contiguous nerve-like extension are included; the off-target candidate regions and past-end slices appear normal tissue.",
+  "tool_calls": 33,
+  "model_prompts": 3
+}

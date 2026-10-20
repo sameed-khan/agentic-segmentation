@@ -1,0 +1,39 @@
+{
+  "case_id": "N06",
+  "shape": [
+    201,
+    201,
+    71
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3070849,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    71
+  ],
+  "created_at": "2026-10-20T06:08:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:12:26Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The mask follows the contiguous T2-bright nerve-associated mass in all three planes; nearby candidate signals appear separate from the lesion.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

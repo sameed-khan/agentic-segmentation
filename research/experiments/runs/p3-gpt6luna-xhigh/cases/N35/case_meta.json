@@ -1,0 +1,39 @@
+{
+  "case_id": "N35",
+  "shape": [
+    201,
+    201,
+    351
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17155167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    351
+  ],
+  "created_at": "2026-10-20T06:20:40Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T06:26:51Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The mass and contiguous elongated portion are outlined in all planes; nearby external proposals and terminal nerve-like signal appear non-tumoral.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

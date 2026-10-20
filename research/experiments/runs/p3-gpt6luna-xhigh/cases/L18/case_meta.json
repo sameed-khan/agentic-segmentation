@@ -1,0 +1,39 @@
+{
+  "case_id": "L18",
+  "shape": [
+    201,
+    201,
+    356
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 16915138,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    356
+  ],
+  "created_at": "2026-10-20T05:32:36Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:36:13Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "The lesion margins are distinct in the reviewed axial, coronal, and sagittal slices, including both end slices; candidate additions are outside the mass.",
+  "tool_calls": 21,
+  "model_prompts": 2
+}

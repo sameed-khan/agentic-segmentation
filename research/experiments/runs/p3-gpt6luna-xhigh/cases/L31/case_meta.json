@@ -1,0 +1,39 @@
+{
+  "case_id": "L31",
+  "shape": [
+    251,
+    251,
+    426
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 27357333,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    426
+  ],
+  "created_at": "2026-10-20T05:39:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:43:32Z",
+  "final_version": "v4",
+  "confidence": "high",
+  "reason": "The sharply defined mass is captured through its full extent in axial, coronal, and sagittal views; beyond-mask panels show no lesion, and adjacent candidate proposals are separate structures.",
+  "tool_calls": 17,
+  "model_prompts": 2
+}

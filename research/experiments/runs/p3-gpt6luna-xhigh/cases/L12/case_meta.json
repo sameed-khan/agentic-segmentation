@@ -1,0 +1,39 @@
+{
+  "case_id": "L12",
+  "shape": [
+    281,
+    281,
+    249
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 21853589,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    249
+  ],
+  "created_at": "2026-10-20T05:29:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:33:40Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "The mass is outlined across all three planes, including the lateral fatty lobule; past-mask panels show no convincing continuation, and remaining candidates appear to be adjacent normal fat or tissue.",
+  "tool_calls": 27,
+  "model_prompts": 3
+}

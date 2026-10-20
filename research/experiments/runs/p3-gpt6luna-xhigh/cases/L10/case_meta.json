@@ -1,0 +1,39 @@
+{
+  "case_id": "L10",
+  "shape": [
+    351,
+    351,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 40766992,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    351,
+    351,
+    372
+  ],
+  "created_at": "2026-10-20T05:28:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:32:32Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "The full T1-bright lobulated thigh tumor is enclosed, with no lesion extending into the past-the-mask review slices; proposed candidates are adjacent normal tissue.",
+  "tool_calls": 20,
+  "model_prompts": 3
+}

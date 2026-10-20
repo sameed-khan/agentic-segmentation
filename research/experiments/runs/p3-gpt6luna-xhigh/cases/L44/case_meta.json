@@ -1,0 +1,39 @@
+{
+  "case_id": "L44",
+  "shape": [
+    251,
+    251,
+    274
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18413572,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    274
+  ],
+  "created_at": "2026-10-20T05:46:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:50:30Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "The intramuscular mass is well circumscribed across all planes; the outside-mask slices and candidate rings appear to be normal surrounding tissue.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

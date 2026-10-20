@@ -1,0 +1,39 @@
+{
+  "case_id": "L17",
+  "shape": [
+    271,
+    271,
+    400
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31207624,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    400
+  ],
+  "created_at": "2026-10-20T05:30:47Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T05:36:30Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "The mass is outlined through its visible extent in all three planes; the past-the-mask slices show normal anatomy and the adjacent proposals appear to be surrounding fat.",
+  "tool_calls": 27,
+  "model_prompts": 2
+}

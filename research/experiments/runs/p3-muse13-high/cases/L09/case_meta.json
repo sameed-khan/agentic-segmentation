@@ -1,0 +1,39 @@
+{
+  "case_id": "L09",
+  "shape": [
+    250,
+    250,
+    331
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 19231299,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    250,
+    250,
+    331
+  ],
+  "created_at": "2026-10-20T00:53:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:58:34Z",
+  "final_version": "v4",
+  "confidence": "low",
+  "reason": "single proximal fatty mass segmented but mask also tracks femoral marrow with identical T1 signal distally and misses distal heterogeneous tail below 196; budget exhausted, marrow separation failed",
+  "tool_calls": 41,
+  "model_prompts": 4
+}

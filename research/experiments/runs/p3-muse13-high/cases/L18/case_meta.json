@@ -1,0 +1,39 @@
+{
+  "case_id": "L18",
+  "shape": [
+    201,
+    201,
+    356
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 16915138,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    356
+  ],
+  "created_at": "2026-10-20T00:56:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:57:39Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Large well-circumscribed T1-hyperintense intramuscular mass; mask follows bright capsule in axial, coronal and sagittal views, verified at superior/inferior ends and center, no leak into subcutaneous fat.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

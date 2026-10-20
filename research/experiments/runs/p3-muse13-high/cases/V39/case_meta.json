@@ -1,0 +1,39 @@
+{
+  "case_id": "V39",
+  "shape": [
+    161,
+    161,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3875052,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    126
+  ],
+  "created_at": "2026-10-20T01:41:47Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:49:45Z",
+  "final_version": "v9",
+  "confidence": "medium",
+  "reason": "bulk heterogeneous T2 hyperintense mass with posterior tail included; review slices show outline follows boundary, past-mask panels show no residual bulky tumor, candidates are muscle/vessels so rejected",
+  "tool_calls": 40,
+  "model_prompts": 9
+}

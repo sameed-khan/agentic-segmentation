@@ -1,0 +1,39 @@
+{
+  "case_id": "L28",
+  "shape": [
+    251,
+    251,
+    341
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 24661610,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    341
+  ],
+  "created_at": "2026-10-20T00:59:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:04:46Z",
+  "final_version": "v11",
+  "confidence": "medium",
+  "reason": "Central bulky tumor well covered; superior/inferior ends verified (no solid tumor beyond); candidates C2-C5 are vessels/edema inferior/lateral, C1 is peripheral muscle/edema rim plus inferior tail already judged non-tumoral \u2013 rejecting all.",
+  "tool_calls": 40,
+  "model_prompts": 6
+}

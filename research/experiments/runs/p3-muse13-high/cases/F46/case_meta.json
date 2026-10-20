@@ -1,0 +1,39 @@
+{
+  "case_id": "F46",
+  "shape": [
+    251,
+    251,
+    498
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 38159341,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    498
+  ],
+  "created_at": "2026-10-20T00:48:20Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:54:32Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Large heterogeneous fibrous mass around distal femur/knee with dark fibrous and bright parts, proximal tail along neurovascular bundle and distal extension; boundaries checked in three planes, some proximal vessel ambiguity.",
+  "tool_calls": 40,
+  "model_prompts": 4
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N08",
+  "shape": [
+    241,
+    241,
+    267
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17143590,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    267
+  ],
+  "created_at": "2026-10-20T01:22:31Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:23:24Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Bright well-circumscribed lateral thigh mass with heterogeneous core and tails along nerve superiorly/inferiorly; mask follows boundary in axial, coronal and sagittal views and tapers at both ends, candidates are fat/skin/muscle/marker.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

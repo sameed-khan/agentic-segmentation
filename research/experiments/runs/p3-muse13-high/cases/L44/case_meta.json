@@ -1,0 +1,39 @@
+{
+  "case_id": "L44",
+  "shape": [
+    251,
+    251,
+    274
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18413572,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    274
+  ],
+  "created_at": "2026-10-20T01:08:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:11:58Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Well-circumscribed oval mass anterolateral to distal femur with clear capsule; outline follows boundary in axial, coronal, sagittal; posterior muscle and popliteal bright tissue excluded as normal/separate.",
+  "tool_calls": 35,
+  "model_prompts": 2
+}

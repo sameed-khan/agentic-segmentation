@@ -1,0 +1,39 @@
+{
+  "case_id": "L03",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33957821,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-20T00:51:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:53:13Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Large anterior T1-hyperintense encapsulated lipomatous mass well delineated in axial/coronal/sagittal; mask follows capsule over full extent 71-298, verified at inferior tip, mid-bulk and bifid superior pole; candidates are normal subcutaneous/posterior fat, rejected.",
+  "tool_calls": 22,
+  "model_prompts": 3
+}

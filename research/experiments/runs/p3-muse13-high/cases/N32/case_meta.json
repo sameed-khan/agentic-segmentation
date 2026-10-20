@@ -1,0 +1,39 @@
+{
+  "case_id": "N32",
+  "shape": [
+    181,
+    181,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3020002,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    137
+  ],
+  "created_at": "2026-10-20T01:28:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:30:00Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Outline follows T2-bright mass boundary in axial/coronal/sagittal; past-mask panels show no residual lesion; candidates are vessels/normal tissue, rejected",
+  "tool_calls": 25,
+  "model_prompts": 1
+}

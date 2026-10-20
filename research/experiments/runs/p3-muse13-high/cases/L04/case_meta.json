@@ -1,0 +1,39 @@
+{
+  "case_id": "L04",
+  "shape": [
+    251,
+    251,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20630333,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    330
+  ],
+  "created_at": "2026-10-20T00:51:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:53:20Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Bright encapsulated posterior thigh lipomatous mass well captured; 5-slice review shows no tumor in past-mask panels and outline follows capsule in all planes; candidates are normal subcutaneous/perivascular fat.",
+  "tool_calls": 22,
+  "model_prompts": 1
+}

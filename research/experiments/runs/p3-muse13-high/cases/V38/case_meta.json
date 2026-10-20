@@ -1,0 +1,39 @@
+{
+  "case_id": "V38",
+  "shape": [
+    201,
+    201,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6766635,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    163
+  ],
+  "created_at": "2026-10-20T01:41:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:46:38Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Main bright mass plus contiguous inferior heterogeneous tail included; past-mask panels clear; candidates are normal muscle rims, rejected.",
+  "tool_calls": 38,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L36",
+  "shape": [
+    235,
+    251,
+    221
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14210952,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    235,
+    251,
+    221
+  ],
+  "created_at": "2026-10-20T01:03:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:07:39Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Large T1-bright lipomatous mass in lateral/posterior thigh tracking from distal thigh to pelvis; mask follows fascial boundaries in axial/coronal/sagittal, excludes muscle islands and subcutaneous fat, single component; candidates are muscle/fat rims rejected. Final review shows appropriate extent with no lesion in past-mask panels except at volume edge inferiorly where tumor reaches scan limit.",
+  "tool_calls": 34,
+  "model_prompts": 1
+}

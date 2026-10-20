@@ -1,0 +1,39 @@
+{
+  "case_id": "N07",
+  "shape": [
+    181,
+    181,
+    100
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3494516,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    100
+  ],
+  "created_at": "2026-10-20T01:21:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:24:14Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Large well-circumscribed heterogeneous T2-hyperintense mass with capsule; mask follows boundary in axial/coronal/sagittal, extents match tumor tips, holes filled, candidates judged as non-tumor vessels/muscle.",
+  "tool_calls": 28,
+  "model_prompts": 1
+}

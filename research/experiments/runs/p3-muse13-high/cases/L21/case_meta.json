@@ -1,0 +1,39 @@
+{
+  "case_id": "L21",
+  "shape": [
+    241,
+    241,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 20271361,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    330
+  ],
+  "created_at": "2026-10-20T00:57:02Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:00:26Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Large well-circumscribed posterior buttock-thigh mass with sharp capsule; mask follows capsule in all planes, past-mask slices clear, candidates are surrounding normal muscle/fat and rejected.",
+  "tool_calls": 31,
+  "model_prompts": 2
+}

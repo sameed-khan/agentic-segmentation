@@ -1,0 +1,39 @@
+{
+  "case_id": "V63",
+  "shape": [
+    241,
+    241,
+    89
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6312968,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    89
+  ],
+  "created_at": "2026-10-20T01:48:57Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:53:48Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Bright T2 vascular tumor on right flank tightly outlined; past-mask panels show only fiducials/normal tissue, interior panels follow lesion boundary, candidates are liver/muscle.",
+  "tool_calls": 29,
+  "model_prompts": 1
+}

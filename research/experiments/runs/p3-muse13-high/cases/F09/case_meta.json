@@ -1,0 +1,39 @@
+{
+  "case_id": "F09",
+  "shape": [
+    261,
+    261,
+    131
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9861026,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    131
+  ],
+  "created_at": "2026-10-20T00:35:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:39:14Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Final review shows mask follows tumor boundary on all central slices, past-mask panels show no residual lesion, candidates are muscle rings to reject. Single-component 153mL mass abutting femur with tapered ends included.",
+  "tool_calls": 33,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M36",
+  "shape": [
+    380,
+    380,
+    180
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 28368823,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    380,
+    380,
+    180
+  ],
+  "created_at": "2026-10-20T01:16:36Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:17:46Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Bright well-circumscribed myxoid tumor; mask follows boundary in all planes, past-mask slices empty, candidates are normal tissue.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

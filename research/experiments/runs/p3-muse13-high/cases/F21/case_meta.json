@@ -1,0 +1,39 @@
+{
+  "case_id": "F21",
+  "shape": [
+    267,
+    267,
+    505
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34867657,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    267,
+    267,
+    505
+  ],
+  "created_at": "2026-10-20T00:39:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:43:50Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Bulky posterior thigh mass with inferior tail along posterior compartment to distal thigh included as contiguous extension; axial/coronal/sagittal outlines follow tumor edges, past-mask panels show only normal knee/pelvis, candidates are normal surrounding tissue.",
+  "tool_calls": 38,
+  "model_prompts": 3
+}

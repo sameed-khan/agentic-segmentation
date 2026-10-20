@@ -1,0 +1,39 @@
+{
+  "case_id": "F33",
+  "shape": [
+    191,
+    191,
+    121
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4973196,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    191,
+    191,
+    121
+  ],
+  "created_at": "2026-10-20T00:42:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:46:40Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Large low-T2 mass in distal thigh displacing muscle, consistent with fibrous tumor; segmented from axial 87-120 with boundary following low-signal mass, excluding joint fluid inferiorly and uninvolved muscle/anterior structures. Superiorly truncated at FOV edge. Bright posterolateral superficial lesion not included as it is markedly T2-hyperintense and distant, likely skin marker rather than fibrous tissue.",
+  "tool_calls": 35,
+  "model_prompts": 2
+}

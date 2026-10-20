@@ -1,0 +1,39 @@
+{
+  "case_id": "F13",
+  "shape": [
+    211,
+    211,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6174236,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    126
+  ],
+  "created_at": "2026-10-20T00:35:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:39:28Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Bulky posterior heterogeneous mass well captured in axial/coronal/sagittal; small inferior vessel-adjacent voxels uncertain, superior fascial leak removed, candidates showing surrounding muscle rejected.",
+  "tool_calls": 36,
+  "model_prompts": 4
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V51",
+  "shape": [
+    96,
+    96,
+    58
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 466680,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    96,
+    96,
+    58
+  ],
+  "created_at": "2026-10-20T01:44:35Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:46:28Z",
+  "final_version": "v3",
+  "confidence": "high",
+  "reason": "Bright vascular tumor fully covered; review panels show outline follows lesion edge in axial/coronal/sagittal with clean past-mask slices and no candidates.",
+  "tool_calls": 24,
+  "model_prompts": 3
+}

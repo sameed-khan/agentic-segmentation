@@ -1,0 +1,39 @@
+{
+  "case_id": "V33",
+  "shape": [
+    441,
+    441,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 45880593,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    372
+  ],
+  "created_at": "2026-10-20T01:39:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:41:40Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Confirmed past-the-mask panels contain no lesion tissue (only small vessels/muscle); interior panels follow tumor boundary in all planes; candidates are rims of normal muscle.",
+  "tool_calls": 24,
+  "model_prompts": 1
+}

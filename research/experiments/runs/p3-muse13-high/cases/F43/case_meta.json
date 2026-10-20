@@ -1,0 +1,39 @@
+{
+  "case_id": "F43",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 33075298,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-20T00:46:46Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:48:44Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Bright mass with contiguous heterogeneous superior tail tracked in axial/coronal/sagittal; boundaries follow tumor edge, candidates are edema/vessels rejected.",
+  "tool_calls": 25,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L17",
+  "shape": [
+    271,
+    271,
+    400
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31207624,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    400
+  ],
+  "created_at": "2026-10-20T00:54:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:59:03Z",
+  "final_version": "v5",
+  "confidence": "high",
+  "reason": "Axial outline follows lipomatous capsule well on all inside panels (174,235,296) with correct stop beyond ends (104,366 empty). Remaining candidates are subcutaneous fat/muscle, rejected.",
+  "tool_calls": 35,
+  "model_prompts": 3
+}

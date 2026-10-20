@@ -1,0 +1,39 @@
+{
+  "case_id": "M32",
+  "shape": [
+    240,
+    240,
+    442
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 29185074,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    240,
+    240,
+    442
+  ],
+  "created_at": "2026-10-20T01:15:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:16:32Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Large well-defined T2-hyperintense mass; boundary follows lesion in all planes, past-mask slices empty, candidate C1 is thin peritumoral rim of normal muscle, rejected.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

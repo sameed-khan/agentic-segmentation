@@ -1,0 +1,39 @@
+{
+  "case_id": "V41",
+  "shape": [
+    141,
+    141,
+    256
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5006167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    256
+  ],
+  "created_at": "2026-10-20T01:41:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T01:44:28Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Bright heterogeneous posterior leg mass fully covered in 3 planes; ends clear, adjacent thin vessel (C1) correctly rejected as normal vasculature.",
+  "tool_calls": 29,
+  "model_prompts": 2
+}

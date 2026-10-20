@@ -1,0 +1,39 @@
+{
+  "case_id": "M41",
+  "shape": [
+    254,
+    350,
+    221
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23642656,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    254,
+    350,
+    221
+  ],
+  "created_at": "2026-10-19T23:31:56Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:36:07Z",
+  "final_version": "v2",
+  "confidence": "low",
+  "reason": "Final review: one 112 mL component on the bright lobulated T2 mass at patient right pelvis. Past-the-mask panels show no lesion tissue beyond the outline. Both automatic candidates (C1, C2) are thick shells around the mask, which look like surrounding normal tissue, so none were accepted. Boundary follows the bright tissue in all three planes. Target identity is uncertain: the bright mass could be partly bowel or vessel, and the homogeneous grey oval on the patient-left side was not checked or included.",
+  "tool_calls": 12,
+  "model_prompts": 1
+}

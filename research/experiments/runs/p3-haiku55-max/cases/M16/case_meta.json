@@ -1,0 +1,39 @@
+{
+  "case_id": "M16",
+  "shape": [
+    400,
+    400,
+    270
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30488115,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    400,
+    400,
+    270
+  ],
+  "created_at": "2026-10-19T23:18:25Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:21:24Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single well-defined, very bright (saturated T2) mass in the right ischioanal/gluteal region, one component, 48.7 mL. Outline follows the bright margin in axial, coronal and sagittal views and no lesion tissue lies past the mask ends. Uncertain whether a thin gray peripheral rim and the faint inferior tail should be included.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N44",
+  "shape": [
+    141,
+    141,
+    82
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1863689,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    82
+  ],
+  "created_at": "2026-10-19T23:53:21Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:01:08Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Mask is one 0.4 mL component of the only clearly abnormal focal hyperintense lesion found (lateral to humeral head, axial 46-62). Outline matches the bright core in all planes and past-mask panels show no further lesion tissue, but identity as a peripheral nerve sheath tumor (vs vessel or fluid) is unconfirmed and the true tumor may be larger or elsewhere.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

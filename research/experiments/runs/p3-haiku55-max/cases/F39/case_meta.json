@@ -1,0 +1,39 @@
+{
+  "case_id": "F39",
+  "shape": [
+    241,
+    241,
+    216
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14530011,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    216
+  ],
+  "created_at": "2026-10-19T22:33:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:40:08Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Single connected 905 mL mask covering the large heterogeneous T2-bright fibrous mass; boundary matches the tumour edge in axial, coronal and sagittal views and excludes femur and fascia. Uncertain: the posterolateral bright extension along the femur (included as contiguous tumour), the distal crescent around the femur, and a dim speckled structure just posterior to the mask tip (left out).",
+  "tool_calls": 27,
+  "model_prompts": 3
+}

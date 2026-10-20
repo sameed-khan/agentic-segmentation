@@ -1,0 +1,39 @@
+{
+  "case_id": "M43",
+  "shape": [
+    201,
+    201,
+    141
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6853843,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    141
+  ],
+  "created_at": "2026-10-19T23:32:37Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:40:12Z",
+  "final_version": "v8",
+  "confidence": "medium",
+  "reason": "Mask covers the bright T2 myxoid mass (oval core plus bright posterior-lateral lobule) in all planes; fascial tails and the anterior bright band were excluded; past-the-mask panels show no lesion. Uncertain how much of the intermediate-signal periphery the reference includes.",
+  "tool_calls": 34,
+  "model_prompts": 3
+}

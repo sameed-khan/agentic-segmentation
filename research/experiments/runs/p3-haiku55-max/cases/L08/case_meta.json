@@ -1,0 +1,39 @@
+{
+  "case_id": "L08",
+  "shape": [
+    301,
+    301,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31748091,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    301,
+    301,
+    372
+  ],
+  "created_at": "2026-10-19T22:47:00Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:53:14Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single intermediate-T1 oval/fusiform mass in the anterior thigh (axial 112-263), displacing muscle; past-the-mask panels show no further lesion. Candidates C1-C3 are thin shells hugging the mass's anterior/medial side that look like compressed muscle/fascia, so rejected. Residual uncertainty about whether the shell is peripheral tumour.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

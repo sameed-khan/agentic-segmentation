@@ -1,0 +1,39 @@
+{
+  "case_id": "V39",
+  "shape": [
+    161,
+    161,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3875052,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    126
+  ],
+  "created_at": "2026-10-20T00:11:43Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:18:19Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Single heterogeneous T2-bright vascular mass (~140 mL) on the patient-right side; outline follows the bright lesion edge in axial, coronal and sagittal views and the past-the-mask panels show no further lesion. Candidate C1 (intermediate-signal peritumoral band), C2/C3 (skin/fascia arcs) and C4/C5 (noise) rejected as normal tissue. Remaining uncertainty: how much of the intermediate-signal margin and the superior tip the reference includes.",
+  "tool_calls": 36,
+  "model_prompts": 3
+}

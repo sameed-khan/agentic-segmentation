@@ -1,0 +1,39 @@
+{
+  "case_id": "N32",
+  "shape": [
+    181,
+    181,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3020002,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    137
+  ],
+  "created_at": "2026-10-19T23:47:28Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:54:06Z",
+  "final_version": "v7",
+  "confidence": "medium",
+  "reason": "Single connected mask (86.5 mL) follows the large heterogeneous bright T2 mass in all planes; past-the-end panels show no missed lesion tissue. Vessel-like structures at the inferior tip and superior fragments removed; the thin peripheral halo candidate (C1) and vessel candidates (C2-C5) rejected as non-lesion. Tips remain the least certain parts.",
+  "tool_calls": 35,
+  "model_prompts": 1
+}

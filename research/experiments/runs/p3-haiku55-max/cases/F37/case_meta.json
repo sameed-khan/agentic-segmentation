@@ -1,0 +1,39 @@
+{
+  "case_id": "F37",
+  "shape": [
+    201,
+    201,
+    246
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 11497304,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    246
+  ],
+  "created_at": "2026-10-19T22:31:06Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:36:56Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Bright lobulated posterior-thigh mass with dark rim segmented (99 mL); mask follows its rim in axial, coronal and sagittal reviews, adjacent grey hamstring removed with a negative prompt, no lesion in the past-the-mask panels, candidates C1/C2 are subcutaneous fat and C3 is surrounding tissue (rejected). Residual uncertainty about the exact lesion identity and the posterior margin.",
+  "tool_calls": 18,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N45",
+  "shape": [
+    201,
+    201,
+    127
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5665977,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    127
+  ],
+  "created_at": "2026-10-19T23:54:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:58:26Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single round T2-bright mass (about 20.7 mL, one component). The final review shows the outline following the bright core and its gray rim in axial, coronal and sagittal panels, with no lesion in the past-the-mask panels. Candidates C1 and C3 are tubular vessel/fascia-like strips outside the mass and C2 is the peritumoral gray halo, so none were added. Remaining uncertainty is the diffuse inferior tip (about axial 47-52) and the boundary of the gray rim.",
+  "tool_calls": 23,
+  "model_prompts": 1
+}

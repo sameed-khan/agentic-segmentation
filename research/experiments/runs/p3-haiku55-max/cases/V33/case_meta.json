@@ -1,0 +1,39 @@
+{
+  "case_id": "V33",
+  "shape": [
+    441,
+    441,
+    372
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 45880593,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    441,
+    441,
+    372
+  ],
+  "created_at": "2026-10-20T00:06:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:09:27Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single positive prompt on the large T2-bright heterogeneous thigh mass, then fill_holes. In the final review the outline follows the mass in all three planes, and past-the-mask panels show no missed lesion. All three candidates are outer shells of muscle and fascia, so none were accepted. Remaining doubt is a small grey notch at the anterior-medial margin and a thin tail at the inferior end.",
+  "tool_calls": 14,
+  "model_prompts": 1
+}

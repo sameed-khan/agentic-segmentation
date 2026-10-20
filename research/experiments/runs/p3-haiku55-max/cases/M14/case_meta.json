@@ -1,0 +1,39 @@
+{
+  "case_id": "M14",
+  "shape": [
+    220,
+    220,
+    300
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 16838473,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    300
+  ],
+  "created_at": "2026-10-19T23:15:53Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:25:22Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "One well-circumscribed saturated T2-bright mass (single component, about 106 mL) in the right anterolateral hip/thigh; the outline follows the bright edge in axial, coronal and sagittal planes and past-the-mask panels show no further lesion. Candidates C1-C3 are thin gray rims or vessel-like tissue, so they were not added. Excluded the intermediate-signal skirt below the lateral margin and the curved bright band further inferior as likely normal or vascular tissue; medium confidence because the myxoid identity and the peripheral extent are inferred from signal and shape.",
+  "tool_calls": 23,
+  "model_prompts": 1
+}

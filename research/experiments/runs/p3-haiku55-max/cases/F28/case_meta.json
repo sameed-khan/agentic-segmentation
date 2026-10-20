@@ -1,0 +1,39 @@
+{
+  "case_id": "F28",
+  "shape": [
+    211,
+    211,
+    355
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18449384,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    355
+  ],
+  "created_at": "2026-10-19T22:27:26Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:33:07Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed intermediate-bright T2 mass in the anterolateral limb, ~25 mL. Final review: outline fits the lesion edge on axial 228/240/252, coronal 155-171 and sagittal 146-163; past-the-mask slices show no lesion. Candidates C1-C3 were fascia/fat/vessel tissue and were rejected. Residual uncertainty about the faint periphery and lesion identity.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

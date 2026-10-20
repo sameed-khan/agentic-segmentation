@@ -1,0 +1,39 @@
+{
+  "case_id": "M26",
+  "shape": [
+    261,
+    261,
+    510
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 38931683,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    510
+  ],
+  "created_at": "2026-10-19T23:22:41Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:27:17Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single homogeneous T2-bright ovoid mass (107 mL) in the lateral thigh with internal septa. The final review shows the outline on the lesion edge in all three planes and no lesion tissue in the past-the-end slices. Adjacent bright structures (anterolateral crescent, central vascular-like blob) are separate from the mass and were excluded; their nature is not fully certain.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

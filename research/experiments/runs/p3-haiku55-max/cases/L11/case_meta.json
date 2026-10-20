@@ -1,0 +1,39 @@
+{
+  "case_id": "L11",
+  "shape": [
+    260,
+    260,
+    361
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 27752602,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    260,
+    260,
+    361
+  ],
+  "created_at": "2026-10-19T22:49:39Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:52:42Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single connected fat-signal lipomatous mass (~417 mL) in the posterior thigh, outlined from one positive point on its bright core. Outline follows the tumor edge in axial, coronal and sagittal panels; past-the-end panels show no residual tumor. Candidates C1 and C2 are muscle shells and C3 is a thin partial-volume rim; C4 is negligible, so none were added.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

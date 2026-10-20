@@ -1,0 +1,39 @@
+{
+  "case_id": "V14",
+  "shape": [
+    201,
+    201,
+    319
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 13163332,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    319
+  ],
+  "created_at": "2026-10-20T00:01:24Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:05:23Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single lobulated bright T2 mass in the anterolateral thigh (axial 40-121, 116.5 mL). Outline follows the lesion in axial, coronal and sagittal views and stays clear of the femoral cortex; past-the-mask slices show no further lesion. Candidate C1-C3 were subcutaneous/fascial bands outside the lesion and were rejected. Inferior and superior tips and the lateral margin are less certain.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N13",
+  "shape": [
+    161,
+    161,
+    197
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5770561,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    197
+  ],
+  "created_at": "2026-10-19T23:40:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:42:34Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single large bright heterogeneous T2 mass in the posterolateral thigh. The mask follows the lesion edge on the final review (axial, coronal and sagittal), no lesion tissue is visible in the past-the-mask panels, and no candidate corrections remain. The superior tapering feathery extension (candidate C1) was included, which is the main uncertainty.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

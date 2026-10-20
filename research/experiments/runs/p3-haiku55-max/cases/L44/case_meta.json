@@ -1,0 +1,39 @@
+{
+  "case_id": "L44",
+  "shape": [
+    251,
+    251,
+    274
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18413572,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    274
+  ],
+  "created_at": "2026-10-19T23:08:16Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:15:21Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single connected ~405 mL mass in the left lateral/posterior thigh, outlined with two model prompts; the boundary matches the homogeneous lesion in axial, coronal and sagittal views, the past-the-mask slices show no extra lesion, and all candidate rings were judged normal muscle and rejected. Lateral margin and the inferior/superior tips are the least certain.",
+  "tool_calls": 30,
+  "model_prompts": 2
+}

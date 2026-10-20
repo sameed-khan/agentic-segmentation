@@ -1,0 +1,39 @@
+{
+  "case_id": "L12",
+  "shape": [
+    281,
+    281,
+    249
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 21853589,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    281,
+    281,
+    249
+  ],
+  "created_at": "2026-10-19T22:51:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:57:17Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Single connected homogeneous fat-intensity lipomatous mass (~498 mL) in the thigh; outline matches the bright lesion edge in axial, coronal and sagittal checks. Candidates C1, C2, C4, C5 are subcutaneous or adjacent normal tissue and C3 is a thin boundary strip, so none were added. Past-the-mask panels show no lesion tissue. Residual uncertainty is the proximal lobes near the hip and the distal tail.",
+  "tool_calls": 27,
+  "model_prompts": 2
+}

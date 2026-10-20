@@ -1,0 +1,39 @@
+{
+  "case_id": "F02",
+  "shape": [
+    231,
+    231,
+    343
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 21508114,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    231,
+    231,
+    343
+  ],
+  "created_at": "2026-10-19T22:14:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:23:14Z",
+  "final_version": "v2",
+  "confidence": "low",
+  "reason": "Mask follows the bright high-T2 crescent-shaped lesion lateral and posterolateral to the femur (slices about 58-224, about 40 mL). Outline is clear at mid-thigh (axial 141-182) and sagittal/coronal extents look contiguous. Both automatic candidates lie in femoral marrow, so they were rejected. Lesion identity is uncertain: the bright signal could be vascular or edema-like rather than a fibrous tumor, and the faint distal tail is uncertain.",
+  "tool_calls": 34,
+  "model_prompts": 3
+}

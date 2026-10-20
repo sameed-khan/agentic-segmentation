@@ -1,0 +1,39 @@
+{
+  "case_id": "V24",
+  "shape": [
+    161,
+    161,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4777770,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    156
+  ],
+  "created_at": "2026-10-20T00:05:25Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:11:40Z",
+  "final_version": "v3",
+  "confidence": "low",
+  "reason": "Lesion identity is uncertain. Mask (v3) covers the bright heterogeneous posterior-lateral intermuscular band; review shows no lesion tissue beyond either end and no candidate corrections. Very bright posterior subcutaneous band was excluded as likely coil or fat signal.",
+  "tool_calls": 25,
+  "model_prompts": 3
+}

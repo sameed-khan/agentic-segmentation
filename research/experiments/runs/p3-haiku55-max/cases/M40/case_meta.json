@@ -1,0 +1,39 @@
+{
+  "case_id": "M40",
+  "shape": [
+    220,
+    220,
+    406
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22443349,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    406
+  ],
+  "created_at": "2026-10-19T23:30:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:37:09Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Mask follows the large lobulated bright myxoid mass in the lateral/posterior thigh across axial, coronal and sagittal planes, with no stray components. None of the candidate shells were accepted (they are rings of fascia/muscle). Uncertain whether the diffuse feathery bright infiltration in the lateral compartment (inferior, k~245-290) is tumor or edema, so it was mostly excluded.",
+  "tool_calls": 30,
+  "model_prompts": 5
+}

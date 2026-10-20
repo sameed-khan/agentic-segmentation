@@ -1,0 +1,39 @@
+{
+  "case_id": "M28",
+  "shape": [
+    300,
+    300,
+    360
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30669531,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    300,
+    300,
+    360
+  ],
+  "created_at": "2026-10-19T23:23:01Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:26:23Z",
+  "final_version": "v1",
+  "confidence": "high",
+  "reason": "Single bright T2 mass in the posterior thigh (about 78 mL, one component). Outline follows the bright lesion edge in axial, coronal and sagittal views, including the heterogeneous superior and inferior tips. Past-the-mask panels show no residual lesion. Both candidates are thin halo, vessel-like streaks or a medial vessel, so they were rejected.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

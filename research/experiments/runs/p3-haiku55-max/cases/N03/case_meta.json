@@ -1,0 +1,39 @@
+{
+  "case_id": "N03",
+  "shape": [
+    151,
+    151,
+    165
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4420543,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    165
+  ],
+  "created_at": "2026-10-19T23:34:40Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:39:56Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed hyperintense round mass (~3.2 mL, axial 60-83) in the posterior compartment between tendons; outline follows the bright core plus a 1 mm margin in all planes, and past-the-mask panels show no further lesion. Superior thin band (C1/C2, streaky, less bright, along the posterolateral skin side) and the large hypointense anterior oval were judged normal tissue and excluded. Identity as PNST is plausible but not certain.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

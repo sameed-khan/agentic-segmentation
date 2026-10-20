@@ -1,0 +1,39 @@
+{
+  "case_id": "M39",
+  "shape": [
+    420,
+    420,
+    252
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34033437,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    420,
+    420,
+    252
+  ],
+  "created_at": "2026-10-19T23:29:37Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:37:43Z",
+  "final_version": "v9",
+  "confidence": "medium",
+  "reason": "One component (79.7 mL) following the bright lobulated T2 mass in the right ischioanal/gluteal region on all three planes; no lesion in past-the-mask slices; bladder (midline, above prostate) and vessels excluded; surrounding band (C1) judged normal muscle/fascia and not accepted.",
+  "tool_calls": 31,
+  "model_prompts": 2
+}

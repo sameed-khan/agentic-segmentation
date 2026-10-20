@@ -1,0 +1,39 @@
+{
+  "case_id": "V52",
+  "shape": [
+    151,
+    151,
+    137
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3958259,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    137
+  ],
+  "created_at": "2026-10-20T00:15:57Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:22:32Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Mask covers the bright lobulated saturated T2 mass in the anterolateral leg compartment (core, anterior band, inferior lobe, superolateral blob) across axial 0-75; past-the-mask panels show no residual lesion and candidates were none. Small vessel-like tails and posterior tubular vessels were excluded; the exact lesion boundary and whether all bright components belong to the tumor remain uncertain.",
+  "tool_calls": 27,
+  "model_prompts": 2
+}

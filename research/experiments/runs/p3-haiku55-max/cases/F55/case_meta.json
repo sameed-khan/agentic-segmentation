@@ -1,0 +1,39 @@
+{
+  "case_id": "F55",
+  "shape": [
+    181,
+    181,
+    306
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9944548,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    306
+  ],
+  "created_at": "2026-10-19T22:41:46Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:46:57Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single component, bright oval mass (61 mL, k 32-113) whose outline follows the bright core on axial, coronal and sagittal views; the past-the-mask slices show no lesion tissue beyond it. Candidate C1 (grey 8-10 mm shell, muscle-like) rejected as normal tissue; residual uncertainty about how far the grey periphery belongs to the tumour.",
+  "tool_calls": 30,
+  "model_prompts": 2
+}

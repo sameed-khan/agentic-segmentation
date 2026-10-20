@@ -1,0 +1,39 @@
+{
+  "case_id": "F11",
+  "shape": [
+    249,
+    249,
+    163
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7994496,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    249,
+    249,
+    163
+  ],
+  "created_at": "2026-10-19T22:14:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:23:50Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single focal T2-bright heterogeneous mass in the anterior chest wall, asymmetric versus the contralateral side; mask (7.4 mL) follows the bright core on axial, coronal and sagittal slices, and past-the-mask panels show no further lesion tissue. Peripheral intensity candidates (C1, 18 mL) were judged to be normal muscle/vessels and rejected. Lesion identity as fibrous tumour is inferred from appearance only.",
+  "tool_calls": 29,
+  "model_prompts": 1
+}

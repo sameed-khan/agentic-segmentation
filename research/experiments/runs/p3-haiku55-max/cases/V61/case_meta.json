@@ -1,0 +1,39 @@
+{
+  "case_id": "V61",
+  "shape": [
+    161,
+    161,
+    177
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 5368925,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    177
+  ],
+  "created_at": "2026-10-20T00:21:15Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:24:27Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Single connected T2-bright lesion (17.3 mL) in the midfoot, axial 34-78. Final review: no lesion beyond the mask ends; outline follows the bright mass in all planes. All five candidates looked like normal tissue, toes, or vessels, so none were accepted (C1 was a diffuse 20 mL periphery of mixed grey tissue). Remaining uncertainty is the superior vessel-like extent and a thin fascial tail.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

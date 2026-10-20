@@ -1,0 +1,39 @@
+{
+  "case_id": "M02",
+  "shape": [
+    210,
+    210,
+    176
+  ],
+  "spacing": [
+    1.0,
+    0.9999999403953552,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 8770164,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    210,
+    210,
+    176
+  ],
+  "created_at": "2026-10-19T23:09:42Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:15:19Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Bright T2 myxoid mass in the right posterior thigh/hip; the outline follows the bright mass boundary in all three planes and nothing lesion-like lies past the mask ends. Remaining candidates are thin bright anterior bands and vessels (rejected). Slight under-coverage of the gray upper-pole periphery.",
+  "tool_calls": 22,
+  "model_prompts": 2
+}

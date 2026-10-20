@@ -1,0 +1,39 @@
+{
+  "case_id": "L34",
+  "shape": [
+    254,
+    390,
+    261
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 29154443,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    254,
+    390,
+    261
+  ],
+  "created_at": "2026-10-19T23:03:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:07:43Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single large heterogeneous lipomatous mass in the anterior thigh is covered in axial, coronal and sagittal planes (v2, ~493 mL). All five candidates are peripheral muscle/fat bands or small vessel-like structures, so none were accepted. Lower lobules near axial 30-60 are only partly captured, so confidence is not high.",
+  "tool_calls": 15,
+  "model_prompts": 2
+}

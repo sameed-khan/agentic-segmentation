@@ -1,0 +1,39 @@
+{
+  "case_id": "F31",
+  "shape": [
+    241,
+    241,
+    161
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 10893952,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    161
+  ],
+  "created_at": "2026-10-19T22:28:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:33:28Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Whole multilobulated T2-heterogeneous mass covered (v2, 668 mL) in all planes; outline follows the fascial margin and excludes surrounding muscle candidates (rejected). Uncertain about the dark nodule near the superior tip and dark tissue near the inferior end.",
+  "tool_calls": 22,
+  "model_prompts": 2
+}

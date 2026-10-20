@@ -1,0 +1,39 @@
+{
+  "case_id": "N06",
+  "shape": [
+    201,
+    201,
+    71
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3070849,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    71
+  ],
+  "created_at": "2026-10-19T23:37:13Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:43:07Z",
+  "final_version": "v1",
+  "confidence": "low",
+  "reason": "Final review: mask follows the single bright fusiform tubular structure anteromedial to the femur (k 23-70, 2.4 mL) in all planes; no lesion tissue beyond the mask ends, no stray components. Candidates C1-C5 judged as non-lesion (intermediate fascia/muscle, small vessels, or unrelated bright tissue) and not accepted. Identity uncertain (PNST of a nerve vs. vascular structure), so low confidence.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

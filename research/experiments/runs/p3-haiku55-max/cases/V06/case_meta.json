@@ -1,0 +1,39 @@
+{
+  "case_id": "V06",
+  "shape": [
+    121,
+    121,
+    68
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 413966,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    68
+  ],
+  "created_at": "2026-10-19T23:58:36Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:07:45Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Bright T2 vascular core outlined closely in axial, coronal and sagittal planes, with no lesion tissue beyond the mask ends. Intermediate-signal lobules (lateral mass and anterior nodule) that are contiguous with the core and end at the same level were included as tumour periphery; the main uncertainty is whether those lobules belong to the tumour. All offered candidates were judged normal tissue and rejected.",
+  "tool_calls": 33,
+  "model_prompts": 3
+}

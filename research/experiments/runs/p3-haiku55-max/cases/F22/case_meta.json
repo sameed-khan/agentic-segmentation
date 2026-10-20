@@ -1,0 +1,39 @@
+{
+  "case_id": "F22",
+  "shape": [
+    161,
+    161,
+    145
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2444883,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    145
+  ],
+  "created_at": "2026-10-19T22:23:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:33:15Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Single connected smooth low-T2 posterolateral mass (v4, 96 mL) that follows the dark lesion margin on axial, coronal and sagittal views; candidates were surrounding muscle/fascia and bone (rejected). Uncertain: inferior tip of the oval portion (about 5 mm of possible extension below the mask) and superior cut at the knee joint.",
+  "tool_calls": 29,
+  "model_prompts": 3
+}

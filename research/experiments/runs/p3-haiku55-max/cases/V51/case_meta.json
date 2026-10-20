@@ -1,0 +1,39 @@
+{
+  "case_id": "V51",
+  "shape": [
+    96,
+    96,
+    58
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 466680,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    96,
+    96,
+    58
+  ],
+  "created_at": "2026-10-20T00:15:30Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:21:11Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single connected bright lobulated T2-hyperintense mass (~12.7 mL) on patient right; outline matches the lesion edge in axial, coronal and sagittal reviews, including the lateral periphery added by the box prompt. Uncertainty remains at the faint superior tip (axial 13-16) and the inferior tail (axial 40-43). Candidates C1-C3 were muscle/bowel bands and were rejected.",
+  "tool_calls": 34,
+  "model_prompts": 2
+}

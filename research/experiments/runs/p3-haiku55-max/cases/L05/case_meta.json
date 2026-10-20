@@ -1,0 +1,39 @@
+{
+  "case_id": "L05",
+  "shape": [
+    261,
+    261,
+    211
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 16029879,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    261,
+    261,
+    211
+  ],
+  "created_at": "2026-10-19T22:44:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:54:02Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Large multilobulated fat-signal thigh mass (631 mL). Outline follows the bright lesion in axial, coronal and sagittal views; past-the-mask panels show no lesion tissue. Candidates C1-C5 are subcutaneous fat, intermuscular/muscle tissue near the femur, so rejected. Striated medial/posterior gray tissue judged muscle and excluded; some uncertainty remains for the posterior-medial lobe.",
+  "tool_calls": 30,
+  "model_prompts": 2
+}

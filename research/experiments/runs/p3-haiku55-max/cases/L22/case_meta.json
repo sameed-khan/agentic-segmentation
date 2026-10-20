@@ -1,0 +1,39 @@
+{
+  "case_id": "L22",
+  "shape": [
+    421,
+    421,
+    153
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 23923831,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    153
+  ],
+  "created_at": "2026-10-19T22:54:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:00:43Z",
+  "final_version": "v2",
+  "confidence": "low",
+  "reason": "Lesion identification uncertain: the saved 11 mL mask is a model-grown region of fat-like tissue lateral to the dark bowel on the patient's left. It is not clearly bounded by a mass capsule in the review panels, so it may not be the lipomatous tumour.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

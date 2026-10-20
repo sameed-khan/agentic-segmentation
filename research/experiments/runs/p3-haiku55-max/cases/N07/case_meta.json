@@ -1,0 +1,39 @@
+{
+  "case_id": "N07",
+  "shape": [
+    181,
+    181,
+    100
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3494516,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    100
+  ],
+  "created_at": "2026-10-19T23:37:47Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:42:46Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Mask follows the heterogeneous T2-bright tumor in all three planes, including its grey peripheral rim. Past-the-mask panels show no lesion; candidates C1-C4 are tubular/fascial or vessel-like structures outside the tumor and were rejected. Residual thin tails at the superior/inferior ends are small; the rim inclusion is a judgment call.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

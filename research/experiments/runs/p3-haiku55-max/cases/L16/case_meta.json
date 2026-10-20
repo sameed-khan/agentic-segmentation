@@ -1,0 +1,39 @@
+{
+  "case_id": "L16",
+  "shape": [
+    201,
+    201,
+    157
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7234682,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    157
+  ],
+  "created_at": "2026-10-19T22:52:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:57:08Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single connected lipomatous mass (~264 mL). Outline follows the homogeneous fat-like lesion and its dark capsule in every final-review panel. Lateral and superior candidate rims (C1, C3) are muscle/fascia outside the capsule, so rejected; C2, C4, C5 are skin, bone-rim or tiny fragments. Inferior tip (k>112) is dim from coil falloff, so the extent there is less certain.",
+  "tool_calls": 21,
+  "model_prompts": 1
+}

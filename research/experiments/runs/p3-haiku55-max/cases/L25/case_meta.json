@@ -1,0 +1,39 @@
+{
+  "case_id": "L25",
+  "shape": [
+    421,
+    421,
+    196
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 24093049,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    421,
+    421,
+    196
+  ],
+  "created_at": "2026-10-19T22:57:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:03:12Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed mass in the left posterolateral buttock (91 mL, z 89-161). The outline follows the lesion edge in axial, coronal and sagittal views and the past-the-mask panels show no lesion tissue. Candidate shells are surrounding fat and muscle, so they were rejected. Lesion identity as lipomatous is the main uncertainty: the signal is heterogeneous and brighter than subcutaneous fat, and the midline mottled structure and bright oval were judged to be bowel and fluid.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

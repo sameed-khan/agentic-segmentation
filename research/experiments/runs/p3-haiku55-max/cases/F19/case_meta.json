@@ -1,0 +1,39 @@
+{
+  "case_id": "F19",
+  "shape": [
+    241,
+    241,
+    176
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 12556862,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    176
+  ],
+  "created_at": "2026-10-19T22:22:03Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:28:29Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "One positive point gave a single 52 mL component that follows the posterior-right heterogeneous oval mass in axial, coronal and sagittal reviews. Past-the-mask panels show no further lesion tissue. Candidate rings (C1-C3) are surrounding muscle/fat and were rejected; tiny C4/C5 rejected. Remaining uncertainty is the superior tip and inferior tail boundaries.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

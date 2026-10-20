@@ -1,0 +1,39 @@
+{
+  "case_id": "V56",
+  "shape": [
+    151,
+    151,
+    121
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3594883,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    151,
+    151,
+    121
+  ],
+  "created_at": "2026-10-20T00:17:27Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:26:08Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Bright fluid-like vascular lesion in the posterior knee/proximal calf posterior to tibia and femoral condyles; outline follows the bright margin in axial, coronal and sagittal views and past-the-mask panels show no further lesion. Lateral streaky bright structure (likely veins, separated by a dark gap) and thin medial band deliberately excluded; C1 candidate rejected.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

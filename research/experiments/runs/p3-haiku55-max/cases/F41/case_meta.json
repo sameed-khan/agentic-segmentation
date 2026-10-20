@@ -1,0 +1,39 @@
+{
+  "case_id": "F41",
+  "shape": [
+    171,
+    171,
+    111
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4218089,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    171,
+    171,
+    111
+  ],
+  "created_at": "2026-10-19T22:33:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:39:03Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Mask follows the bright T2 mass and its gray peripheral rim in all three planes; no lesion visible in the past-the-mask panels. Candidates C1-C3 are surrounding muscle/fascia and were rejected. Remaining uncertainty: whether the thin superior and distal fascial tails and the gray periphery are all tumor.",
+  "tool_calls": 37,
+  "model_prompts": 2
+}

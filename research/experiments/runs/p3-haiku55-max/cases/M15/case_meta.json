@@ -1,0 +1,39 @@
+{
+  "case_id": "M15",
+  "shape": [
+    220,
+    220,
+    132
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7600090,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    132
+  ],
+  "created_at": "2026-10-19T23:16:37Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:20:17Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single positive point on the bright T2 myxoid mass (v2, 203 mL). Final review: no lesion in past-the-mask slices; outline follows the bright tumor in axial, coronal and sagittal panels. Candidates C2/C3 are posterior subcutaneous fat band and C5 is a tiny streak, rejected; C1 (gray peripheral/streaky tissue) and C4 (lateral inter-muscular streak, not contiguous) judged peritumoral rather than tumor, so not added. Residual uncertainty is the gray peripheral extension.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

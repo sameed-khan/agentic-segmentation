@@ -1,0 +1,39 @@
+{
+  "case_id": "V50",
+  "shape": [
+    131,
+    131,
+    132
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2738931,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    132
+  ],
+  "created_at": "2026-10-20T00:15:18Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:20:26Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Bright vascular lesion (axial 47-78, about 3.6 mL) is covered in all three planes, including its moderately bright periphery. Candidate C1 is a posterior subcutaneous tubular vessel, so it was rejected. Residual uncertainty is the extent of the grey periphery and a small vessel tail near axial 69.",
+  "tool_calls": 30,
+  "model_prompts": 4
+}

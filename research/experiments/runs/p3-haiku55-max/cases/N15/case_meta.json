@@ -1,0 +1,39 @@
+{
+  "case_id": "N15",
+  "shape": [
+    141,
+    141,
+    133
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 3468591,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    133
+  ],
+  "created_at": "2026-10-19T23:41:58Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:48:14Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Final review: mask (36 mL, one component) follows the bright heterogeneous posterolateral mass in all planes; no lesion in the past-the-mask panels. Candidates C1-C5 reviewed and rejected: C1 is mostly gray anterior muscle/fascia (adding it made the mask leak along the bone, undone), C2-C5 are separate vessel/tendon-like structures or the bright posteromedial crescent separated by a dark seam. Residual uncertainty is the thin gray periphery.",
+  "tool_calls": 27,
+  "model_prompts": 2
+}

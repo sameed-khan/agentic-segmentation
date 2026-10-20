@@ -1,0 +1,39 @@
+{
+  "case_id": "L29",
+  "shape": [
+    161,
+    161,
+    173
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4569649,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    173
+  ],
+  "created_at": "2026-10-19T23:01:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:08:12Z",
+  "final_version": "v8",
+  "confidence": "medium",
+  "reason": "Single anterior-compartment heterogeneous T2-bright mass (~41 mL), outline follows the lesion in axial, coronal and sagittal reviews; no lesion beyond the mask ends; remaining candidates are vessels, posterior muscle or superficial rim and were rejected. Some uncertainty about the lateral rim and thin superior band.",
+  "tool_calls": 32,
+  "model_prompts": 1
+}

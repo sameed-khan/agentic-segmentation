@@ -1,0 +1,39 @@
+{
+  "case_id": "N47",
+  "shape": [
+    141,
+    141,
+    117
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2769434,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    117
+  ],
+  "created_at": "2026-10-19T23:55:45Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:59:02Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "Single component T2-bright ovoid mass (about 18x20x38 mm, 6.1 mL). Outline follows the lesion edge in axial, coronal and sagittal panels; past-the-mask panels show no lesion tissue. Candidate C1 is a separate round bright vessel-like structure with a dark centre, not rejoined to the tumour, so it was excluded.",
+  "tool_calls": 18,
+  "model_prompts": 1
+}

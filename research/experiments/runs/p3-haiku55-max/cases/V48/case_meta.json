@@ -1,0 +1,39 @@
+{
+  "case_id": "V48",
+  "shape": [
+    221,
+    221,
+    351
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 14386343,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    351
+  ],
+  "created_at": "2026-10-20T00:13:09Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:17:25Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Single bright T2 crescent-shaped vascular-appearing mass lateral/posterior to femur (39.4 mL, k 58-146). Outline follows the bright core and its contiguous rim in axial, coronal and sagittal planes; past-the-mask slices show no residual lesion. Anteromedial tubular bright structure (likely femoral vein) excluded as normal vasculature; grey low-signal tips only partly covered.",
+  "tool_calls": 23,
+  "model_prompts": 2
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "F53",
+  "shape": [
+    381,
+    381,
+    69
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 11664138,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    381,
+    381,
+    69
+  ],
+  "created_at": "2026-10-19T22:41:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:47:36Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single anterior lobulated heterogeneous mass (~242 mL) with a bright rim and septated/honeycomb interior; outline matches the lesion edge on the final review panels in all three planes, and no lesion tissue is visible past the mask ends. The three candidates are thin shells outside the bright rim (fascia/muscle), so rejected. Identity as the fibrous tumor is inferred from morphology, so confidence is medium.",
+  "tool_calls": 26,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V58",
+  "shape": [
+    201,
+    201,
+    409
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 19634678,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    409
+  ],
+  "created_at": "2026-10-20T00:17:55Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:23:05Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Single component (v1, 26.2 mL) covers the bright T2 crescent along the posterolateral femur over k 318-374; past-the-mask panels show no residual lesion, and in-mask outlines follow the bright edge in all three planes. Candidates C1/C2 are thin fascia/vessel-like slivers and were rejected. Residual uncertainty: whether a faint intermediate-signal periphery should be included.",
+  "tool_calls": 19,
+  "model_prompts": 1
+}

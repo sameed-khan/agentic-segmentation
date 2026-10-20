@@ -1,0 +1,39 @@
+{
+  "case_id": "V02",
+  "shape": [
+    181,
+    181,
+    246
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 9633781,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    181,
+    181,
+    246
+  ],
+  "created_at": "2026-10-19T23:58:29Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:03:44Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Single connected bright vascular mass (about 10.6 mL, axial 37-84) between the tibia and the anterior compartment. Outline follows the bright lobules in all planes; the past-mask panels show no further lesion tissue and no candidates were found. Uncertain whether the thin bright tails along the anterior band are tumour or normal vessels.",
+  "tool_calls": 32,
+  "model_prompts": 3
+}

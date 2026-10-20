@@ -1,0 +1,39 @@
+{
+  "case_id": "V63",
+  "shape": [
+    241,
+    241,
+    89
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6312968,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    89
+  ],
+  "created_at": "2026-10-20T00:21:38Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:29:24Z",
+  "final_version": "v2",
+  "confidence": "low",
+  "reason": "Mask covers the bright heterogeneous anterior-left abdominal mass (plus its intensity-matched periphery). Boundary looks reasonable in the reviewed planes, but I could not rule out that this bright structure is bowel (stool-filled colon) rather than the vascular tumor, so confidence is low. Other candidates were tubular/bowel-like and rejected.",
+  "tool_calls": 27,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "L28",
+  "shape": [
+    251,
+    251,
+    341
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 24661610,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    341
+  ],
+  "created_at": "2026-10-19T23:00:47Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:09:37Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Lobulated T2-bright lesion segmented as one component (~774 mL); outline follows the bright margin on axial, coronal and sagittal views and the past-mask panels show no lesion. Uncertain: inferior streaky extension included as contiguous infiltrative tumour; surrounding candidate shells (C1-C3, >250 mL) judged as peritumoral oedema/muscle and not added; C4/C5 are small vascular/bony bits near the hip and were rejected.",
+  "tool_calls": 31,
+  "model_prompts": 1
+}

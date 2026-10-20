@@ -1,0 +1,39 @@
+{
+  "case_id": "M17",
+  "shape": [
+    230,
+    230,
+    200
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 12336993,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    230,
+    230,
+    200
+  ],
+  "created_at": "2026-10-19T23:18:36Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:26:04Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Bright homogeneous myxoid oval (about 28 mL) is segmented accurately in all planes; the heterogeneous superior and inferior extensions contiguous with it are included as tumour periphery. The five review candidates were rejected: the 40 mL candidate is a thin shell of peritumoral and vascular tissue, and the other four are separate fascia, vessel, or nerve-like structures not contiguous with the lesion. Past-the-mask panels show no residual lesion. Remaining uncertainty is whether the grey extensions are tumour or peritumoral change.",
+  "tool_calls": 19,
+  "model_prompts": 3
+}

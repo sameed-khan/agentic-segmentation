@@ -1,0 +1,39 @@
+{
+  "case_id": "M19",
+  "shape": [
+    260,
+    260,
+    360
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 22242620,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    260,
+    260,
+    360
+  ],
+  "created_at": "2026-10-19T23:19:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:22:58Z",
+  "final_version": "v4",
+  "confidence": "high",
+  "reason": "Single lobulated, T2-bright myxoid mass in the posteromedial thigh (130 mL, one component). Outline follows the mass edge in axial, coronal and sagittal planes, including the less intense inferior tail and the thin periphery; past-the-end panels show no lesion. Remaining candidates are ring-shaped bands of surrounding muscle/fascia, rejected.",
+  "tool_calls": 21,
+  "model_prompts": 1
+}

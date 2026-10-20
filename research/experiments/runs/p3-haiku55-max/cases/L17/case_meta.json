@@ -1,0 +1,39 @@
+{
+  "case_id": "L17",
+  "shape": [
+    271,
+    271,
+    400
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 31207624,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    400
+  ],
+  "created_at": "2026-10-19T22:52:45Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:01:38Z",
+  "final_version": "v6",
+  "confidence": "medium",
+  "reason": "Single component (994 mL) covering the large fat-signal lipomatous mass lateral and posterolateral to the femur, bounded by the fascial dark rim; past-the-mask panels show no residual lesion and the candidate proposals are subcutaneous fat or rim tissue, so none were accepted. Some uncertainty about the superior tip and whether the internal mottled oval is all tumor (included).",
+  "tool_calls": 31,
+  "model_prompts": 4
+}

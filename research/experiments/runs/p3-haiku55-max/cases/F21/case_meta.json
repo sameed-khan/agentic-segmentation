@@ -1,0 +1,39 @@
+{
+  "case_id": "F21",
+  "shape": [
+    267,
+    267,
+    505
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34867657,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    267,
+    267,
+    505
+  ],
+  "created_at": "2026-10-19T22:22:45Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:30:05Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Large lobulated heterogeneous T2-bright posterior thigh mass covered across axial 263-371 with boundaries following fascial planes on the axial slices; past-the-mask panels show no clear extra lesion, and all candidates are surrounding shells or normal fibrous streaks. Uncertain: whether the streaky inferior tissue (about k 255-270) is infiltrative tumor, and the exact lateral margin.",
+  "tool_calls": 36,
+  "model_prompts": 3
+}

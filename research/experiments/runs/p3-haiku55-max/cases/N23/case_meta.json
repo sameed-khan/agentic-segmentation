@@ -1,0 +1,39 @@
+{
+  "case_id": "N23",
+  "shape": [
+    221,
+    221,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 18753494,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    330
+  ],
+  "created_at": "2026-10-19T23:45:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:52:52Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Mask covers the homogeneous bright anterior-compartment mass (oval core), its superior crescent extension, and a separate bright nodule; boundaries fit the bright lesion in the reviewed planes. Candidates C1-C4 looked like fascia, thin membranous lines or normal tissue, so rejected. Residual uncertainty about whether the surrounding heterogeneous anterior-compartment signal belongs to the tumor.",
+  "tool_calls": 32,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "N04",
+  "shape": [
+    121,
+    121,
+    111
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 1964626,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    121,
+    121,
+    111
+  ],
+  "created_at": "2026-10-19T23:36:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:40:24Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed T2-hyperintense oval mass (~19 mm, ~5.9 mL) posterior in the limb; outline follows the bright core in axial, coronal and sagittal planes, and the final review shows no lesion tissue in the past-the-mask panels. Residual uncertainty: whether a thin dark capsule rim should be included and whether the faint tips belong to the tumour.",
+  "tool_calls": 23,
+  "model_prompts": 1
+}

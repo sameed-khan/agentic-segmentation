@@ -1,0 +1,39 @@
+{
+  "case_id": "V34",
+  "shape": [
+    241,
+    241,
+    264
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17635470,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    241,
+    241,
+    264
+  ],
+  "created_at": "2026-10-20T00:07:49Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:12:18Z",
+  "final_version": "v1",
+  "confidence": "medium",
+  "reason": "Mask (v1, 178 mL) follows the bright lobulated mass in all three planes; past-the-mask panels show no lesion tissue. Candidates C1-C5 were rejected: C1 is muscle, fascia and vessels around the mass, and C2-C5 are thin vessel-like or tiny structures. Remaining uncertainty is in the diffuse superior and inferior tails and a small posterolateral notch.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

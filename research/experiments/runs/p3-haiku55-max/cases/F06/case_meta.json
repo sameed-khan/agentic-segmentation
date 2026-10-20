@@ -1,0 +1,39 @@
+{
+  "case_id": "F06",
+  "shape": [
+    141,
+    141,
+    109
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2596595,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    141,
+    141,
+    109
+  ],
+  "created_at": "2026-10-19T22:14:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:22:40Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Lobulated heterogeneous anterolateral leg mass (bright and intermediate lobules with dark septa) deep to subcutaneous fat, checked in axial/coronal/sagittal and final review; candidates were normal fat/fascia and rejected. Identity as fibrous tumor is uncertain.",
+  "tool_calls": 35,
+  "model_prompts": 2
+}

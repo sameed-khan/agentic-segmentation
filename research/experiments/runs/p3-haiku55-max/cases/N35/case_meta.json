@@ -1,0 +1,39 @@
+{
+  "case_id": "N35",
+  "shape": [
+    201,
+    201,
+    351
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17155167,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    201,
+    201,
+    351
+  ],
+  "created_at": "2026-10-19T23:48:17Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:55:42Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "Single large T2-hyperintense posterolateral thigh mass (about 440 mL) outlined in all three planes, including its lateral lobule and the mottled superior extension to about slice 178. Candidates C1-C5 were rejected: they are mainly the bright anterior tube, vessel-like branches and small blobs. Remaining uncertainty is whether the superior lace-like extension (slices 150-178) and the faint inferior tissue near slice 46 are tumour, and whether the boundary is slightly tight.",
+  "tool_calls": 26,
+  "model_prompts": 2
+}

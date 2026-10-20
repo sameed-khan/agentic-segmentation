@@ -1,0 +1,39 @@
+{
+  "case_id": "L23",
+  "shape": [
+    251,
+    251,
+    435
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T1",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 34341828,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    435
+  ],
+  "created_at": "2026-10-19T22:57:11Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:07:09Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Single component (681 mL) following the heterogeneous fat-containing posterolateral mass around the femur from k\u224851 to 232; checked in axial, coronal and sagittal panels. Candidates C1\u2013C3 are rim/subcutaneous tissue and C4 is a small lateral piece, so all rejected. Some uncertainty remains about the small bright tongue/anterior crescent above k\u2248232 and whether the lateral homogeneous oval is normal muscle (excluded).",
+  "tool_calls": 34,
+  "model_prompts": 4
+}

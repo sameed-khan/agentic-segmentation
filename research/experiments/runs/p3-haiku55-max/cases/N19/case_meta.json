@@ -1,0 +1,39 @@
+{
+  "case_id": "N19",
+  "shape": [
+    221,
+    221,
+    187
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 7937949,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    221,
+    221,
+    187
+  ],
+  "created_at": "2026-10-19T23:43:07Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:46:35Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed T2-bright ovoid lesion (~40x27x27 mm) in the anterior compartment of the lower leg, segmented with one point prompt and cleaned to one component. Final review: outline follows the bright edge in axial, coronal and sagittal panels; no lesion tissue in the past-the-mask panels; no candidates. Posterior round bright blobs were judged to be vessels and excluded. Medium because the histology (PNST vs. other cystic or fluid-like lesion) is inferred from appearance only.",
+  "tool_calls": 15,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M35",
+  "shape": [
+    220,
+    220,
+    320
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 17410126,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    220,
+    220,
+    320
+  ],
+  "created_at": "2026-10-19T23:27:03Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:34:25Z",
+  "final_version": "v4",
+  "confidence": "medium",
+  "reason": "One large ovoid myxoid-appearing soft-tissue mass (about 214 mL), segmented from a single positive point and refined. Outlines follow the visible boundary in the axial, coronal and sagittal review panels. Remaining uncertainty is at the superior and inferior tips, where dim tissue was only partly captured and faint tissue just outside the mask (about 8 mm below and above) was not included.",
+  "tool_calls": 38,
+  "model_prompts": 3
+}

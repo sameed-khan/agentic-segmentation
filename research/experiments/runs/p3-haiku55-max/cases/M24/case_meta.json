@@ -1,0 +1,39 @@
+{
+  "case_id": "M24",
+  "shape": [
+    280,
+    280,
+    330
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 26522223,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    280,
+    280,
+    330
+  ],
+  "created_at": "2026-10-19T23:21:04Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:28:43Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Single connected mask following the large homogeneous myxoid ovoid at mid and lower levels; all candidate corrections (C1-C5) are dim peritumoral muscle/fascia or ring-like structures, so rejected. Remaining uncertainty: anterior-right grey lobe inclusion, small appendages, and the flat inferior cut near axial 107.",
+  "tool_calls": 24,
+  "model_prompts": 1
+}

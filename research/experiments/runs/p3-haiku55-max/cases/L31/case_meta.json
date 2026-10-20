@@ -1,0 +1,39 @@
+{
+  "case_id": "L31",
+  "shape": [
+    251,
+    251,
+    426
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "lipomatous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 27357333,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    426
+  ],
+  "created_at": "2026-10-19T23:01:43Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:04:43Z",
+  "final_version": "v2",
+  "confidence": "high",
+  "reason": "One positive point gave a single component (291.8 mL) that follows the bright T2 mass edge in axial, coronal and sagittal reviews. Slices 8 mm beyond each end show no residual lesion. Candidates C1-C5 are thin vessel-like or grey peripheral rims, so none were accepted.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

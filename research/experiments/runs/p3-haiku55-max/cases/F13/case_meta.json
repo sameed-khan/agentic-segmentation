@@ -1,0 +1,39 @@
+{
+  "case_id": "F13",
+  "shape": [
+    211,
+    211,
+    126
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 6174236,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    211,
+    211,
+    126
+  ],
+  "created_at": "2026-10-19T22:14:32Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:21:45Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Single lobulated bright posterior-compartment mass, outlined to its visible margins (dark fascial rims posteriorly/laterally) in axial, coronal and sagittal reviews; no stray components, nothing visible beyond the mask ends. Rejected the 49-56 mL peritumoral shell (candidate C1, includes dark fascia and muscle) and the fibular-side strip (C2). Residual uncertainty: how much of the less intense anterior/left periphery the reference includes, and small vessel bits at the superior/inferior tips.",
+  "tool_calls": 24,
+  "model_prompts": 2
+}

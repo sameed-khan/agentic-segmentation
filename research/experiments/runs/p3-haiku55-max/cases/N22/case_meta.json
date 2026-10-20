@@ -1,0 +1,39 @@
+{
+  "case_id": "N22",
+  "shape": [
+    271,
+    271,
+    441
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 28168072,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    271,
+    271,
+    441
+  ],
+  "created_at": "2026-10-19T23:43:34Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:48:43Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "One connected T2-bright heterogeneous mass in the right thigh; outline follows the bright tumour in all planes, internal holes filled, past-the-mask slices show no lesion. Candidates C1-C5 reviewed and rejected as muscle, thin nerve/vessel bands or small vessels; the grey peripheral zone (C1) is the main uncertainty.",
+  "tool_calls": 20,
+  "model_prompts": 1
+}

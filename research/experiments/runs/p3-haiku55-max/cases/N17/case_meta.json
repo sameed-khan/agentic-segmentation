@@ -1,0 +1,39 @@
+{
+  "case_id": "N17",
+  "shape": [
+    131,
+    131,
+    110
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "peripheral nerve sheath tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 2467269,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    131,
+    131,
+    110
+  ],
+  "created_at": "2026-10-19T23:42:50Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:46:22Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single well-circumscribed T2-bright ovoid mass (3.7 mL, about 15 mm axial by 30 mm craniocaudal) segmented from one positive point. The final review shows the outline on the bright edge in axial, coronal and sagittal panels, with no lesion tissue in the past-the-mask panels and no stray components. Residual uncertainty: the lesion's homogeneous bright signal without a clear target sign, and partial-volume poles where the inferior end is slightly under-covered.",
+  "tool_calls": 17,
+  "model_prompts": 1
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "V09",
+  "shape": [
+    161,
+    161,
+    156
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "vascular soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 4678743,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    161,
+    161,
+    156
+  ],
+  "created_at": "2026-10-20T00:01:11Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-20T00:03:48Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Single round, heterogeneous T2-bright vascular-type mass (~21-24 mm diameter, axial 35-67) in the anterolateral compartment; one model prompt from its centre followed the rim in axial, coronal and sagittal planes, and the review showed no missed lesion tissue past either end. The tapered ends are fuzzy, so their extent is less certain.",
+  "tool_calls": 16,
+  "model_prompts": 1
+}

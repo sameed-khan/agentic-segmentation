@@ -1,0 +1,39 @@
+{
+  "case_id": "F46",
+  "shape": [
+    251,
+    251,
+    498
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 38159341,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    251,
+    251,
+    498
+  ],
+  "created_at": "2026-10-19T22:39:06Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:44:09Z",
+  "final_version": "v3",
+  "confidence": "medium",
+  "reason": "Final review: mask follows the heterogeneous fibrous mass on the mid-level axial, coronal and sagittal slices, with no lesion visible in the 8 mm past-the-mask panels. The candidates were surrounding rings of muscle and were rejected. The upper tip (about 185-205) is patchy and the lower tail (about 40-70) is uncertain.",
+  "tool_calls": 18,
+  "model_prompts": 3
+}

@@ -1,0 +1,39 @@
+{
+  "case_id": "M23",
+  "shape": [
+    270,
+    270,
+    729
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "myxoid soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 64370923,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    270,
+    270,
+    729
+  ],
+  "created_at": "2026-10-19T23:20:52Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T23:27:00Z",
+  "final_version": "v2",
+  "confidence": "medium",
+  "reason": "Main bright myxoid mass in the right thigh is well outlined in the axial, coronal and sagittal planes. The distal and posterior extension (added by scribble) is less certain, and a few small stray pieces remain. All five candidates are thin rims along fascia or skin, judged normal tissue and rejected.",
+  "tool_calls": 19,
+  "model_prompts": 3
+}

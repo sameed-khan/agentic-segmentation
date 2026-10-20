@@ -1,0 +1,39 @@
+{
+  "case_id": "F38",
+  "shape": [
+    321,
+    321,
+    470
+  ],
+  "spacing": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "sequence": "T2",
+  "target_text": "fibrous soft-tissue tumor",
+  "budgets": {
+    "max_tool_calls": 40,
+    "max_model_prompts": 15
+  },
+  "nni": "remote",
+  "upload_packed_bytes": 30294147,
+  "crop_offset": [
+    0,
+    0,
+    0
+  ],
+  "crop_shape": [
+    321,
+    321,
+    470
+  ],
+  "created_at": "2026-10-19T22:33:10Z",
+  "source_orientation": "RAS",
+  "finished_at": "2026-10-19T22:41:43Z",
+  "final_version": "v5",
+  "confidence": "medium",
+  "reason": "Single component of the T2-bright posterolateral thigh mass (about 101 mL) that matches the bright core on all planes. Candidates C1 and C2 are thin fascial bands and C3 is a broad gray rim that would add normal muscle, so none were accepted. Medium confidence because the gray periphery and tail extent are uncertain.",
+  "tool_calls": 32,
+  "model_prompts": 2
+}

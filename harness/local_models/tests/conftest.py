@@ -20,8 +20,10 @@ LOCAL_MODELS_DIR = Path(__file__).resolve().parents[1]
 GUI_ACTOR_DIR = LOCAL_MODELS_DIR / "pointd_gui_actor"
 MOLMO2_DIR = LOCAL_MODELS_DIR / "pointd_molmo2"
 MEDGEMMA_DIR = LOCAL_MODELS_DIR / "medgemma"
+MOLMOPOINT_DIR = LOCAL_MODELS_DIR / "pointd_molmopoint"
+QWEN3VL_DIR = LOCAL_MODELS_DIR / "pointd_qwen3vl"
 
-for _d in (GUI_ACTOR_DIR, MOLMO2_DIR, MEDGEMMA_DIR):
+for _d in (GUI_ACTOR_DIR, MOLMO2_DIR, MEDGEMMA_DIR, MOLMOPOINT_DIR, QWEN3VL_DIR):
     if str(_d) not in sys.path:
         sys.path.insert(0, str(_d))  # molmo_points / medgemma_client imports
 
@@ -65,6 +67,16 @@ def medgemma_server_mod():
 
 
 @pytest.fixture(scope="session")
+def molmopoint_server_mod():
+    return _load_module("phase5_molmopoint_server", MOLMOPOINT_DIR / "server.py")
+
+
+@pytest.fixture(scope="session")
+def qwen3vl_server_mod():
+    return _load_module("phase5_qwen3vl_server", QWEN3VL_DIR / "server.py")
+
+
+@pytest.fixture(scope="session")
 def gui_actor_app(gui_actor_server_mod):
     return gui_actor_server_mod.create_app(
         gui_actor_server_mod.FakeBackend(model_id="microsoft/GUI-Actor-2B-Qwen2-VL"))
@@ -80,6 +92,18 @@ def molmo2_app(molmo2_server_mod):
 def medgemma_bf16_app(medgemma_server_mod):
     return medgemma_server_mod.create_app(medgemma_server_mod.FakeBackend(),
                                           "google/medgemma-1.5-4b-it")
+
+
+@pytest.fixture(scope="session")
+def molmopoint_app(molmopoint_server_mod):
+    return molmopoint_server_mod.create_app(
+        molmopoint_server_mod.FakeBackend(model_id="allenai/MolmoPoint-8B"))
+
+
+@pytest.fixture(scope="session")
+def qwen3vl_app(qwen3vl_server_mod):
+    return qwen3vl_server_mod.create_app(
+        qwen3vl_server_mod.FakeBackend(model_id="Qwen/Qwen3-VL-8B-Instruct"))
 
 
 @pytest.fixture()
@@ -103,4 +127,20 @@ def medgemma_client_fixture(medgemma_bf16_app):
     from fastapi.testclient import TestClient
 
     with TestClient(medgemma_bf16_app) as client:
+        yield client
+
+
+@pytest.fixture()
+def molmopoint_client(molmopoint_app):
+    from fastapi.testclient import TestClient
+
+    with TestClient(molmopoint_app) as client:  # context manager runs startup hooks
+        yield client
+
+
+@pytest.fixture()
+def qwen3vl_client(qwen3vl_app):
+    from fastapi.testclient import TestClient
+
+    with TestClient(qwen3vl_app) as client:  # context manager runs startup hooks
         yield client

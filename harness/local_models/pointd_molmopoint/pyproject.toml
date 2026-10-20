@@ -1,0 +1,36 @@
+[project]
+name = "pointd-molmopoint"
+version = "1.0.0"
+description = "FastAPI pointer service around AI2 MolmoPoint-8B (HF Transformers, trust_remote_code, grounding-token pointing API)"
+requires-python = ">=3.11,<3.13"          # official card quickstart: Python 3.11
+dependencies = [
+    # Official MolmoPoint-8B card quickstart pins (HF card: transformers==4.57.1 + torch,
+    # pillow, einops, torchvision, accelerate; decord2 is video-only and not needed here).
+    "transformers==4.57.1",
+    "torch==2.7.1",                        # CUDA 12.x Linux wheels on PyPI include sm_80 (A100)
+    "torchvision==0.22.1",                 # matches torch 2.7.1 (card quickstart includes torchvision)
+    "accelerate>=1.1.0",                   # device_map placement
+    "einops>=0.8.0",
+    "pillow>=11.0.0",
+    "numpy>=2.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "pydantic>=2.9.0",
+]
+# Notes:
+# - trust_remote_code=True is set at model/processor load (server.py), never on the transport layer.
+# - dtype=torch.bfloat16 is explicit at load: the checkpoint's config dtype is float32, so the
+#   card's `dtype="auto"` would need ~35 GB (same rationale as pointd-molmo2); generation runs
+#   under the card's torch.autocast("cuda", dtype=torch.bfloat16).
+# - attn_implementation="sdpa" (the checkpoint config already records sdpa); no flash-attn build.
+
+[dependency-groups]
+dev = ["pytest>=8.3.0", "httpx>=0.27.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Application-style uv project (no wheel to build/install); uv syncs the venv only.
+package = false

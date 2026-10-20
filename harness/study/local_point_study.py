@@ -6,6 +6,8 @@ Models (all via their local HTTP services, decoding deterministic; see
 harness/local_models/ and research/phase5_implementation.md):
 - gui_actor    : pointd-gui-actor :8092 (GUI-Actor-2B, official pointer head) — conditions raw, marks
 - molmo2       : pointd-molmo2   :8093 (Molmo2-8B, <points> output)          — conditions raw, marks
+- molmopoint   : pointd-molmopoint :8095 (MolmoPoint-8B, grounding tokens)   — conditions raw, marks
+- qwen3vl      : pointd-qwen3vl  :8096 (Qwen3-VL-8B-Instruct, point_2d JSON) — conditions raw, marks
 - medgemma_q4  : llama-server    :8091 (Q4_K_M GGUF, OpenAI-compatible)      — conditions raw_box, marks_box, marks_id
 - medgemma_bf16: BF16 server     :8094 (Transformers, OpenAI-compatible)     — conditions raw_box, marks_box, marks_id
 
@@ -73,6 +75,8 @@ from medgemma_client import MedGemmaClient  # noqa: E402
 MODELS: dict[str, dict] = {
     "gui_actor": {"kind": "pointd", "port": 8092, "conditions": ("raw", "marks")},
     "molmo2": {"kind": "pointd", "port": 8093, "conditions": ("raw", "marks")},
+    "molmopoint": {"kind": "pointd", "port": 8095, "conditions": ("raw", "marks")},
+    "qwen3vl": {"kind": "pointd", "port": 8096, "conditions": ("raw", "marks")},
     "medgemma_q4": {"kind": "chat", "port": 8091, "conditions": ("raw_box", "marks_box", "marks_id")},
     "medgemma_bf16": {"kind": "chat", "port": 8094, "conditions": ("raw_box", "marks_box", "marks_id")},
 }
@@ -344,6 +348,8 @@ def parse_args(argv=None):
     ap.add_argument("--results-root", default=DEFAULT_RESULTS_ROOT)
     ap.add_argument("--gui-actor-url", default=None)
     ap.add_argument("--molmo2-url", default=None)
+    ap.add_argument("--molmopoint-url", default=None)
+    ap.add_argument("--qwen3vl-url", default=None)
     ap.add_argument("--medgemma-q4-url", default=None)
     ap.add_argument("--medgemma-bf16-url", default=None)
     args = ap.parse_args(argv)
@@ -355,6 +361,8 @@ def parse_args(argv=None):
     args.urls = {
         "gui_actor": args.gui_actor_url or f"http://127.0.0.1:{MODELS['gui_actor']['port']}",
         "molmo2": args.molmo2_url or f"http://127.0.0.1:{MODELS['molmo2']['port']}",
+        "molmopoint": args.molmopoint_url or f"http://127.0.0.1:{MODELS['molmopoint']['port']}",
+        "qwen3vl": args.qwen3vl_url or f"http://127.0.0.1:{MODELS['qwen3vl']['port']}",
         "medgemma_q4": args.medgemma_q4_url or f"http://127.0.0.1:{MODELS['medgemma_q4']['port']}",
         "medgemma_bf16": args.medgemma_bf16_url or f"http://127.0.0.1:{MODELS['medgemma_bf16']['port']}",
     }

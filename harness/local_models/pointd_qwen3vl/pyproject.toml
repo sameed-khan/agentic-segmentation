@@ -1,0 +1,34 @@
+[project]
+name = "pointd-qwen3vl"
+version = "1.0.0"
+description = "FastAPI pointer service around Qwen/Qwen3-VL-8B-Instruct (HF Transformers)"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    # Official Qwen3-VL-8B-Instruct card: latest transformers (the card names 4.57.0,
+    # unreleased at its writing; 4.57.1 is the released patch and the MolmoPoint pin).
+    "transformers==4.57.1",
+    "torch==2.7.1",                        # CUDA 12.x Linux wheels on PyPI include sm_80 (A100)
+    "torchvision==0.22.1",                 # matches torch 2.7.1 (Qwen3-VL image processing)
+    "accelerate>=1.1.0",                   # device_map placement
+    "pillow>=11.0.0",
+    "numpy>=2.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "pydantic>=2.9.0",
+]
+# Notes:
+# - dtype=torch.bfloat16 explicit at load (checkpoint is BF16; explicit per the harness
+#   Study A protocol); attn_implementation="sdpa" (the card recommends flash_attention_2,
+#   which would need a source build — sdpa is the validated default here).
+# - No qwen-vl-utils: the service passes PIL images directly (no URL/video loading).
+
+[dependency-groups]
+dev = ["pytest>=8.3.0", "httpx>=0.27.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Application-style uv project (no wheel to build/install); uv syncs the venv only.
+package = false

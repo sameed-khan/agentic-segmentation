@@ -34,6 +34,8 @@ from medgemma_client import MedGemmaClient  # noqa: E402
 SERVICES = {
     "gui_actor": {"base_url": "http://127.0.0.1:8092"},
     "molmo2": {"base_url": "http://127.0.0.1:8093"},
+    "molmopoint": {"base_url": "http://127.0.0.1:8095"},
+    "qwen3vl": {"base_url": "http://127.0.0.1:8096"},
     "medgemma_q4": {"base_url": "http://127.0.0.1:8091"},
     "medgemma_bf16": {"base_url": "http://127.0.0.1:8094"},
 }
@@ -130,7 +132,7 @@ def main() -> None:
         row["histotype"], "") + " soft-tissue tumor"
 
     # ---- pointer services --------------------------------------------------
-    for name in ("gui_actor", "molmo2"):
+    for name in ("gui_actor", "molmo2", "molmopoint", "qwen3vl"):
         base = SERVICES[name]["base_url"]
         try:
             health = http_json(base + "/healthz", method="GET")

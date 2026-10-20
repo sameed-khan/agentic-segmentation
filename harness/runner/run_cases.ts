@@ -86,6 +86,8 @@ interface Options {
 	maxModelPrompts: number;
 	segdUrl: string;
 	nniUrl: string;
+	segmenter: string;
+	segmenterUrl: string | null;
 	extension: string;
 	dryStub: boolean;
 	authShim: string;
@@ -111,6 +113,8 @@ function parseArgs(argv: string[]): Options {
 		maxModelPrompts: 15,
 		segdUrl: "http://127.0.0.1:8765",
 		nniUrl: "http://127.0.0.1:1527",
+		segmenter: "nninteractive",
+		segmenterUrl: null,
 		extension: DEFAULT_EXTENSION_DIR,
 		dryStub: false,
 		authShim: process.env.AUTH_SHIM ?? DEFAULT_AUTH_SHIM,
@@ -166,6 +170,12 @@ function parseArgs(argv: string[]): Options {
 			case "--nni-url":
 				opts.nniUrl = next();
 				break;
+			case "--segmenter":
+				opts.segmenter = next();
+				break;
+			case "--segmenter-url":
+				opts.segmenterUrl = next();
+				break;
 			case "--extension":
 				opts.extension = resolve(next());
 				break;
@@ -202,6 +212,9 @@ function parseArgs(argv: string[]): Options {
 				throw new Error(`unknown option: ${arg}`);
 		}
 	}
+	if (opts.segmenter !== "nninteractive" && opts.segmenter !== "sammed3d") {
+		throw new Error(`--segmenter must be nninteractive|sammed3d (got ${opts.segmenter})`);
+	}
 	return opts;
 }
 
@@ -220,6 +233,9 @@ function printHelp(): void {
   --max-model-prompts <n>   budget sent to segd (default 15)
   --segd-url <url>          (default http://127.0.0.1:8765)
   --nni-url <url>           (default http://127.0.0.1:1527)
+  --segmenter <name>        nninteractive (default) | sammed3d (Phase 6 segmenter swap; the
+                            agent-side tools/prompts are identical, only the segmenter changes)
+  --segmenter-url <url>     segmenter service URL (default: segd's, http://127.0.0.1:8095 for sammed3d)
   --extension <path>        default harness/extension (dir); checks/ping_ext.ts for smoke
   --dry-stub                spawn the bundled stub segd and use it as --segd-url
   --examples <manifest>     Phase 2 prepare manifest.jsonl: attach each case's leave-one-out example image
@@ -501,6 +517,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			// at <out_dir>/cache/marks, so send the results root here.
 			out_dir: opts.resultsDir,
 			nni_url: opts.nniUrl,
+			segmenter: opts.segmenter,
+			segmenter_url: opts.segmenterUrl,
 			budgets: {
 				max_tool_calls: opts.maxToolCalls,
 				max_model_prompts: opts.maxModelPrompts,
@@ -769,6 +787,8 @@ async function runCase(row: CaseRow, opts: Options, shared: Shared): Promise<Cas
 			run_id: opts.runId,
 			model: opts.model,
 			thinking_level: opts.thinking,
+			segmenter: opts.segmenter,
+			segmenter_url: opts.segmenterUrl,
 			pi_version: VERSION,
 			auth_shim_path: resolve(opts.authShim),
 			auth_shim_version: shared.shimVersion,
@@ -972,6 +992,8 @@ async function main(): Promise<void> {
 		extension: opts.extension,
 		segd_url: opts.segdUrl,
 		nni_url: opts.nniUrl,
+		segmenter: opts.segmenter,
+		segmenter_url: opts.segmenterUrl,
 		concurrency: opts.concurrency,
 		harness_sha256: shared.harnessHash,
 		git_commit: shared.git.commit,

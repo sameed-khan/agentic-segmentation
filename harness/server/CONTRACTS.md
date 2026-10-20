@@ -235,3 +235,56 @@ the tool schema accepts `ids: array of (integer|string)`.
   frame's occupied rectangles (no overlap with orientation letters, bottom-row fallback on narrow
   panels). `candidates._components` materializes only the largest `limit` qualifying components
   (2 x `CANDIDATE_MAX_N` at the generator call sites) instead of one crop-sized array per component.
+
+## Phase 6 — segmenter swap (SAM-Med3D-turbo instead of nnInteractive)
+
+Goal: harness v2 with SAM-Med3D-turbo as the interactive segmenter, apples-to-apples — the agent
+sees identical tools, prompts, renders, marks, budgets and observation formats; ONLY the
+segmenter behind `CaseState.nni` changes. Full write-up: `research/phase6_sammed3d.md`.
+
+- **Selection.** `POST /cases` accepts `segmenter` (`"nninteractive"` default | `"sammed3d"`) and
+  `segmenter_url` (sammed3d default `config.SAMED3D_URL` = `http://127.0.0.1:8095`; for nninteractive
+  the existing `nni_url` is used, unchanged). Anything else → HTTP 400. `CaseState(segmenter=,
+  segmenter_url=)`. Both appear in `case_meta.json` (`segmenter`, `segmenter_url`; `nni` is
+  `"sammed3d"` for the swap, `"remote"`/`"fake"` otherwise) and in `GET /cases/{h}/status`
+  (`segmenter`). The runner exposes `--segmenter` / `--segmenter-url`, recorded in each case's
+  `meta.json` and in `batch_summary.json`. With the default segmenter nothing changes: observations
+  and PNG bytes are identical to the pre-Phase-6 tree (`tests/test_p6_default_identity.py`).
+- **Client.** `segd.sammed3d` bridges to the local-model project `harness/local_models/sammed3d`
+  (own uv env with torch; segd needs no torch). `sammed3d.client.SamMed3DSession` is a
+  call-signature drop-in for `nnInteractiveRemoteInferenceSession` (identical method names,
+  parameters and defaults for everything CaseState calls: `set_image`, `set_target_buffer`,
+  `set_do_autozoom`, `reset_interactions`, `add_{point,bbox,lasso,scribble,initial_seg}_interaction`,
+  `_predict`, `close`, ...; asserted by `tests/test_client_parity.py`). The sync rule (§4), the
+  upload crop, the model-prompt budget and the reconnect-once rule apply unchanged (a sammed3d
+  `SessionExpiredError` is a transport failure like nnInteractive's). `ops.py` is untouched.
+- **Service** (`sammed3d-service`, FastAPI, 127.0.0.1:8095; `--fake` = numpy stand-in for offline
+  tests). Every prediction returns the FULL session-space mask plus the prompt-mapping log. Per
+  call it recomputes the 3D mask from ALL accumulated points and the previous prediction's low-res
+  mask (the official iterative-clicking semantics); prompts sent with `run_prediction=False` only
+  accumulate. `reset_interactions` clears points and the previous mask; `add_initial_seg` makes the
+  given mask the previous-mask prompt (+ one EDT-max interior positive point if there are no points).
+- **Preprocessing / patches** (official `utils/infer_utils.py`, minus ground truth): resample to 1.5 mm
+  (linear), per-patch `ZNormalization` over x>0, 128³ patches, logits upsampled trilinear, sigmoid>0.5,
+  nearest-neighbour map back to the session grid. GT is NEVER used for patch placement: the first patch
+  is centred on the first positive prompt; later patches cover bbox(positive points ∪ current mask);
+  a box exceeding 128 model voxels (192 mm) on an axis is tiled (~25 % overlap, ±16-voxel margin, cap 27
+  patches, the cap/coarsening is logged), each patch gets the prompt points inside it and its slice of
+  the previous mask as the 32³ low-res mask prompt; logits are averaged in overlaps.
+- **Mapping** (logged per call in the response and stored in the trajectory record as
+  `segmenter_interactions`: one entry per prompt call since the previous prediction with
+  `mapped_points` = `[[i, j, k, label], ...]` in session voxels, then a summary entry with
+  `patches_used`, `windows_model_vox`, `n_points_total`, `patch_note`): point → native point
+  (label 1/0); bbox → centre + 4 quarter points of the box slice (label per include flag; a 3D box →
+  centre + 8); lasso → ≤5 deterministic farthest-point samples inside the filled contour (first = EDT
+  max); scribble → ≤5 deterministic evenly spaced samples along the stroke; initial_seg/refine →
+  the mask as low-res mask prompt (+ EDT-max interior point if no points yet). Deterministic, no
+  test-time tuning.
+- **Documented deviations from the official pipeline**: patch placement from prompts instead of the GT
+  bbox centre (required: no GT); windows near the volume edge are zero-padded, not shifted (as the
+  official CropOrPad); an all-zero / constant patch is normalised to 0 instead of raising; non-identical
+  windows derive their mask prompt from the previous probability map (block-mean to 32³, logit) while an
+  identical window reuses the raw low-res logits (the official carry-over).
+- Not swapped: the candidate generator's optional `probe` method (unused; `config.CANDIDATE_METHOD`
+  is `intensity`) still talks to nnInteractive; the system prompt text still says "nnInteractive"
+  (kept verbatim for apples-to-apples).

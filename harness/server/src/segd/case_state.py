@@ -1,5 +1,6 @@
 """CaseState: per-case daemon state — image, versions (immutable uint8 DAG), active view,
-mark resolution, nnInteractive session + sync rule, upload-crop handling.
+mark resolution, segmenter session (nnInteractive | SAM-Med3D, Phase 6) + sync rule,
+upload-crop handling.
 
 Array conventions follow segd/data.py: [i, j, k] voxel indices of the canonical image,
 1 mm isotropic for MSTT. This module never touches ground truth (CONTRACTS §0).
@@ -33,7 +34,11 @@ MODEL_PROMPT_ERROR = "segmentation model error; the mask is unchanged, try again
 def _is_transport_failure(exc: BaseException) -> bool:
     """True for session expiry or connection-level failures: worth one reconnect + retry
     in model_prompt (reviewer finding #2)."""
-    return isinstance(exc, (SessionExpiredError, httpx.HTTPError))
+    if isinstance(exc, (SessionExpiredError, httpx.HTTPError)):
+        return True
+    # Phase 6: the sammed3d client raises its own SessionExpiredError (service restart)
+    from segd import sammed3d as _sammed3d_mod
+    return isinstance(exc, _sammed3d_mod.session_expired_types())
 
 
 def body_mask_fallback(image: np.ndarray) -> np.ndarray:
@@ -125,7 +130,12 @@ class CaseState:
     def __init__(self, case_id: str, image: np.ndarray, affine: np.ndarray,
                  spacing: tuple[float, float, float], target_text: str, sequence: str,
                  out_dir, nni_url: Optional[str] = None, budgets: Optional[dict] = None,
-                 orig_geometry: Optional[tuple] = None):
+                 orig_geometry: Optional[tuple] = None,
+                 segmenter: str = "nninteractive",
+                 segmenter_url: Optional[str] = None):
+        if segmenter not in ("nninteractive", "sammed3d"):
+            raise ValueError(
+                f"segmenter must be 'nninteractive' or 'sammed3d' (got {segmenter!r})")
         self.case_id = case_id
         self.image = np.ascontiguousarray(image, dtype=np.float32)
         self.affine = np.asarray(affine, dtype=np.float64)
@@ -134,6 +144,8 @@ class CaseState:
         self.sequence = sequence
         self.out_dir = Path(out_dir)
         self.nni_url = nni_url
+        self.segmenter = segmenter                 # Phase 6: nninteractive (default) | sammed3d
+        self.segmenter_url = segmenter_url
         self.budgets = {**config.DEFAULT_BUDGETS, **(budgets or {})}
         # (source-file affine, canonical->source orientation transform) when the source
         # NIfTI needed canonicalisation at load (finding #14); None for RAS sources.
@@ -190,7 +202,9 @@ class CaseState:
         self.log.write_case_meta({
             "case_id": self.case_id, "shape": list(self.shape), "spacing": list(self.spacing),
             "sequence": self.sequence, "target_text": self.target_text, "budgets": self.budgets,
-            "nni": "remote" if self.nni_url else "fake",
+            "nni": self.nni_label,
+            "segmenter": self.segmenter,
+            "segmenter_url": self.segmenter_url,
             "upload_packed_bytes": self.upload_packed_bytes,
             "crop_offset": list(self.crop_offset), "crop_shape": list(self.crop_shape),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self.created_at)),
@@ -226,6 +240,14 @@ class CaseState:
             pass  # cache write is an optimization, never a failure
         return ms
 
+    @property
+    def nni_label(self) -> str:
+        """Which backend sits behind the session, for case_meta/status: 'remote'
+        (nnInteractive server) | 'fake' (FakeNNI) | 'sammed3d' (Phase 6 swap)."""
+        if self.segmenter == "sammed3d":
+            return "sammed3d"
+        return "remote" if self.nni_url else "fake"
+
     def _nni_connect(self) -> None:
         """Upload the image (float16 (1,I,J,K)) and register the target buffer.
 
@@ -246,7 +268,15 @@ class CaseState:
             self.upload_packed_bytes = len(pack_array(np.ascontiguousarray(session_img)[None]))
         self.crop_shape = tuple(int(n) for n in session_img.shape)
 
-        if self.nni_url:
+        if self.segmenter == "sammed3d":
+            # Phase 6 segmenter swap: same call surface (SamMed3DSession mirrors the
+            # nnInteractive remote session), different segmenter behind it; the agent
+            # sees identical tools/prompts/observation formats (CONTRACTS "Phase 6").
+            from segd import sammed3d as _sammed3d_mod
+            self.segmenter_url = self.segmenter_url or _sammed3d_mod.default_url()
+            self.nni = _sammed3d_mod.open_session(self.segmenter_url,
+                                                  read_timeout=300, write_timeout=600)
+        elif self.nni_url:
             self.nni = nnInteractiveRemoteInferenceSession(self.nni_url, read_timeout=300, write_timeout=600)
         else:
             from segd.fake_nni import FakeNNI
@@ -369,6 +399,12 @@ class CaseState:
         t0 = time.time()
         fn(self.nni)
         self._nni_seconds = time.time() - t0
+        # Phase 6: when the segmenter session reports how it mapped this call's prompts
+        # (sammed3d's last_interactions; nnInteractive sessions have no such attribute)
+        # the log lands in the trajectory record's extra field for scoring/audit.
+        mapping = getattr(self.nni, "last_interactions", None)
+        if mapping is not None:
+            self._log_extra["segmenter_interactions"] = mapping
         self.commit_mask(self.session_mask_to_full(self.nni.target_buffer))
         self.model_prompts += 1
 
@@ -492,7 +528,9 @@ class CaseState:
         self.log.write_case_meta({
             "case_id": self.case_id, "shape": list(self.shape), "spacing": list(self.spacing),
             "sequence": self.sequence, "target_text": self.target_text, "budgets": self.budgets,
-            "nni": "remote" if self.nni_url else "fake",
+            "nni": self.nni_label,
+            "segmenter": self.segmenter,
+            "segmenter_url": self.segmenter_url,
             "upload_packed_bytes": self.upload_packed_bytes,
             "crop_offset": list(self.crop_offset), "crop_shape": list(self.crop_shape),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self.created_at)),

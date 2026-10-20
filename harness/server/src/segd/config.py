@@ -38,3 +38,7 @@ MODEL_PROMPT_OPS = frozenset({"point", "lasso", "scribble", "box", "refine"})
 CANDIDATE_METHOD = "intensity"
 CANDIDATE_MAX_N = 5
 CANDIDATE_REVIEW_MAX_ACCEPT_ROUNDS = 3   # after this many seg_accept calls a review stops offering candidates
+
+# Phase 6 segmenter swap: the SAM-Med3D local-model service endpoint (harness/local_models/
+# sammed3d, CONTRACTS.md "Phase 6"). Used when a case opens with segmenter="sammed3d".
+SAMED3D_URL = "http://127.0.0.1:8095"

@@ -64,6 +64,13 @@ def create_app() -> FastAPI:
         out_dir = Path(body["out_dir"]) / str(body["run_id"]) / case_id
         nni_url = body.get("nni_url") or None
         budgets = body.get("budgets") or None
+        # Phase 6 segmenter swap: "nninteractive" (default) | "sammed3d" — which
+        # segmenter sits behind the identical call surface; recorded in case_meta.
+        segmenter = str(body.get("segmenter") or "nninteractive").strip().lower()
+        if segmenter not in ("nninteractive", "sammed3d"):
+            raise HTTPException(status_code=400,
+                                detail=f"segmenter must be nninteractive|sammed3d (got {segmenter!r})")
+        segmenter_url = body.get("segmenter_url") or None
         # Hold the case lock for the whole open (finding #11: two concurrent POSTs for
         # the same id used to leak one nnInteractive session; also prevents an op from
         # running against a half-initialized case).
@@ -80,6 +87,7 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=404, detail=f"unknown case {case_id!r}")
             cs = CaseState(case_id, geom.image, geom.affine, geom.spacing, row.target_text,
                            row.sequence, out_dir, nni_url=nni_url, budgets=budgets,
+                           segmenter=segmenter, segmenter_url=segmenter_url,
                            orig_geometry=(geom.orig_affine, geom.inv_ornt)
                            if geom.orig_affine is not None else None)
             try:
@@ -130,7 +138,8 @@ def create_app() -> FastAPI:
                 "tool_calls": cs.tool_calls, "model_prompts": cs.model_prompts,
                 "budgets": dict(cs.budgets), "done": cs.done,
                 "active_view": None if av is None else {"axis": av.axis, "slice": av.slice_idx},
-                "nni": "remote" if cs.nni_url else "fake",
+                "nni": cs.nni_label,
+                "segmenter": cs.segmenter,
                 "versions": len(cs.versions),
             }
 
